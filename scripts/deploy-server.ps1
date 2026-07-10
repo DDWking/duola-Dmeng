@@ -19,7 +19,7 @@ if ($changes) {
 
 git push origin main
 if ($LASTEXITCODE -ne 0) {
-    throw 'GitHub push failed. Deployment was not started.'
+    Write-Warning 'GitHub push failed. Continuing with direct SSH deployment; retry the push later.'
 }
 
 $bundlePath = Join-Path $env:TEMP 'duola-dmeng-main.bundle'
