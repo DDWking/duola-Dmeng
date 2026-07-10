@@ -16,6 +16,8 @@ data/                           运行时数据（忽略，不提交 Git）
 
 `data/` 中的 MariaDB 数据、WordPress 上传图片和 Caddy 证书是持久数据；它们不在 Docker 镜像或 Git 仓库中。
 
+自定义主题和相册插件以只读方式从项目工作区挂载到 WordPress 容器。日后手动部署时，服务器拉取 GitHub 代码并重建服务即可更新它们；文章、数据库和上传照片不会受影响。
+
 ## 本地预览
 
 Windows 本地先安装并启动 Docker Desktop，然后执行：

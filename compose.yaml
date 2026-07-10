@@ -46,6 +46,8 @@
         define('WP_ENVIRONMENT_TYPE', 'production');
         define('WP_MEMORY_LIMIT', '128M');
     volumes:
+      - ./wordpress/wp-content/themes/duola-pocket:/var/www/html/wp-content/themes/duola-pocket:ro
+      - ./wordpress/wp-content/plugins/duola-albums:/var/www/html/wp-content/plugins/duola-albums:ro
       - ./data/uploads:/var/www/html/wp-content/uploads
     networks:
       - site
