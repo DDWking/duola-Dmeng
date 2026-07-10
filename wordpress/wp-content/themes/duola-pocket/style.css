@@ -3,19 +3,19 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.0.1
+Version: 1.0.2
 Text Domain: duola-pocket
 */
 
 :root {
-  --pocket-blue: #0b9fe9;
-  --pocket-blue-deep: #087dbf;
+  --pocket-blue: #129bd8;
+  --pocket-blue-deep: #0870aa;
   --pocket-red: #ef4444;
   --pocket-yellow: #f8c63d;
-  --paper: #fffdf8;
-  --ink: #142033;
-  --muted: #65758b;
-  --line: #dce7ee;
+  --paper: #fcfbf7;
+  --ink: #132436;
+  --muted: #68798a;
+  --line: #dce8ef;
   --card: #ffffff;
   --radius: 1.25rem;
   --wide: min(1180px, calc(100vw - 2.5rem));
@@ -30,27 +30,29 @@ a:hover { color: var(--pocket-blue-deep); }
 img { display: block; max-width: 100%; height: auto; }
 button { font: inherit; }
 
-.site-header { width: var(--wide); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 5.5rem; gap: 1.5rem; }
-.site-brand { font-size: 1.1rem; font-weight: 800; letter-spacing: .04em; color: var(--pocket-blue-deep); }
-.site-nav-list { display: flex; align-items: center; gap: 1.2rem; margin: 0; padding: 0; list-style: none; font-size: .95rem; font-weight: 600; }
+.site-header { width: var(--wide); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 6.25rem; gap: 1.5rem; }
+.site-brand { display: inline-flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 800; letter-spacing: .025em; color: var(--pocket-blue-deep); }
+.site-brand::before { width: .68rem; height: .68rem; content: ""; border-radius: 999px; background: var(--pocket-blue); box-shadow: 0 0 0 .25rem #e5f6ff; }
+.site-nav-list { display: flex; align-items: center; gap: 1.45rem; margin: 0; padding: 0; list-style: none; font-size: .92rem; font-weight: 700; }
 .site-nav-list a { display: block; padding: .35rem 0; border-bottom: 2px solid transparent; }
 .site-nav-list a:hover, .site-nav .current-menu-item a { border-color: var(--pocket-blue); color: var(--pocket-blue-deep); }
 .menu-toggle { display: none; border: 0; border-radius: .7rem; background: #e9f7ff; color: var(--pocket-blue-deep); padding: .45rem .7rem; }
 
-.hero { width: var(--wide); margin: .75rem auto 5.5rem; min-height: clamp(31rem, 60vh, 40rem); border-radius: 2rem; overflow: hidden; position: relative; display: grid; align-items: end; background: linear-gradient(145deg, #83d9ff 0%, #2b9ed6 50%, #075174 100%); }
+.hero { width: var(--wide); margin: .5rem auto 5.5rem; min-height: clamp(30rem, 57vh, 38rem); border-radius: 2rem; overflow: hidden; position: relative; display: grid; align-items: end; background: #1697d2; box-shadow: 0 24px 60px rgba(14, 83, 119, .14); }
 .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 22%, rgba(3, 32, 51, .68)); }
-.hero-pocket::before { content: ""; position: absolute; width: 38rem; height: 38rem; top: -24rem; right: -8rem; border: 1px solid rgba(255, 255, 255, .42); border-radius: 50%; box-shadow: 0 0 0 4rem rgba(255, 255, 255, .08), 0 0 0 8rem rgba(255, 255, 255, .045); }
+.hero-pocket::before { content: ""; position: absolute; width: 39rem; height: 39rem; top: -25rem; right: -8rem; border: 1px solid rgba(255, 255, 255, .46); border-radius: 50%; box-shadow: 0 0 0 4rem rgba(255, 255, 255, .08), 0 0 0 8rem rgba(255, 255, 255, .045); }
 .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.hero-content { position: relative; z-index: 1; max-width: 52rem; padding: clamp(2rem, 5vw, 4.75rem); color: #fff; }
-.hero-title { margin: 0; font-size: clamp(2.65rem, 5.2vw, 4.8rem); line-height: 1.04; letter-spacing: -.065em; font-weight: 900; }
-.hero-copy { margin: 1.15rem 0 1.9rem; max-width: 38rem; font-size: clamp(1rem, 1.6vw, 1.16rem); }
+.hero-content { position: relative; z-index: 1; max-width: 52rem; padding: clamp(2rem, 5vw, 4.65rem); color: #fff; }
+.hero-kicker { display: inline-flex; margin: 0 0 1rem; padding: .28rem .68rem; border: 1px solid rgba(255, 255, 255, .42); border-radius: 999px; background: rgba(255, 255, 255, .1); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+.hero-title { margin: 0; font-size: clamp(2.55rem, 5vw, 4.55rem); line-height: 1.05; letter-spacing: -.06em; font-weight: 900; }
+.hero-copy { margin: 1.05rem 0 1.85rem; max-width: 36rem; font-size: clamp(1rem, 1.55vw, 1.14rem); }
 .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.85rem; padding: .65rem 1.1rem; border: 0; border-radius: 999px; background: #fff; color: var(--pocket-blue-deep); font-weight: 800; transition: transform .2s ease, background .2s ease; }
 .button:hover { color: var(--pocket-blue-deep); transform: translateY(-2px); }
 .button-secondary { background: rgba(255, 255, 255, .18); color: #fff; border: 1px solid rgba(255, 255, 255, .55); }
 .button-secondary:hover { color: #fff; background: rgba(255, 255, 255, .28); }
 
-.section { width: var(--wide); margin: 0 auto 5.5rem; }
+.section { width: var(--wide); margin: 0 auto 6rem; }
 .section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
 .section-heading h1, .section-heading h2 { margin: 0; font-size: clamp(1.7rem, 3.5vw, 2.6rem); line-height: 1.2; letter-spacing: -.04em; }
 .section-heading h3 { margin: 0; font-size: 1.2rem; }
@@ -58,8 +60,8 @@ button { font: inherit; }
 .eyebrow { color: var(--pocket-blue-deep); font-size: .85rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 
 .album-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.3rem; }
-.album-card { overflow: hidden; border-radius: var(--radius); background: var(--card); box-shadow: 0 12px 34px rgba(34, 73, 102, .08); transition: transform .24s ease, box-shadow .24s ease; }
-.album-card:hover { transform: translateY(-5px); box-shadow: 0 18px 42px rgba(34, 73, 102, .14); }
+.album-card { overflow: hidden; border-radius: var(--radius); background: var(--card); box-shadow: 0 10px 28px rgba(34, 73, 102, .07); transition: transform .24s ease, box-shadow .24s ease; }
+.album-card:hover { transform: translateY(-4px); box-shadow: 0 18px 38px rgba(34, 73, 102, .13); }
 .album-card-image { aspect-ratio: 4 / 3; background: #e5f6ff; overflow: hidden; }
 .album-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
 .album-card:hover img { transform: scale(1.035); }
@@ -115,12 +117,12 @@ button { font: inherit; }
 
 @media (max-width: 760px) {
   :root { --wide: min(100% - 1.5rem, 1180px); --reading: min(100% - 1.5rem, 720px); }
-  .site-header { min-height: 4.5rem; }
+  .site-header { min-height: 4.9rem; }
   .menu-toggle { display: block; }
   .site-nav { display: none; position: absolute; z-index: 10; top: 4.15rem; right: .75rem; left: .75rem; padding: .7rem 1rem; background: #fff; border-radius: .8rem; box-shadow: 0 10px 30px rgba(34, 73, 102, .12); }
   .site-nav.is-open { display: block; }
   .site-nav-list { flex-direction: column; align-items: stretch; gap: .2rem; }
-  .hero { margin-bottom: 3.75rem; min-height: 34rem; border-radius: 1.4rem; }
+  .hero { margin-bottom: 4rem; min-height: 33rem; border-radius: 1.4rem; }
   .hero-pocket::before { width: 28rem; height: 28rem; top: -19rem; right: -12rem; }
   .hero-title { font-size: clamp(2.6rem, 13vw, 4.1rem); }
   .album-grid { grid-template-columns: 1fr; }

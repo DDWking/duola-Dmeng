@@ -18,6 +18,7 @@ $latest_posts = new WP_Query([
         <img class="hero-image" src="<?php echo esc_url($featured_url); ?>" alt="">
     <?php endif; ?>
     <div class="hero-content">
+        <p class="hero-kicker">照片与文字</p>
         <h1 class="hero-title">哆啦D梦的口袋</h1>
         <p class="hero-copy">把路过的光、按下的快门和零碎的想法，收进这个小口袋。</p>
         <div class="hero-actions">
