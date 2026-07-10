@@ -7,6 +7,7 @@
 }
 
 .tablenav.bottom .bulkactions { display: none; }
+.wp-list-table > tfoot { display: none; }
 
 .duola-admin-intro {
   display: flex;
