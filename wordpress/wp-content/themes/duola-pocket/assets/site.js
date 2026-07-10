@@ -34,16 +34,43 @@
     let currentIndex = 0;
     let timer = null;
     let pausedByUser = false;
-    let pausedByInteraction = false;
+    let isAnimating = false;
     let touchStartX = 0;
 
-    const showSlide = (nextIndex, announce = true) => {
-      currentIndex = (nextIndex + slides.length) % slides.length;
-      slides.forEach((slide, index) => {
-        const isActive = index === currentIndex;
-        slide.classList.toggle('is-active', isActive);
-        slide.setAttribute('aria-hidden', String(!isActive));
-      });
+    const showSlide = (nextIndex, announce = true, direction = 1) => {
+      const normalizedIndex = (nextIndex + slides.length) % slides.length;
+      if (normalizedIndex === currentIndex || isAnimating) return;
+
+      const currentSlide = slides[currentIndex];
+      const nextSlide = slides[normalizedIndex];
+      const enteringClass = direction > 0 ? 'is-entering-right' : 'is-entering-left';
+      const exitingClass = direction > 0 ? 'is-exiting-left' : 'is-exiting-right';
+      let cleanedUp = false;
+      isAnimating = true;
+
+      nextSlide.classList.remove('is-active', 'is-exiting-left', 'is-exiting-right');
+      nextSlide.classList.add(enteringClass);
+      nextSlide.setAttribute('aria-hidden', 'false');
+      void nextSlide.offsetWidth;
+      currentSlide.classList.add(exitingClass);
+      nextSlide.classList.remove(enteringClass);
+      nextSlide.classList.add('is-active');
+      currentIndex = normalizedIndex;
+
+      const cleanup = () => {
+        if (cleanedUp) return;
+        cleanedUp = true;
+        currentSlide.classList.remove('is-active', exitingClass);
+        currentSlide.setAttribute('aria-hidden', 'true');
+        nextSlide.removeEventListener('transitionend', handleTransitionEnd);
+        isAnimating = false;
+      };
+      const handleTransitionEnd = (event) => {
+        if (event.target === nextSlide && event.propertyName === 'transform') cleanup();
+      };
+      nextSlide.addEventListener('transitionend', handleTransitionEnd);
+      window.setTimeout(cleanup, 1200);
+
       if (announce && status) {
         status.textContent = `已切换到第 ${currentIndex + 1} 张照片，共 ${slides.length} 张`;
       }
@@ -56,17 +83,17 @@
 
     const start = () => {
       stop();
-      if (pausedByUser || pausedByInteraction || document.hidden) return;
-      timer = window.setInterval(() => showSlide(currentIndex + 1, false), interval);
+      if (pausedByUser || document.hidden) return;
+      timer = window.setInterval(() => showSlide(currentIndex + 1, false, 1), interval);
     };
 
-    const showAndRestart = (nextIndex) => {
-      showSlide(nextIndex);
+    const showAndRestart = (nextIndex, direction) => {
+      showSlide(nextIndex, true, direction);
       start();
     };
 
-    previousButton?.addEventListener('click', () => showAndRestart(currentIndex - 1));
-    nextButton?.addEventListener('click', () => showAndRestart(currentIndex + 1));
+    previousButton?.addEventListener('click', () => showAndRestart(currentIndex - 1, -1));
+    nextButton?.addEventListener('click', () => showAndRestart(currentIndex + 1, 1));
     toggleButton?.addEventListener('click', () => {
       pausedByUser = !pausedByUser;
       toggleButton.textContent = pausedByUser ? '继续' : '暂停';
@@ -74,28 +101,15 @@
       pausedByUser ? stop() : start();
     });
 
-    carousel.addEventListener('mouseenter', () => {
-      pausedByInteraction = true;
-      stop();
-    });
-    carousel.addEventListener('mouseleave', () => {
-      pausedByInteraction = false;
-      start();
-    });
-    carousel.addEventListener('focusin', () => {
-      pausedByInteraction = true;
-      stop();
-    });
-    carousel.addEventListener('focusout', () => {
-      pausedByInteraction = false;
-      start();
-    });
     carousel.addEventListener('touchstart', (event) => {
       touchStartX = event.changedTouches[0].clientX;
     }, { passive: true });
     carousel.addEventListener('touchend', (event) => {
       const distance = event.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(distance) > 48) showAndRestart(currentIndex + (distance < 0 ? 1 : -1));
+      if (Math.abs(distance) > 48) {
+        const direction = distance < 0 ? 1 : -1;
+        showAndRestart(currentIndex + direction, direction);
+      }
     }, { passive: true });
     document.addEventListener('visibilitychange', start);
     start();

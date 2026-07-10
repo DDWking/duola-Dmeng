@@ -3,7 +3,7 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.2.0
+Version: 1.2.1
 Text Domain: duola-pocket
 */
 
@@ -105,7 +105,7 @@ main { min-height: calc(100dvh - 4.75rem); }
 .hero {
   position: relative;
   display: grid;
-  align-items: end;
+  align-items: start;
   width: 100%;
   min-height: min(42rem, calc(100dvh - 6rem));
   margin: 0 0 6.75rem;
@@ -116,8 +116,17 @@ main { min-height: calc(100dvh - 4.75rem); }
 .hero-photo::after { background: linear-gradient(90deg, rgba(4, 27, 39, .78), rgba(4, 27, 39, .36) 58%, rgba(4, 27, 39, .12)); }
 .hero-pocket::after { background: rgba(255, 255, 255, .04); }
 .hero-slides, .hero-slide { position: absolute; inset: 0; }
-.hero-slide { opacity: 0; transition: opacity 1.1s cubic-bezier(.2, .7, .2, 1); }
-.hero-slide.is-active { z-index: 1; opacity: 1; }
+.hero-slide {
+  z-index: 0;
+  visibility: hidden;
+  transform: translate3d(100%, 0, 0);
+  transition: transform 1s cubic-bezier(.76, 0, .24, 1);
+}
+.hero-slide.is-active { z-index: 1; visibility: visible; transform: translate3d(0, 0, 0); }
+.hero-slide.is-entering-right { visibility: visible; transform: translate3d(100%, 0, 0); transition: none; }
+.hero-slide.is-entering-left { visibility: visible; transform: translate3d(-100%, 0, 0); transition: none; }
+.hero-slide.is-exiting-left { z-index: 1; visibility: visible; transform: translate3d(-100%, 0, 0); }
+.hero-slide.is-exiting-right { z-index: 1; visibility: visible; transform: translate3d(100%, 0, 0); }
 .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero-slide.is-active .hero-image { animation: hero-image-drift 7s cubic-bezier(.18, .7, .2, 1) both; }
 .hero-content {
@@ -125,7 +134,7 @@ main { min-height: calc(100dvh - 4.75rem); }
   z-index: 2;
   width: var(--wide);
   margin: 0 auto;
-  padding: 0 0 4.5rem;
+  padding: 4.5rem 0 0;
   color: #f7fbfd;
   animation: hero-content-enter 1s cubic-bezier(.16, 1, .3, 1) both;
 }
@@ -138,17 +147,15 @@ main { min-height: calc(100dvh - 4.75rem); }
   letter-spacing: 0;
 }
 .hero-title span { display: block; white-space: nowrap; }
-.hero-copy { max-width: 30rem; margin: 1rem 0 0; font-size: 1.08rem; }
+.hero-copy { max-width: 30rem; margin: .8rem 0 0; font-size: 1.38rem; font-weight: 700; }
 .hero-carousel-controls {
   position: absolute;
   z-index: 3;
-  right: calc((100vw - var(--wide)) / 2);
-  bottom: 4.5rem;
-  display: flex;
-  align-items: center;
-  gap: .45rem;
+  inset: 0;
+  pointer-events: none;
 }
 .hero-carousel-controls button {
+  position: absolute;
   min-height: 2.65rem;
   border: 1px solid rgba(247, 251, 253, .42);
   background: rgba(5, 24, 34, .34);
@@ -156,12 +163,18 @@ main { min-height: calc(100dvh - 4.75rem); }
   backdrop-filter: blur(12px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
   cursor: pointer;
+  pointer-events: auto;
   transition: transform .25s ease, background-color .25s ease, border-color .25s ease;
 }
-.hero-carousel-controls button:hover { border-color: rgba(247, 251, 253, .76); background: rgba(5, 24, 34, .58); transform: translateY(-2px); }
-.hero-carousel-controls button:active { transform: translateY(1px) scale(.98); }
-.hero-carousel-arrow { width: 2.65rem; padding: 0; border-radius: 999px; font-size: 1.55rem; line-height: 1; }
-.hero-carousel-toggle { min-width: 3.8rem; padding: 0 .8rem; border-radius: 999px; font-size: .78rem; font-weight: 700; }
+.hero-carousel-controls button:hover { border-color: rgba(247, 251, 253, .76); background: rgba(5, 24, 34, .58); }
+.hero-carousel-arrow { top: 50%; width: 3rem; height: 3rem; padding: 0; border-radius: 999px; font-size: 1.7rem; line-height: 1; transform: translateY(-50%); }
+.hero-carousel-arrow:hover { transform: translateY(-50%) scale(1.06); }
+.hero-carousel-arrow:active { transform: translateY(-50%) scale(.96); }
+.hero-carousel-arrow[data-carousel-previous] { left: 1.25rem; }
+.hero-carousel-arrow[data-carousel-next] { right: 1.25rem; }
+.hero-carousel-toggle { bottom: 1.25rem; left: 50%; min-width: 3.8rem; padding: 0 .8rem; border-radius: 999px; font-size: .78rem; font-weight: 700; transform: translateX(-50%); }
+.hero-carousel-toggle:hover { transform: translateX(-50%) translateY(-2px); }
+.hero-carousel-toggle:active { transform: translateX(-50%) translateY(1px) scale(.98); }
 .button {
   display: inline-flex;
   align-items: center;
@@ -371,10 +384,12 @@ main { min-height: calc(100dvh - 4.75rem); }
   .site-nav-list a { padding: .55rem 0; }
   .hero { min-height: min(36rem, calc(100dvh - 4.25rem)); margin-bottom: 4.5rem; }
   .hero-photo::after { background: linear-gradient(90deg, rgba(4, 27, 39, .78), rgba(4, 27, 39, .35)); }
-  .hero-content { padding-bottom: 2.75rem; }
+  .hero-content { padding: 3.5rem 0 0; }
   .hero-title { font-size: 2.7rem; line-height: 1.1; }
-  .hero-copy { max-width: 19rem; margin: .85rem 0 0; font-size: .98rem; }
-  .hero-carousel-controls { top: 1rem; right: .75rem; bottom: auto; }
+  .hero-copy { max-width: 19rem; margin: .7rem 0 0; font-size: 1.15rem; }
+  .hero-carousel-arrow { width: 2.7rem; height: 2.7rem; }
+  .hero-carousel-arrow[data-carousel-previous] { left: .65rem; }
+  .hero-carousel-arrow[data-carousel-next] { right: .65rem; }
   .section { margin-bottom: 4.75rem; }
   .section-heading { gap: .75rem; margin-bottom: 1.25rem; }
   .section-heading h1, .section-heading h2 { font-size: 1.85rem; }
