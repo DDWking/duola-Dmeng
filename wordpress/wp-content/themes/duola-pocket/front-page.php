@@ -18,7 +18,6 @@ $latest_posts = new WP_Query([
         <img class="hero-image" src="<?php echo esc_url($featured_url); ?>" alt="">
     <?php endif; ?>
     <div class="hero-content">
-        <p class="hero-kicker">照片与文字</p>
         <h1 class="hero-title">哆啦D梦的口袋</h1>
         <p class="hero-copy">把路过的光、按下的快门和零碎的想法，收进这个小口袋。</p>
         <div class="hero-actions">
@@ -30,7 +29,7 @@ $latest_posts = new WP_Query([
 
 <section class="section">
     <div class="section-heading">
-        <div><span class="eyebrow">最近收进的光</span><h2>最新相册</h2></div>
+        <div><h2>最新相册</h2></div>
         <a href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部摄影 →</a>
     </div>
     <?php if ($latest_albums->have_posts()) : ?>
@@ -46,7 +45,7 @@ $latest_posts = new WP_Query([
 
 <section class="section">
     <div class="section-heading">
-        <div><span class="eyebrow">零碎的想法</span><h2>最新文章</h2></div>
+        <div><h2>最新文章</h2></div>
         <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts')) ?: home_url('/')); ?>">全部文章 →</a>
     </div>
     <?php if ($latest_posts->have_posts()) : ?>

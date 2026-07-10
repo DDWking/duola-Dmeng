@@ -3,15 +3,13 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.0.2
+Version: 1.0.3
 Text Domain: duola-pocket
 */
 
 :root {
   --pocket-blue: #129bd8;
   --pocket-blue-deep: #0870aa;
-  --pocket-red: #ef4444;
-  --pocket-yellow: #f8c63d;
   --paper: #fcfbf7;
   --ink: #132436;
   --muted: #68798a;
@@ -30,27 +28,32 @@ a:hover { color: var(--pocket-blue-deep); }
 img { display: block; max-width: 100%; height: auto; }
 button { font: inherit; }
 
-.site-header { width: var(--wide); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 6.25rem; gap: 1.5rem; }
-.site-brand { display: inline-flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 800; letter-spacing: .025em; color: var(--pocket-blue-deep); }
-.site-brand::before { width: .68rem; height: .68rem; content: ""; border-radius: 999px; background: var(--pocket-blue); box-shadow: 0 0 0 .25rem #e5f6ff; }
+.site-header { width: var(--wide); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 4.75rem; gap: 1.5rem; }
+.site-brand { font-size: 1.05rem; font-weight: 800; letter-spacing: .025em; color: var(--pocket-blue-deep); }
 .site-nav-list { display: flex; align-items: center; gap: 1.45rem; margin: 0; padding: 0; list-style: none; font-size: .92rem; font-weight: 700; }
 .site-nav-list a { display: block; padding: .35rem 0; border-bottom: 2px solid transparent; }
 .site-nav-list a:hover, .site-nav .current-menu-item a { border-color: var(--pocket-blue); color: var(--pocket-blue-deep); }
 .menu-toggle { display: none; border: 0; border-radius: .7rem; background: #e9f7ff; color: var(--pocket-blue-deep); padding: .45rem .7rem; }
 
 .hero { width: var(--wide); margin: .5rem auto 5.5rem; min-height: clamp(30rem, 57vh, 38rem); border-radius: 2rem; overflow: hidden; position: relative; display: grid; align-items: end; background: #1697d2; box-shadow: 0 24px 60px rgba(14, 83, 119, .14); }
-.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 22%, rgba(3, 32, 51, .68)); }
+.hero::after { content: ""; position: absolute; inset: 0; }
+.hero-photo::after { background: linear-gradient(90deg, rgba(3, 32, 51, .72), rgba(3, 32, 51, .22) 64%, rgba(3, 32, 51, .08)); }
+.hero-pocket { background: #80d5f2; }
+.hero-pocket::after { background: rgba(255, 255, 255, .12); }
 .hero-pocket::before { content: ""; position: absolute; width: 39rem; height: 39rem; top: -25rem; right: -8rem; border: 1px solid rgba(255, 255, 255, .46); border-radius: 50%; box-shadow: 0 0 0 4rem rgba(255, 255, 255, .08), 0 0 0 8rem rgba(255, 255, 255, .045); }
 .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero-content { position: relative; z-index: 1; max-width: 52rem; padding: clamp(2rem, 5vw, 4.65rem); color: #fff; }
-.hero-kicker { display: inline-flex; margin: 0 0 1rem; padding: .28rem .68rem; border: 1px solid rgba(255, 255, 255, .42); border-radius: 999px; background: rgba(255, 255, 255, .1); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+.hero-pocket .hero-content { color: #064a6a; }
 .hero-title { margin: 0; font-size: clamp(2.55rem, 5vw, 4.55rem); line-height: 1.05; letter-spacing: -.06em; font-weight: 900; }
 .hero-copy { margin: 1.05rem 0 1.85rem; max-width: 36rem; font-size: clamp(1rem, 1.55vw, 1.14rem); }
 .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.85rem; padding: .65rem 1.1rem; border: 0; border-radius: 999px; background: #fff; color: var(--pocket-blue-deep); font-weight: 800; transition: transform .2s ease, background .2s ease; }
 .button:hover { color: var(--pocket-blue-deep); transform: translateY(-2px); }
+.button:active, .album-card:active { transform: translateY(1px); }
 .button-secondary { background: rgba(255, 255, 255, .18); color: #fff; border: 1px solid rgba(255, 255, 255, .55); }
 .button-secondary:hover { color: #fff; background: rgba(255, 255, 255, .28); }
+.hero-pocket .button-secondary { color: #064a6a; border-color: rgba(6, 74, 106, .35); background: rgba(255, 255, 255, .16); }
+.hero-pocket .button-secondary:hover { color: #064a6a; background: rgba(255, 255, 255, .3); }
 
 .section { width: var(--wide); margin: 0 auto 6rem; }
 .section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
@@ -117,7 +120,7 @@ button { font: inherit; }
 
 @media (max-width: 760px) {
   :root { --wide: min(100% - 1.5rem, 1180px); --reading: min(100% - 1.5rem, 720px); }
-  .site-header { min-height: 4.9rem; }
+  .site-header { min-height: 4.5rem; }
   .menu-toggle { display: block; }
   .site-nav { display: none; position: absolute; z-index: 10; top: 4.15rem; right: .75rem; left: .75rem; padding: .7rem 1rem; background: #fff; border-radius: .8rem; box-shadow: 0 10px 30px rgba(34, 73, 102, .12); }
   .site-nav.is-open { display: block; }
@@ -131,4 +134,18 @@ button { font: inherit; }
   .photo-button { margin-bottom: .65rem; }
   .lightbox-nav { width: 2.5rem; height: 2.5rem; }
   .lightbox-prev { left: .45rem; }.lightbox-next { right: .45rem; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #101b24; --ink: #eef6fa; --muted: #a5b7c2; --line: #294554; --card: #162a36; --pocket-blue: #58bfe9; --pocket-blue-deep: #83d4f2; }
+  .menu-toggle, .year-nav a, .tag { background: #183948; color: var(--pocket-blue-deep); }
+  .site-nav { background: var(--card); }
+  .album-card-image { background: #1b4051; }
+  .button { background: #eef6fa; color: #075174; }
+  .button-secondary { background: rgba(255, 255, 255, .1); color: #eef6fa; }
+  .button-secondary:hover { color: #eef6fa; }
+  .hero-pocket { background: #0d6e99; }
+  .hero-pocket .hero-content, .hero-pocket .button-secondary, .hero-pocket .button-secondary:hover { color: #eef6fa; }
+  .hero-pocket .button-secondary { border-color: rgba(238, 246, 250, .42); background: rgba(255, 255, 255, .1); }
+  .hero { box-shadow: 0 24px 60px rgba(0, 0, 0, .24); }
 }
