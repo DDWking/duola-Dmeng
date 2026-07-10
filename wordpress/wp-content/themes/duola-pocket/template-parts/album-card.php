@@ -4,7 +4,7 @@ $cover_id = duola_albums_get_cover_id($album_id);
 $year = duola_albums_get_year($album_id);
 $location = get_post_meta($album_id, '_duola_album_location', true);
 ?>
-<article class="album-card">
+<article class="album-card<?php echo !$cover_id ? ' album-card-empty' : ''; ?>">
     <a href="<?php the_permalink(); ?>">
         <div class="album-card-image">
             <?php if ($cover_id) : ?>
@@ -15,7 +15,10 @@ $location = get_post_meta($album_id, '_duola_album_location', true);
         </div>
         <div class="album-card-copy">
             <h3 class="album-card-title"><?php the_title(); ?></h3>
-            <p class="album-card-meta"><?php echo esc_html($year ?: get_the_date('Y', $album_id)); ?><?php echo $location ? ' · ' . esc_html($location) : ''; ?></p>
+            <p class="album-card-meta">
+                <span><?php echo esc_html($year ?: get_the_date('Y', $album_id)); ?></span>
+                <?php if ($location) : ?><span><?php echo esc_html($location); ?></span><?php endif; ?>
+            </p>
         </div>
     </a>
 </article>

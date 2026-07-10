@@ -1,12 +1,141 @@
-﻿.duola-album-fields input[type="number"] { width: 8rem; }
-.duola-album-fields .description { color: #646970; }
-.duola-cover-preview { min-height: 1px; margin: .75rem 0; }
-.duola-cover-preview img { width: 96px; height: 96px; object-fit: cover; border-radius: 6px; }
-.duola-album-photo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-width: 780px; margin: 1rem 0 0; }
-.duola-album-photo-list li { position: relative; aspect-ratio: 1; margin: 0; overflow: hidden; cursor: move; border: 1px solid #dcdcde; border-radius: 6px; background: #f6f7f7; }
-.duola-album-photo-list img { width: 100%; height: 100%; object-fit: cover; }
-.duola-remove-photo { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: rgba(20, 32, 51, .82); color: #fff; cursor: pointer; }
-.duola-albums-sidebar__intro { margin: 0 0 12px; color: #1d2327; font-size: 13px; line-height: 1.6; }
-.duola-albums-sidebar__upload { width: 100%; justify-content: center; }
-.duola-albums-sidebar__count { margin: 12px 0 0; color: #50575e; }
-.duola-albums-sidebar__hint { margin: 8px 0 0; color: #646970; font-size: 12px; line-height: 1.6; }
+:root {
+  --duola-admin-blue: #0878b8;
+  --duola-admin-blue-soft: #eaf6fc;
+  --duola-admin-line: #d7e4eb;
+  --duola-admin-ink: #172b3a;
+  --duola-admin-muted: #5f6f79;
+}
+
+.duola-admin-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 18px 20px 18px 0;
+  padding: 20px 22px;
+  border: 1px solid var(--duola-admin-line);
+  border-left: 4px solid var(--duola-admin-blue);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.duola-admin-intro h2 { margin: 0 0 4px; color: var(--duola-admin-ink); font-size: 18px; }
+.duola-admin-intro p { margin: 0; color: var(--duola-admin-muted); }
+.duola-admin-intro-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+
+.post-type-album .wp-list-table .column-duola_cover { width: 112px; }
+.post-type-album .wp-list-table .column-duola_year { width: 90px; }
+.post-type-album .wp-list-table .column-duola_photos { width: 90px; }
+.post-type-album .wp-list-table .column-date { width: 180px; }
+.post-type-album .wp-list-table .column-duola_cover img {
+  width: 96px;
+  height: 68px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+.duola-no-cover { color: var(--duola-admin-muted); font-size: 12px; }
+
+#duola-album-details .inside { margin: 0; padding: 0; }
+.duola-album-workspace { color: var(--duola-admin-ink); }
+.duola-upload-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  background: var(--duola-admin-blue-soft);
+  border-bottom: 1px solid var(--duola-admin-line);
+}
+.duola-upload-panel h3 { margin: 0 0 5px; font-size: 18px; }
+.duola-upload-panel p { margin: 0; color: var(--duola-admin-muted); }
+.duola-upload-panel .button-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+.duola-upload-panel .dashicons { margin-right: 7px; }
+
+.duola-photo-toolbar {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 24px 0;
+}
+.duola-photo-toolbar span { color: var(--duola-admin-muted); font-size: 12px; }
+.duola-album-photo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 16px 24px 24px;
+}
+.duola-album-photo-list:empty::before {
+  content: "还没有照片，点击上方按钮开始上传。";
+  grid-column: 1 / -1;
+  padding: 30px 18px;
+  border: 1px dashed #9eb8c6;
+  border-radius: 6px;
+  color: var(--duola-admin-muted);
+  text-align: center;
+}
+.duola-album-photo-list li {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #f4f7f9;
+  cursor: move;
+}
+.duola-album-photo-list li.is-cover { border-color: var(--duola-admin-blue); }
+.duola-album-photo-list li.is-cover::before {
+  content: "封面";
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  z-index: 1;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--duola-admin-blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.duola-album-photo-list img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.duola-photo-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 9px;
+  background: #fff;
+}
+.duola-photo-actions button { cursor: pointer; }
+
+.duola-optional-settings {
+  padding: 0 24px 24px;
+  border-top: 1px solid var(--duola-admin-line);
+}
+.duola-optional-settings summary {
+  padding: 18px 0;
+  color: var(--duola-admin-blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+.duola-fields-grid { display: grid; grid-template-columns: minmax(160px, 220px) minmax(240px, 1fr); gap: 18px; }
+.duola-fields-grid p, .duola-optional-settings > p { margin: 0 0 16px; }
+.duola-optional-settings label { display: block; margin-bottom: 6px; }
+.duola-optional-settings input,
+.duola-optional-settings textarea { width: 100%; max-width: 680px; }
+.duola-optional-settings .description { display: block; margin-top: 5px; color: var(--duola-admin-muted); }
+
+@media (max-width: 782px) {
+  .duola-admin-intro, .duola-upload-panel { align-items: stretch; flex-direction: column; }
+  .duola-admin-intro-actions { flex-wrap: wrap; }
+  .duola-upload-panel .button-hero { width: 100%; }
+  .duola-photo-toolbar { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .duola-album-photo-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .duola-fields-grid { grid-template-columns: 1fr; gap: 0; }
+}

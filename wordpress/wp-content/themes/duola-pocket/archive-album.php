@@ -3,8 +3,8 @@ get_header();
 $years = duola_albums_get_years();
 ?>
 <section class="page-intro">
-    <span class="eyebrow">摄影</span>
-    <h1>按年份收好<br>每一段光。</h1>
+    <h1>照片，按年份收好。</h1>
+    <p>每一本相册，都是一段当时没有说完的话。</p>
     <?php if ($years) : ?>
         <nav class="year-nav" aria-label="相册年份">
             <?php foreach ($years as $year) : ?>
@@ -20,7 +20,7 @@ $years = duola_albums_get_years();
         <?php if ($albums->have_posts()) : ?>
             <section id="year-<?php echo esc_attr($year); ?>" class="section year-section">
                 <h2 class="year-title"><?php echo esc_html($year); ?></h2>
-                <div class="album-grid">
+                <div class="album-grid album-grid-archive">
                     <?php while ($albums->have_posts()) : $albums->the_post(); ?>
                         <?php get_template_part('template-parts/album', 'card'); ?>
                     <?php endwhile; wp_reset_postdata(); ?>
