@@ -4,9 +4,18 @@
   const coverId = $('#duola-album-cover-id');
   const coverPreview = $('#duola-cover-preview');
 
+  const getPhotoCount = () => list.children('[data-id]').length;
+
+  const notifyPhotosChanged = () => {
+    document.dispatchEvent(new CustomEvent('duola-albums:photos-changed', {
+      detail: { count: getPhotoCount() },
+    }));
+  };
+
   const updateIds = () => {
     const ids = list.children('[data-id]').map((_, item) => Number(item.dataset.id)).get();
     hiddenIds.val(JSON.stringify(ids));
+    notifyPhotosChanged();
   };
 
   const appendPhoto = (attachment) => {
@@ -21,7 +30,7 @@
     updateIds();
   });
 
-  $('#duola-add-photos').on('click', () => {
+  const openPhotoSelector = () => {
     const frame = wp.media({
       title: duolaAlbums.title,
       button: { text: duolaAlbums.add },
@@ -33,7 +42,14 @@
       updateIds();
     });
     frame.open();
-  });
+  };
+
+  window.duolaAlbumsEditor = {
+    getPhotoCount,
+    openPhotoSelector,
+  };
+
+  $('#duola-add-photos').on('click', openPhotoSelector);
 
   $('#duola-select-cover').on('click', () => {
     const frame = wp.media({
