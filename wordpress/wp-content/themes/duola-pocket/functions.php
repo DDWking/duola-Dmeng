@@ -56,7 +56,7 @@ function duola_pocket_primary_menu_fallback(): void
 {
     $links = [
         __('首页', 'duola-pocket') => home_url('/'),
-        __('摄影', 'duola-pocket') => get_post_type_archive_link('album'),
+        __('照片', 'duola-pocket') => get_post_type_archive_link('album'),
         __('文章', 'duola-pocket') => get_permalink((int) get_option('page_for_posts')) ?: home_url('/'),
         __('归档', 'duola-pocket') => home_url('/archive/'),
         __('关于', 'duola-pocket') => home_url('/about/'),
@@ -68,6 +68,22 @@ function duola_pocket_primary_menu_fallback(): void
     }
     echo '</ul>';
 }
+
+function duola_pocket_rename_primary_menu_items(array $items, stdClass $args): array
+{
+    if ('primary' !== ($args->theme_location ?? '')) {
+        return $items;
+    }
+
+    foreach ($items as $item) {
+        if ('摄影' === trim(wp_strip_all_tags($item->title))) {
+            $item->title = __('照片', 'duola-pocket');
+        }
+    }
+
+    return $items;
+}
+add_filter('wp_nav_menu_objects', 'duola_pocket_rename_primary_menu_items', 10, 2);
 
 function duola_pocket_format_date(int $post_id): string
 {

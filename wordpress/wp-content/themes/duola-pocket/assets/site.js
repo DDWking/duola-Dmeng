@@ -23,6 +23,104 @@
     });
   }
 
+  const carousel = document.querySelector('[data-hero-carousel]');
+  if (carousel) {
+    const slides = Array.from(carousel.querySelectorAll('[data-hero-slide]'));
+    const previousButton = carousel.querySelector('[data-carousel-previous]');
+    const nextButton = carousel.querySelector('[data-carousel-next]');
+    const toggleButton = carousel.querySelector('[data-carousel-toggle]');
+    const status = carousel.querySelector('[data-carousel-status]');
+    const interval = Number(carousel.dataset.interval) || 6500;
+    let currentIndex = 0;
+    let timer = null;
+    let pausedByUser = false;
+    let pausedByInteraction = false;
+    let touchStartX = 0;
+
+    const showSlide = (nextIndex, announce = true) => {
+      currentIndex = (nextIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => {
+        const isActive = index === currentIndex;
+        slide.classList.toggle('is-active', isActive);
+        slide.setAttribute('aria-hidden', String(!isActive));
+      });
+      if (announce && status) {
+        status.textContent = `已切换到第 ${currentIndex + 1} 张照片，共 ${slides.length} 张`;
+      }
+    };
+
+    const stop = () => {
+      window.clearInterval(timer);
+      timer = null;
+    };
+
+    const start = () => {
+      stop();
+      if (pausedByUser || pausedByInteraction || document.hidden) return;
+      timer = window.setInterval(() => showSlide(currentIndex + 1, false), interval);
+    };
+
+    const showAndRestart = (nextIndex) => {
+      showSlide(nextIndex);
+      start();
+    };
+
+    previousButton?.addEventListener('click', () => showAndRestart(currentIndex - 1));
+    nextButton?.addEventListener('click', () => showAndRestart(currentIndex + 1));
+    toggleButton?.addEventListener('click', () => {
+      pausedByUser = !pausedByUser;
+      toggleButton.textContent = pausedByUser ? '继续' : '暂停';
+      toggleButton.setAttribute('aria-label', pausedByUser ? '继续轮播' : '暂停轮播');
+      pausedByUser ? stop() : start();
+    });
+
+    carousel.addEventListener('mouseenter', () => {
+      pausedByInteraction = true;
+      stop();
+    });
+    carousel.addEventListener('mouseleave', () => {
+      pausedByInteraction = false;
+      start();
+    });
+    carousel.addEventListener('focusin', () => {
+      pausedByInteraction = true;
+      stop();
+    });
+    carousel.addEventListener('focusout', () => {
+      pausedByInteraction = false;
+      start();
+    });
+    carousel.addEventListener('touchstart', (event) => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+    carousel.addEventListener('touchend', (event) => {
+      const distance = event.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(distance) > 48) showAndRestart(currentIndex + (distance < 0 ? 1 : -1));
+    }, { passive: true });
+    document.addEventListener('visibilitychange', start);
+    start();
+  }
+
+  document.documentElement.classList.add('motion-ready');
+  const revealItems = Array.from(document.querySelectorAll('.section, .page-intro, .album-header, .album-card, .post-row, .photo-button, .article, .page-content'));
+  revealItems.forEach((item, index) => {
+    item.classList.add('reveal-item');
+    item.style.setProperty('--reveal-delay', `${(index % 4) * 70}ms`);
+  });
+
+  if ('IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -4% 0px' });
+    revealItems.forEach((item) => revealObserver.observe(item));
+  } else {
+    revealItems.forEach((item) => item.classList.add('is-visible'));
+  }
+
   const gallery = document.querySelector('[data-lightbox-gallery]');
   if (!gallery) return;
 
