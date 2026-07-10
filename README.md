@@ -41,7 +41,15 @@ Caddy 会在域名解析生效后自动申请和续期 HTTPS 证书。
 
 ## 更新与备份
 
-- 更新：`./scripts/deploy.sh`
+- Windows 本地手动部署：
+
+  ```powershell
+  .\scripts\deploy-server.ps1 -Server 159.75.236.90
+  ```
+
+  脚本会先推送 GitHub 备份，再通过 SSH 将 Git bundle 同步到服务器并重建容器。它不属于 CI/CD，也不会改动数据库、照片和 `.env`。
+
+- 服务器内更新：`./scripts/deploy.sh`
 - 备份：`./scripts/backup.sh`
 - 恢复：`./scripts/restore.sh database.sql uploads.tar.zst`
 
