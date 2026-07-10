@@ -6,6 +6,8 @@
   --duola-admin-muted: #5f6f79;
 }
 
+.tablenav.bottom .bulkactions { display: none; }
+
 .duola-admin-intro {
   display: flex;
   align-items: center;
