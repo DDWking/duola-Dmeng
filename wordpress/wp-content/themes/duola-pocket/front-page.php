@@ -13,7 +13,7 @@ $latest_posts = new WP_Query([
     'post_status' => 'publish',
 ]);
 ?>
-<section class="hero">
+<section class="hero <?php echo $featured_url ? 'hero-photo' : 'hero-pocket'; ?>">
     <?php if ($featured_url) : ?>
         <img class="hero-image" src="<?php echo esc_url($featured_url); ?>" alt="">
     <?php endif; ?>

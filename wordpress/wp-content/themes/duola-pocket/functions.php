@@ -35,6 +35,12 @@ function duola_pocket_enqueue_assets(): void
 }
 add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_assets');
 
+function duola_pocket_hide_frontend_admin_bar(): bool
+{
+    return false;
+}
+add_filter('show_admin_bar', 'duola_pocket_hide_frontend_admin_bar');
+
 function duola_pocket_customize_register(WP_Customize_Manager $customize): void
 {
     $customize->add_section('duola_homepage', [
