@@ -3,7 +3,7 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.1.0
+Version: 1.1.1
 Text Domain: duola-pocket
 */
 
@@ -110,7 +110,6 @@ main { min-height: calc(100dvh - 4.75rem); }
   color: #f7fbfd;
 }
 .hero-title {
-  max-width: 11ch;
   margin: 0;
   overflow-wrap: anywhere;
   font-size: 5.2rem;
@@ -118,6 +117,7 @@ main { min-height: calc(100dvh - 4.75rem); }
   line-height: 1.08;
   letter-spacing: 0;
 }
+.hero-title span { display: block; white-space: nowrap; }
 .hero-copy { max-width: 30rem; margin: 1rem 0 1.75rem; font-size: 1.08rem; }
 .hero-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
 .button {
@@ -196,7 +196,7 @@ main { min-height: calc(100dvh - 4.75rem); }
 .tag { padding: .13rem .55rem; border-radius: 999px; background: #e6f3f9; color: var(--pocket-blue-deep); font-size: .76rem; font-weight: 700; }
 
 .page-intro { width: var(--wide); margin: 4.5rem auto 5rem; }
-.page-intro h1 { max-width: 13ch; margin: 0; font-size: 4.4rem; line-height: 1.12; letter-spacing: 0; }
+.page-intro h1 { max-width: 100%; margin: 0; font-size: 4.4rem; line-height: 1.12; letter-spacing: 0; overflow-wrap: anywhere; }
 .page-intro p { max-width: 38rem; margin: 1rem 0 0; color: var(--muted); }
 .year-section { margin-bottom: 5.5rem; scroll-margin-top: 1.5rem; }
 .year-title { margin: 0 0 1.6rem; color: var(--pocket-blue-deep); font-size: 3.4rem; line-height: 1; letter-spacing: 0; }
@@ -297,7 +297,7 @@ main { min-height: calc(100dvh - 4.75rem); }
   .hero { min-height: min(36rem, calc(100dvh - 4.25rem)); margin-bottom: 4.5rem; }
   .hero-photo::after { background: linear-gradient(90deg, rgba(4, 27, 39, .78), rgba(4, 27, 39, .35)); }
   .hero-content { padding-bottom: 2.75rem; }
-  .hero-title { max-width: 8.5ch; font-size: 2.7rem; line-height: 1.1; }
+  .hero-title { font-size: 2.7rem; line-height: 1.1; }
   .hero-copy { max-width: 19rem; margin: .85rem 0 1.45rem; font-size: .98rem; }
   .section { margin-bottom: 4.75rem; }
   .section-heading { gap: .75rem; margin-bottom: 1.25rem; }
@@ -313,7 +313,7 @@ main { min-height: calc(100dvh - 4.75rem); }
   .album-grid-featured .album-card:only-child .album-card-image { aspect-ratio: 4 / 3; }
   .post-row { grid-template-columns: 1fr; gap: .3rem; padding: 1.25rem 0; }
   .page-intro { margin: 3rem auto 3.75rem; }
-  .page-intro h1 { font-size: 2.75rem; }
+  .page-intro h1 { font-size: 2.5rem; }
   .year-section { margin-bottom: 4.5rem; }
   .year-title { margin-bottom: 1.25rem; font-size: 2.6rem; }
   .album-header { margin: 3rem auto 2rem; }

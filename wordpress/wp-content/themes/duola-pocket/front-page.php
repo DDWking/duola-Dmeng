@@ -26,7 +26,7 @@ $latest_posts = new WP_Query([
         ]); ?>
     <?php endif; ?>
     <div class="hero-content">
-        <h1 class="hero-title">哆啦D梦的口袋</h1>
+        <h1 class="hero-title"><span>哆啦D梦的</span><span>口袋</span></h1>
         <p class="hero-copy">收好路过的光，也记下当时的想法。</p>
         <div class="hero-actions">
             <a class="button" href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">去看照片</a>
