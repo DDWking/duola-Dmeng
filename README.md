@@ -16,6 +16,16 @@ data/                           运行时数据（忽略，不提交 Git）
 
 `data/` 中的 MariaDB 数据、WordPress 上传图片和 Caddy 证书是持久数据；它们不在 Docker 镜像或 Git 仓库中。
 
+## 本地预览
+
+Windows 本地先安装并启动 Docker Desktop，然后执行：
+
+`powershell
+.\scripts\preview.ps1
+` 
+
+打开 http://localhost:8080 即可预览；完整步骤见 [本地预览](docs/local-preview.md)。
+
 ## 首次在服务器部署
 
 1. 安装 Docker Engine 与 Docker Compose Plugin。
@@ -32,3 +42,4 @@ Caddy 会在域名解析生效后自动申请和续期 HTTPS 证书。
 - 更新：`./scripts/deploy.sh`
 - 备份：`./scripts/backup.sh`
 - 恢复：`./scripts/restore.sh database.sql uploads.tar.zst`
+
