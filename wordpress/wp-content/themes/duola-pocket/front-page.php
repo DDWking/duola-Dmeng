@@ -26,10 +26,10 @@ $latest_posts = new WP_Query([
         ]); ?>
     <?php endif; ?>
     <div class="hero-content">
-        <h1 class="hero-title"><span>哆啦D梦的</span><span>口袋</span></h1>
-        <p class="hero-copy">收好路过的光，也记下当时的想法。</p>
+        <h1 class="hero-title"><span>Stay</span><span>alive!</span></h1>
+        <p class="hero-copy">某年某月某天</p>
         <div class="hero-actions">
-            <a class="button" href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">去看照片</a>
+            <a class="button" href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部照片</a>
             <a class="button button-secondary" href="<?php echo esc_url(get_permalink(get_option('page_for_posts')) ?: home_url('/')); ?>">读点文字</a>
         </div>
     </div>
@@ -37,8 +37,8 @@ $latest_posts = new WP_Query([
 
 <section class="section">
     <div class="section-heading">
-        <h2>最近拍下的</h2>
-        <a href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部摄影</a>
+        <h2>那些曾经</h2>
+        <a href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部照片</a>
     </div>
     <?php if ($latest_albums->have_posts()) : ?>
         <div class="album-grid album-grid-featured">
@@ -53,7 +53,7 @@ $latest_posts = new WP_Query([
 
 <section class="section">
     <div class="section-heading">
-        <h2>最近写下的</h2>
+        <h2>胡思乱想</h2>
         <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts')) ?: home_url('/')); ?>">全部文章</a>
     </div>
     <?php if ($latest_posts->have_posts()) : ?>
