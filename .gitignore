@@ -7,14 +7,7 @@ vendor/
 .env.*
 !.env.example
 
-# WordPress runtime data and uploads
-wordpress/
-wp-content/uploads/
-wp-content/cache/
-wp-content/upgrade/
-
-# Database and container state
-mariadb/
+# Runtime data, uploads, and backups
 data/
 backups/
 
