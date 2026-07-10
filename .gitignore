@@ -1,0 +1,26 @@
+﻿# Dependencies
+node_modules/
+vendor/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# WordPress runtime data and uploads
+wordpress/
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+
+# Database and container state
+mariadb/
+data/
+backups/
+
+# Editor and operating system files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
