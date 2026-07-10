@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Theme setup and helpers for 哆啦D梦的口袋.
  */

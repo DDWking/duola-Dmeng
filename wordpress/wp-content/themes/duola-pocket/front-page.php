@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 get_header();
 $featured_id = (int) get_theme_mod('duola_featured_image');
 $featured_url = $featured_id ? wp_get_attachment_image_url($featured_id, 'full') : '';

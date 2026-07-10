@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 get_header();
 while (have_posts()) : the_post();
     $photos = duola_albums_get_photos(get_the_ID());

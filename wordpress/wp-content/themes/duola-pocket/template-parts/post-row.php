@@ -1,4 +1,4 @@
-﻿<article class="post-row">
+<article class="post-row">
     <time class="post-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(duola_pocket_format_date(get_the_ID())); ?></time>
     <div>
         <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>

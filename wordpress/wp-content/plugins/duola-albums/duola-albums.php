@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: 哆啦D梦相册
  * Description: 提供按年份管理、批量上传、封面选择和拖拽排序的相册内容类型。

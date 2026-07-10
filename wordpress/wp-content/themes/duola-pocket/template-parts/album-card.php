@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $album_id = get_the_ID();
 $cover_id = duola_albums_get_cover_id($album_id);
 $year = duola_albums_get_year($album_id);

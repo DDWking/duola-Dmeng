@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Template for the page with the archive slug.
  */

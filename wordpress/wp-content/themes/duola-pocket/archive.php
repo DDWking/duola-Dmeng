@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 get_header();
 $albums = get_posts(['post_type' => 'album', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC']);
 $posts = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC']);

@@ -1,4 +1,4 @@
-﻿<?php get_header(); ?>
+<?php get_header(); ?>
 <section class="page-intro">
     <span class="eyebrow">文章</span>
     <h1><?php single_post_title(); ?></h1>

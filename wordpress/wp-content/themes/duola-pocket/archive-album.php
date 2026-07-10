@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 get_header();
 $years = duola_albums_get_years();
 ?>

@@ -1,4 +1,4 @@
-﻿<?php get_header(); ?>
+<?php get_header(); ?>
 <section class="empty-state">
     <span class="eyebrow">404</span>
     <h1>这个口袋里还没有这件东西。</h1>

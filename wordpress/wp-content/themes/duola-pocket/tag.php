@@ -1,4 +1,4 @@
-﻿<?php get_header(); ?>
+<?php get_header(); ?>
 <section class="page-intro">
     <span class="eyebrow">标签</span>
     <h1><?php single_tag_title(); ?></h1>
