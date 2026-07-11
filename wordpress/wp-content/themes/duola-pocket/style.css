@@ -3,7 +3,7 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.7.0
+Version: 1.8.0
 Text Domain: duola-pocket
 */
 
@@ -1600,4 +1600,109 @@ main { min-height: calc(100dvh - 4.75rem); }
     border-top-color: rgba(255, 255, 255, .2);
     background: #008fd3;
   }
+}
+
+.desktop-shell,
+.desktop-shell.has-open-app { background: #edf0f2; }
+
+.system-bar,
+.desktop-shell.is-home .system-bar {
+  min-height: 3.5rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid #d9dfe3;
+  background: rgba(248, 250, 251, .94);
+  color: #14191d;
+  box-shadow: none;
+  backdrop-filter: blur(18px);
+}
+
+.desktop-shell.is-home .system-bar {
+  border-color: rgba(255, 255, 255, .18);
+  background: transparent;
+  color: #ffffff;
+  backdrop-filter: none;
+}
+
+.system-bar .site-brand {
+  gap: .65rem;
+  color: inherit;
+  font-size: .86rem;
+  text-shadow: none;
+}
+
+.desktop-shell.is-home .site-brand { text-shadow: 0 1px 12px rgba(0, 0, 0, .34); }
+
+.site-brand-mark {
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  box-shadow: none;
+}
+
+.site-brand-mark::after {
+  right: .23rem;
+  bottom: .23rem;
+  left: .23rem;
+  height: .42rem;
+  border-width: 1px;
+  border-color: currentColor;
+}
+
+.system-status { gap: 0; }
+.system-about {
+  padding: .25rem 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: .74rem;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.desktop-shell.is-home .system-about { text-shadow: 0 1px 12px rgba(0, 0, 0, .34); }
+.system-about:hover { border-bottom-color: currentColor; background: transparent; color: inherit; }
+
+.app-window {
+  border-color: #d6dde1;
+  background: #ffffff;
+  box-shadow: 0 18px 54px rgba(37, 54, 63, .12);
+}
+
+.app-window-bar { border-bottom-color: #e2e7ea; background: #f7f9fa; }
+.app-window-title { color: #25323a; }
+.app-content { background: #ffffff; }
+
+@media (min-width: 761px) {
+  .app-dock-label,
+  .desktop-shell.has-open-app .app-dock-label,
+  .desktop-shell.is-home .app-dock-label {
+    color: inherit;
+    text-shadow: none;
+  }
+  .desktop-shell.is-home .app-dock-label { text-shadow: 0 1px 12px rgba(0, 0, 0, .32); }
+  .desktop-shell .app-dock-item::after { background: #009fe8; }
+  .desktop-shell.is-home .app-dock-item::after { background: #ffffff; }
+  .desktop-shell .app-dock-item:hover { color: inherit; }
+}
+
+@media (max-width: 760px) {
+  .system-bar,
+  .desktop-shell.is-home .system-bar { min-height: 3.25rem; padding: 0 .9rem; }
+  .site-brand-mark { width: 1.35rem; height: 1.35rem; }
+  .system-bar .site-brand { gap: .5rem; font-size: .78rem; }
+  .system-about { font-size: .7rem; }
+  .desktop-shell.is-home .app-dock {
+    border-color: rgba(255, 255, 255, .18);
+    background: rgba(12, 17, 20, .72);
+    box-shadow: none;
+  }
+  .desktop-shell.has-open-app .app-dock {
+    border-top-color: #e0e5e8;
+    background: rgba(250, 251, 252, .96);
+  }
+  .desktop-shell.is-home .app-dock-label { color: rgba(255, 255, 255, .72); text-shadow: none; }
+  .desktop-shell.has-open-app .app-dock-label { color: #53636c; text-shadow: none; }
 }
