@@ -1,34 +1,64 @@
 <?php
 get_header();
-$years = duola_albums_get_years();
+
+$groups = [];
+$themes = get_terms(['taxonomy' => 'album_theme', 'hide_empty' => true, 'orderby' => 'name', 'order' => 'ASC']);
+if (!is_wp_error($themes)) {
+    foreach ($themes as $theme) {
+        $query = new WP_Query([
+            'post_type' => 'album',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'tax_query' => [[
+                'taxonomy' => 'album_theme',
+                'field' => 'term_id',
+                'terms' => [$theme->term_id],
+            ]],
+        ]);
+        if ($query->have_posts()) {
+            $groups[] = ['name' => $theme->name, 'description' => $theme->description, 'query' => $query];
+        }
+    }
+}
+
+$unclassified = new WP_Query([
+    'post_type' => 'album',
+    'post_status' => 'publish',
+    'posts_per_page' => -1,
+    'orderby' => 'date',
+    'order' => 'DESC',
+    'tax_query' => [[
+        'taxonomy' => 'album_theme',
+        'operator' => 'NOT EXISTS',
+    ]],
+]);
+if ($unclassified->have_posts()) {
+    $groups[] = ['name' => __('未分类', 'duola-pocket'), 'description' => '', 'query' => $unclassified];
+}
 ?>
 <section class="page-intro">
-    <h1>照片，按年份收好。</h1>
-    <p>每一本相册，都是一段当时没有说完的话。</p>
-    <?php if ($years) : ?>
-        <nav class="year-nav" aria-label="相册年份">
-            <?php foreach ($years as $year) : ?>
-                <a href="#year-<?php echo esc_attr($year); ?>"><?php echo esc_html($year); ?></a>
-            <?php endforeach; ?>
-        </nav>
-    <?php endif; ?>
+    <span class="eyebrow">Pocket memories</span>
+    <h1>照片，按主题收好。</h1>
+    <p>旅行、日常或偶然遇见的风景，每一个主题都是一只独立的小口袋。</p>
 </section>
 
-<?php if ($years) : ?>
-    <?php foreach ($years as $year) : ?>
-        <?php $albums = duola_albums_query_by_year($year); ?>
-        <?php if ($albums->have_posts()) : ?>
-            <section id="year-<?php echo esc_attr($year); ?>" class="section year-section">
-                <h2 class="year-title"><?php echo esc_html($year); ?></h2>
-                <div class="album-grid album-grid-archive">
-                    <?php while ($albums->have_posts()) : $albums->the_post(); ?>
-                        <?php get_template_part('template-parts/album', 'card'); ?>
-                    <?php endwhile; wp_reset_postdata(); ?>
-                </div>
-            </section>
-        <?php endif; ?>
-    <?php endforeach; ?>
-<?php else : ?>
-    <p class="empty-state">第一本相册正在准备中。</p>
-<?php endif; ?>
+<?php foreach ($groups as $index => $group) : ?>
+    <section class="section theme-section">
+        <div class="theme-section-heading">
+            <span><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
+            <div>
+                <h2 class="year-title"><?php echo esc_html($group['name']); ?></h2>
+                <?php if ($group['description']) : ?><p><?php echo esc_html($group['description']); ?></p><?php endif; ?>
+            </div>
+        </div>
+        <div class="album-grid album-grid-archive">
+            <?php while ($group['query']->have_posts()) : $group['query']->the_post(); ?>
+                <?php get_template_part('template-parts/album', 'card'); ?>
+            <?php endwhile; wp_reset_postdata(); ?>
+        </div>
+    </section>
+<?php endforeach; ?>
+<?php if (!$groups) : ?><p class="empty-state">第一本主题相册正在准备中。</p><?php endif; ?>
 <?php get_footer(); ?>

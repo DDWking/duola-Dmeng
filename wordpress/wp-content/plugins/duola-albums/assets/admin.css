@@ -28,6 +28,7 @@
 
 .post-type-album .wp-list-table .column-duola_cover { width: 112px; }
 .post-type-album .wp-list-table .column-duola_year { width: 90px; }
+.post-type-album .wp-list-table .column-duola_theme { width: 130px; }
 .post-type-album .wp-list-table .column-duola_photos { width: 90px; }
 .post-type-album .wp-list-table .column-date { width: 180px; }
 .post-type-album .wp-list-table .column-duola_cover img {
@@ -271,8 +272,29 @@
 .duola-fields-grid p, .duola-optional-settings > p { margin: 0 0 16px; }
 .duola-optional-settings label { display: block; margin-bottom: 6px; }
 .duola-optional-settings input,
-.duola-optional-settings textarea { width: 100%; max-width: 680px; }
+.duola-optional-settings textarea,
+.duola-optional-settings select { width: 100%; max-width: 680px; }
 .duola-optional-settings .description { display: block; margin-top: 5px; color: var(--duola-admin-muted); }
+
+.duola-migration-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 1040px;
+  margin-top: 24px;
+}
+.duola-migration-card {
+  padding: 26px;
+  border: 1px solid var(--duola-admin-line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(23, 43, 58, .06);
+}
+.duola-migration-card > .dashicons { width: 34px; height: 34px; color: var(--duola-admin-blue); font-size: 34px; }
+.duola-migration-card h2 { margin: 16px 0 6px; }
+.duola-migration-card p { color: var(--duola-admin-muted); }
+.duola-migration-card form { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.duola-migration-card small { display: block; margin-top: 14px; color: var(--duola-admin-muted); }
 
 @media (max-width: 782px) {
   .duola-admin-intro, .duola-upload-panel { align-items: stretch; flex-direction: column; }
@@ -286,4 +308,5 @@
   .duola-editor-preview { position: relative; top: auto; min-height: 300px; }
   .duola-photo-fields { grid-template-columns: 1fr; }
   .duola-field-wide, .duola-home-visibility, .duola-photo-editor-actions { grid-column: 1; }
+  .duola-migration-grid { grid-template-columns: 1fr; }
 }

@@ -145,6 +145,5 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
     </section>
 
     <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="" aria-hidden="true">
-    <p class="home-whisper">愿每一次快门和落笔，<br>都能替今天留下一个温柔的坐标。</p>
 </section>
 <?php get_footer(); ?>

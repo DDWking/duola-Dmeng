@@ -11,6 +11,7 @@
 $photos_url = get_post_type_archive_link('album') ?: home_url('/photos/');
 $articles_url = duola_pocket_articles_url();
 $asset_url = get_template_directory_uri() . '/assets/images/';
+$site_avatar_id = (int) get_option('duola_site_avatar_id');
 ?>
 <div class="site-shell">
     <header class="site-header">
@@ -20,7 +21,13 @@ $asset_url = get_template_directory_uri() . '/assets/images/';
             <a class="<?php echo (is_post_type_archive('album') || is_singular('album')) ? 'is-current' : ''; ?>" href="<?php echo esc_url($photos_url); ?>"<?php echo (is_post_type_archive('album') || is_singular('album')) ? ' aria-current="page"' : ''; ?>>相册</a>
         </nav>
         <a class="site-identity" href="<?php echo esc_url(home_url('/')); ?>">
-            <span class="site-avatar"><img src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt=""></span>
+            <span class="site-avatar">
+                <?php if ($site_avatar_id) : ?>
+                    <?php echo wp_get_attachment_image($site_avatar_id, 'thumbnail', false, ['alt' => '']); ?>
+                <?php else : ?>
+                    <img class="is-default" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="">
+                <?php endif; ?>
+            </span>
             <span><?php bloginfo('name'); ?></span>
         </a>
     </header>
