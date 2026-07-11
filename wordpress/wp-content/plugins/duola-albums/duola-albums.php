@@ -66,6 +66,41 @@ function duola_albums_register_theme_taxonomy(): void
 }
 add_action('init', 'duola_albums_register_theme_taxonomy');
 
+function duola_albums_get_default_theme_id(): int
+{
+    $existing = term_exists('uncategorized', 'album_theme');
+    if (is_array($existing)) {
+        return (int) $existing['term_id'];
+    }
+    if (is_int($existing)) {
+        return $existing;
+    }
+    $created = wp_insert_term(__('未分类', 'duola-albums'), 'album_theme', ['slug' => 'uncategorized']);
+    return is_wp_error($created) ? 0 : (int) $created['term_id'];
+}
+
+function duola_albums_ensure_single_theme(): void
+{
+    $default_theme_id = duola_albums_get_default_theme_id();
+    if (!$default_theme_id || '1' === get_option('duola_album_theme_schema_version')) {
+        return;
+    }
+    $album_ids = get_posts([
+        'post_type' => 'album',
+        'post_status' => 'any',
+        'numberposts' => -1,
+        'fields' => 'ids',
+    ]);
+    foreach ($album_ids as $album_id) {
+        $themes = wp_get_object_terms($album_id, 'album_theme', ['fields' => 'ids']);
+        if (!is_wp_error($themes) && !$themes) {
+            wp_set_object_terms($album_id, [$default_theme_id], 'album_theme', false);
+        }
+    }
+    update_option('duola_album_theme_schema_version', '1');
+}
+add_action('init', 'duola_albums_ensure_single_theme', 20);
+
 function duola_albums_use_classic_editor(bool $use_block_editor, string $post_type): bool
 {
     return 'album' === $post_type ? false : $use_block_editor;
@@ -237,7 +272,7 @@ function duola_albums_render_meta_box(WP_Post $post): void
     $cover_id = duola_albums_get_cover_id($post->ID);
     $photos = duola_albums_get_photos($post->ID);
     $selected_themes = wp_get_object_terms($post->ID, 'album_theme', ['fields' => 'ids']);
-    $selected_theme_id = !is_wp_error($selected_themes) && $selected_themes ? (int) $selected_themes[0] : 0;
+    $selected_theme_id = !is_wp_error($selected_themes) && $selected_themes ? (int) $selected_themes[0] : duola_albums_get_default_theme_id();
     $themes = get_terms(['taxonomy' => 'album_theme', 'hide_empty' => false]);
     $themes = is_wp_error($themes) ? [] : $themes;
     wp_nonce_field('duola_albums_save_album', 'duola_albums_nonce');
@@ -334,7 +369,7 @@ function duola_albums_save_album(int $post_id): void
     update_post_meta($post_id, '_duola_album_location', $location);
     update_post_meta($post_id, '_duola_album_description', $description);
     update_post_meta($post_id, '_duola_album_photos', $photo_ids);
-    wp_set_object_terms($post_id, $theme_id ? [$theme_id] : [], 'album_theme', false);
+    wp_set_object_terms($post_id, [$theme_id ?: duola_albums_get_default_theme_id()], 'album_theme', false);
     $valid_photo_keys = array_flip(array_map('strval', $photo_ids));
     $existing_settings = duola_albums_get_all_photo_settings($post_id);
     update_post_meta($post_id, '_duola_album_photo_settings', array_intersect_key($existing_settings, $valid_photo_keys));
