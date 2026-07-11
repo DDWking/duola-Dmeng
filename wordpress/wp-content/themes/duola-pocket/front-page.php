@@ -37,7 +37,7 @@ if (function_exists('duola_albums_get_cover_id') && function_exists('duola_album
                 'caption' => wp_get_attachment_caption($photo_id),
             ];
 
-            if (count($home_photos) >= 6) {
+            if (count($home_photos) >= 12) {
                 break 2;
             }
         }
@@ -51,6 +51,7 @@ $latest_posts = new WP_Query([
 ]);
 $asset_url = get_template_directory_uri() . '/assets/images/';
 $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+$hidden_photo_count = max(0, count($home_photos) - 4);
 ?>
 <section class="scrapbook-home" aria-label="首页">
     <div class="paper-wash" aria-hidden="true"></div>
@@ -118,7 +119,8 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
             <span class="collage-dots" aria-hidden="true"></span>
             <?php if ($home_photos) : ?>
                 <?php foreach ($home_photos as $index => $photo) : ?>
-                    <button class="photo-note photo-note-<?php echo esc_attr($index + 1); ?>" type="button"
+                    <button class="photo-note photo-note-<?php echo esc_attr($index + 1); ?><?php echo 3 === $index && $hidden_photo_count ? ' has-photo-stack' : ''; ?>" type="button"
+                        <?php echo $index >= 4 ? 'hidden tabindex="-1" aria-hidden="true"' : ''; ?>
                         data-collage-note
                         data-depth="<?php echo esc_attr(number_format(0.35 + ($index % 3) * 0.2, 2)); ?>"
                         data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
@@ -128,14 +130,19 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
                         data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
                         data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
                         aria-label="查看照片 <?php echo esc_attr($index + 1); ?>">
-                        <span class="photo-note-tape" aria-hidden="true"></span>
-                        <?php echo wp_get_attachment_image($photo['id'], 'duola-home-note', false, [
-                            'loading' => $index < 2 ? 'eager' : 'lazy',
-                            'decoding' => 'async',
-                            'fetchpriority' => 0 === $index ? 'high' : 'auto',
-                            'sizes' => '(max-width: 620px) 40vw, (max-width: 900px) 38vw, 16vw',
-                            'alt' => '',
-                        ]); ?>
+                        <?php if ($index < 4) : ?>
+                            <span class="photo-note-tape" aria-hidden="true"></span>
+                            <?php echo wp_get_attachment_image($photo['id'], 'duola-home-note', false, [
+                                'loading' => $index < 2 ? 'eager' : 'lazy',
+                                'decoding' => 'async',
+                                'fetchpriority' => 0 === $index ? 'high' : 'auto',
+                                'sizes' => '(max-width: 620px) 40vw, (max-width: 900px) 38vw, 16vw',
+                                'alt' => '',
+                            ]); ?>
+                            <?php if (3 === $index && $hidden_photo_count) : ?>
+                                <span class="photo-stack-count" aria-hidden="true"><strong>+<?php echo esc_html($hidden_photo_count); ?></strong><small>继续看</small></span>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </button>
                 <?php endforeach; ?>
             <?php else : ?>
