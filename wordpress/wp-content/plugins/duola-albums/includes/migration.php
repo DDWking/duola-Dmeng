@@ -196,6 +196,8 @@ function duola_migration_export_content(): void
         wp_die(esc_html__('服务器缺少 ZIP 支持。', 'duola-albums'));
     }
 
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+
     [$media, $id_to_uuid] = duola_migration_collect_media();
     $statuses = ['publish', 'draft', 'pending', 'private', 'future'];
     $posts = get_posts(['post_type' => 'post', 'post_status' => $statuses, 'numberposts' => -1, 'orderby' => 'ID', 'order' => 'ASC']);
