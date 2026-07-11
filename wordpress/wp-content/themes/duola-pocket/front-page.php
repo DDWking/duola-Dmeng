@@ -83,9 +83,9 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
                         <a href="<?php the_permalink(); ?>">
                             <div class="home-note-thumb">
                                 <?php if (has_post_thumbnail()) : ?>
-                                    <?php the_post_thumbnail('thumbnail', ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'alt' => '']); ?>
+                                    <?php the_post_thumbnail('thumbnail', ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'decoding' => 'async', 'sizes' => '(max-width: 620px) 86px, 105px', 'alt' => '']); ?>
                                 <?php elseif ($fallback_photo) : ?>
-                                    <?php echo wp_get_attachment_image($fallback_photo['id'], 'thumbnail', false, ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'alt' => '']); ?>
+                                    <?php echo wp_get_attachment_image($fallback_photo['id'], 'thumbnail', false, ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'decoding' => 'async', 'sizes' => '(max-width: 620px) 86px, 105px', 'alt' => '']); ?>
                                 <?php else : ?>
                                     <span aria-hidden="true"></span>
                                 <?php endif; ?>
@@ -122,6 +122,8 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
                         data-collage-note
                         data-depth="<?php echo esc_attr(number_format(0.35 + ($index % 3) * 0.2, 2)); ?>"
                         data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
+                        data-lightbox-srcset="<?php echo esc_attr(wp_get_attachment_image_srcset($photo['id'], 'duola-lightbox') ?: ''); ?>"
+                        data-lightbox-sizes="(max-width: 620px) 82vw, 82vw"
                         data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
                         data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
                         data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
@@ -129,7 +131,9 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
                         <span class="photo-note-tape" aria-hidden="true"></span>
                         <?php echo wp_get_attachment_image($photo['id'], 'duola-home-note', false, [
                             'loading' => $index < 2 ? 'eager' : 'lazy',
+                            'decoding' => 'async',
                             'fetchpriority' => 0 === $index ? 'high' : 'auto',
+                            'sizes' => '(max-width: 620px) 40vw, (max-width: 900px) 38vw, 16vw',
                             'alt' => '',
                         ]); ?>
                     </button>

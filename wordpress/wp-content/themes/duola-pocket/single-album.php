@@ -22,6 +22,8 @@ while (have_posts()) : the_post();
             <?php $full = wp_get_attachment_image_url($photo['id'], 'duola-lightbox') ?: wp_get_attachment_image_url($photo['id'], 'full'); $settings = $photo['settings'] ?? []; ?>
             <button class="photo-button" type="button"
                 data-lightbox-image="<?php echo esc_url($full); ?>"
+                data-lightbox-srcset="<?php echo esc_attr(wp_get_attachment_image_srcset($photo['id'], 'duola-lightbox') ?: ''); ?>"
+                data-lightbox-sizes="(max-width: 620px) 82vw, 82vw"
                 data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
                 data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
                 data-lightbox-headline="<?php echo esc_attr($settings['headline'] ?? ''); ?>"
@@ -34,7 +36,12 @@ while (have_posts()) : the_post();
                 data-lightbox-accent="<?php echo esc_attr($settings['accent'] ?? '#009fe8'); ?>"
                 data-lightbox-background="<?php echo esc_attr($settings['background'] ?? '#f3f3f0'); ?>"
                 aria-label="查看照片 <?php echo esc_attr($index + 1); ?>">
-                <?php echo wp_get_attachment_image($photo['id'], 'large', false, ['loading' => 'lazy']); ?>
+                <?php echo wp_get_attachment_image($photo['id'], 'large', false, [
+                    'loading' => 0 === $index ? 'eager' : 'lazy',
+                    'decoding' => 'async',
+                    'fetchpriority' => 0 === $index ? 'high' : 'auto',
+                    'sizes' => '(max-width: 620px) 94vw, (max-width: 900px) 46vw, 55vw',
+                ]); ?>
             </button>
         <?php endforeach; ?>
     </section>

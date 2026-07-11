@@ -51,7 +51,19 @@
   let currentIndex = 0;
   let previousFocus = null;
   let touchStartX = 0;
+  let touchStartY = 0;
   let wheelLocked = false;
+  let imageRequest = 0;
+  let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  let activePointerId = null;
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerStartPanX = 0;
+  let pointerStartPanY = 0;
+  let pointerMoved = false;
+  let lastTouchTap = 0;
 
   const lightbox = document.createElement('div');
   lightbox.className = 'lightbox';
@@ -64,12 +76,16 @@
     <header class="lightbox-header">
       <div class="lightbox-title"></div>
       <div class="lightbox-counter" aria-live="polite"><span data-lightbox-current>01</span><i>/</i><span data-lightbox-total>01</span></div>
-      <button class="lightbox-close" type="button" aria-label="关闭查看器"><span></span><span></span></button>
+      <div class="lightbox-tools">
+        <button class="lightbox-zoom" type="button" aria-label="放大照片"><span data-lightbox-zoom-label>1×</span></button>
+        <button class="lightbox-close" type="button" aria-label="关闭查看器"><span></span><span></span></button>
+      </div>
     </header>
     <div class="lightbox-stage">
       <button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张照片">←</button>
       <figure class="lightbox-media">
-        <img src="" alt="">
+        <div class="lightbox-loader" aria-hidden="true"><span></span></div>
+        <div class="lightbox-viewport"><img src="" alt="" draggable="false"></div>
         <figcaption></figcaption>
       </figure>
       <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张照片">→</button>
@@ -79,22 +95,88 @@
 
   const image = lightbox.querySelector('.lightbox-media img');
   const media = lightbox.querySelector('.lightbox-media');
+  const viewport = lightbox.querySelector('.lightbox-viewport');
   const caption = lightbox.querySelector('figcaption');
   const title = lightbox.querySelector('.lightbox-title');
   const current = lightbox.querySelector('[data-lightbox-current]');
   const total = lightbox.querySelector('[data-lightbox-total]');
   const scrubber = lightbox.querySelector('input[type="range"]');
   const closeButton = lightbox.querySelector('.lightbox-close');
+  const zoomButton = lightbox.querySelector('.lightbox-zoom');
+  const zoomLabel = lightbox.querySelector('[data-lightbox-zoom-label]');
   const progress = lightbox.querySelector('.lightbox-progress span');
 
   const formatIndex = (index) => String(index + 1).padStart(2, '0');
+  const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
+
+  const applyZoom = () => {
+    if (zoom <= 1) {
+      panX = 0;
+      panY = 0;
+    } else {
+      const bounds = viewport.getBoundingClientRect();
+      panX = clamp(panX, -bounds.width * (zoom - 1) / 2, bounds.width * (zoom - 1) / 2);
+      panY = clamp(panY, -bounds.height * (zoom - 1) / 2, bounds.height * (zoom - 1) / 2);
+    }
+
+    image.style.setProperty('--lightbox-zoom', String(zoom));
+    image.style.setProperty('--lightbox-pan-x', `${panX}px`);
+    image.style.setProperty('--lightbox-pan-y', `${panY}px`);
+    lightbox.classList.toggle('is-zoomed', zoom > 1);
+    zoomLabel.textContent = Number.isInteger(zoom) ? `${zoom}×` : `${zoom.toFixed(1)}×`;
+    zoomButton.setAttribute('aria-label', zoom > 1 ? '恢复原始大小' : '放大照片');
+  };
+
+  const setZoom = (nextZoom) => {
+    zoom = clamp(Math.round(nextZoom * 4) / 4, 1, 3);
+    applyZoom();
+  };
+
+  const resetZoom = () => {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    applyZoom();
+  };
 
   const preloadAdjacent = () => {
+    if (triggers.length < 2) return;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
+
     [-1, 1].forEach((offset) => {
       const item = triggers[(currentIndex + offset + triggers.length) % triggers.length];
       const preloader = new Image();
+      preloader.decoding = 'async';
+      if (item.dataset.lightboxSrcset) preloader.srcset = item.dataset.lightboxSrcset;
+      preloader.sizes = item.dataset.lightboxSizes || '82vw';
       preloader.src = item.dataset.lightboxImage;
     });
+  };
+
+  const loadImage = (item, direction) => {
+    const request = ++imageRequest;
+    const sourceSet = item.dataset.lightboxSrcset || '';
+    media.classList.remove('is-forward', 'is-backward');
+    lightbox.classList.add('is-loading');
+    media.setAttribute('aria-busy', 'true');
+    image.classList.remove('is-ready');
+    if (sourceSet) image.srcset = sourceSet;
+    else image.removeAttribute('srcset');
+    image.sizes = item.dataset.lightboxSizes || '82vw';
+    image.src = item.dataset.lightboxImage;
+
+    const finish = () => {
+      if (request !== imageRequest) return;
+      lightbox.classList.remove('is-loading');
+      media.setAttribute('aria-busy', 'false');
+      image.classList.add('is-ready');
+      void media.offsetWidth;
+      media.classList.add(direction >= 0 ? 'is-forward' : 'is-backward');
+    };
+
+    if (typeof image.decode === 'function') image.decode().catch(() => {}).then(finish);
+    else image.addEventListener('load', finish, { once: true });
   };
 
   const show = (index, direction = 1, opening = false) => {
@@ -104,9 +186,7 @@
     const itemTitle = item.dataset.lightboxTitle || gallery?.dataset.galleryTitle || '照片';
     const itemCaption = item.dataset.lightboxCaption || '';
 
-    media.classList.remove('is-forward', 'is-backward');
-    void media.offsetWidth;
-    image.src = item.dataset.lightboxImage;
+    resetZoom();
     image.alt = itemTitle;
     title.textContent = itemTitle;
     caption.textContent = itemCaption;
@@ -120,6 +200,7 @@
     lightbox.classList.add('is-open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-lightbox-open');
+    loadImage(item, direction);
     preloadAdjacent();
     if (opening) window.requestAnimationFrame(() => closeButton.focus());
   };
@@ -128,8 +209,12 @@
     lightbox.classList.remove('is-open');
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-lightbox-open');
+    imageRequest += 1;
+    resetZoom();
     previousFocus?.focus();
   };
+
+  if (triggers.length < 2) lightbox.classList.add('is-single');
 
   triggers.forEach((trigger, index) => {
     trigger.addEventListener('click', () => {
@@ -142,13 +227,21 @@
   lightbox.querySelector('.lightbox-next').addEventListener('click', () => show(currentIndex + 1, 1));
   lightbox.querySelector('[data-lightbox-close]').addEventListener('click', close);
   closeButton.addEventListener('click', close);
+  zoomButton.addEventListener('click', () => setZoom(zoom >= 3 ? 1 : zoom + 1));
+  image.addEventListener('dblclick', () => setZoom(zoom > 1 ? 1 : 2));
   scrubber.addEventListener('input', () => {
     const nextIndex = Number(scrubber.value);
     show(nextIndex, nextIndex >= currentIndex ? 1 : -1);
   });
 
   lightbox.addEventListener('wheel', (event) => {
-    if (event.target === scrubber || Math.abs(event.deltaY) < 18 || wheelLocked) return;
+    if (event.target === scrubber || Math.abs(event.deltaY) < 18) return;
+    if (zoom > 1 || event.ctrlKey) {
+      event.preventDefault();
+      setZoom(zoom + (event.deltaY < 0 ? 0.25 : -0.25));
+      return;
+    }
+    if (wheelLocked) return;
     event.preventDefault();
     wheelLocked = true;
     const direction = event.deltaY > 0 ? 1 : -1;
@@ -158,19 +251,70 @@
 
   lightbox.addEventListener('touchstart', (event) => {
     touchStartX = event.changedTouches[0].clientX;
+    touchStartY = event.changedTouches[0].clientY;
   }, { passive: true });
   lightbox.addEventListener('touchend', (event) => {
+    if (zoom > 1) return;
     const distance = event.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(distance) < 48) return;
+    const verticalDistance = event.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(distance) < 48 || Math.abs(distance) <= Math.abs(verticalDistance)) return;
     const direction = distance < 0 ? 1 : -1;
     show(currentIndex + direction, direction);
   }, { passive: true });
 
+  viewport.addEventListener('pointerdown', (event) => {
+    activePointerId = event.pointerId;
+    pointerStartX = event.clientX;
+    pointerStartY = event.clientY;
+    pointerStartPanX = panX;
+    pointerStartPanY = panY;
+    pointerMoved = false;
+    if (zoom > 1) {
+      event.preventDefault();
+      viewport.setPointerCapture(event.pointerId);
+      viewport.classList.add('is-dragging');
+    }
+  });
+
+  viewport.addEventListener('pointermove', (event) => {
+    if (event.pointerId !== activePointerId || zoom <= 1) return;
+    const distanceX = event.clientX - pointerStartX;
+    const distanceY = event.clientY - pointerStartY;
+    pointerMoved = pointerMoved || Math.abs(distanceX) > 4 || Math.abs(distanceY) > 4;
+    panX = pointerStartPanX + distanceX;
+    panY = pointerStartPanY + distanceY;
+    applyZoom();
+  });
+
+  const releasePointer = (event) => {
+    if (event.pointerId !== activePointerId) return;
+    if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+    viewport.classList.remove('is-dragging');
+
+    if (event.pointerType === 'touch' && !pointerMoved) {
+      const now = Date.now();
+      if (now - lastTouchTap < 320) {
+        setZoom(zoom > 1 ? 1 : 2);
+        lastTouchTap = 0;
+      } else {
+        lastTouchTap = now;
+      }
+    }
+
+    activePointerId = null;
+  };
+
+  viewport.addEventListener('pointerup', releasePointer);
+  viewport.addEventListener('pointercancel', releasePointer);
+
   document.addEventListener('keydown', (event) => {
     if (!lightbox.classList.contains('is-open')) return;
     if (event.key === 'Escape') close();
-    if (event.key === 'ArrowLeft') show(currentIndex - 1, -1);
-    if (event.key === 'ArrowRight') show(currentIndex + 1, 1);
+    if (event.key === 'ArrowLeft' && zoom <= 1) show(currentIndex - 1, -1);
+    if (event.key === 'ArrowRight' && zoom <= 1) show(currentIndex + 1, 1);
+    if (event.key === '+' || event.key === '=') setZoom(zoom + 1);
+    if (event.key === '-') setZoom(zoom - 1);
+    if (event.key === '0') resetZoom();
   });
 
   const requestedPhoto = new URLSearchParams(window.location.search).get('duola_photo');

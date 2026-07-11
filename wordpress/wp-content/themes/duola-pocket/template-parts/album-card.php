@@ -8,7 +8,11 @@ $location = get_post_meta($album_id, '_duola_album_location', true);
     <a href="<?php the_permalink(); ?>">
         <div class="album-card-image">
             <?php if ($cover_id) : ?>
-                <?php echo wp_get_attachment_image($cover_id, 'duola-album-card', false, ['loading' => 'lazy']); ?>
+                <?php echo wp_get_attachment_image($cover_id, 'duola-album-card', false, [
+                    'loading' => 'lazy',
+                    'decoding' => 'async',
+                    'sizes' => '(max-width: 620px) 94vw, (max-width: 900px) 46vw, 33vw',
+                ]); ?>
             <?php else : ?>
                 <div aria-hidden="true"></div>
             <?php endif; ?>

@@ -24,6 +24,24 @@ function duola_pocket_setup(): void
 }
 add_action('after_setup_theme', 'duola_pocket_setup');
 
+function duola_pocket_image_output_format(array $formats, string $filename, string $mime_type): array
+{
+    if (in_array($mime_type, ['image/jpeg', 'image/png'], true) && wp_image_editor_supports(['mime_type' => 'image/webp'])) {
+        $formats[$mime_type] = 'image/webp';
+    }
+
+    return $formats;
+}
+add_filter('image_editor_output_format', 'duola_pocket_image_output_format', 10, 3);
+
+function duola_pocket_image_quality(int $quality, string $mime_type): int
+{
+    return 'image/webp' === $mime_type ? 82 : $quality;
+}
+add_filter('wp_editor_set_quality', 'duola_pocket_image_quality', 10, 2);
+
+add_filter('big_image_size_threshold', '__return_false');
+
 function duola_pocket_enqueue_assets(): void
 {
     $style_path = get_stylesheet_directory() . '/style.css';
