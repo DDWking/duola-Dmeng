@@ -24,7 +24,7 @@ function duola_pocket_setup(): void
 }
 add_action('after_setup_theme', 'duola_pocket_setup');
 
-function duola_pocket_image_output_format(array $formats, string $filename, string $mime_type): array
+function duola_pocket_image_output_format(array $formats, ?string $filename, string $mime_type): array
 {
     if (in_array($mime_type, ['image/jpeg', 'image/png'], true) && wp_image_editor_supports(['mime_type' => 'image/webp'])) {
         $formats[$mime_type] = 'image/webp';
