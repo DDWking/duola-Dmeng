@@ -51,16 +51,6 @@ function duola_pocket_get_apps(): array
             'url' => $posts_page_id ? get_permalink($posts_page_id) : home_url('/'),
             'icon' => 'dashicons-welcome-write-blog',
         ],
-        'archive' => [
-            'label' => __('归档', 'duola-pocket'),
-            'url' => home_url('/archive/'),
-            'icon' => 'dashicons-clock',
-        ],
-        'about' => [
-            'label' => __('关于', 'duola-pocket'),
-            'url' => home_url('/about/'),
-            'icon' => 'dashicons-admin-users',
-        ],
     ];
 }
 
@@ -72,14 +62,6 @@ function duola_pocket_get_current_app(): ?string
 
     if (is_home() || is_singular('post') || is_tag() || is_category() || (is_archive() && !is_post_type_archive('album'))) {
         return 'articles';
-    }
-
-    if (is_page('archive') || is_page_template('page-archive.php')) {
-        return 'archive';
-    }
-
-    if (is_page('about')) {
-        return 'about';
     }
 
     return null;
@@ -100,31 +82,12 @@ function duola_pocket_render_app_dock(): void
     <?php
 }
 
-function duola_pocket_customize_register(WP_Customize_Manager $customize): void
-{
-    $customize->add_section('duola_homepage', [
-        'title' => __('首页', 'duola-pocket'),
-        'priority' => 30,
-    ]);
-    $customize->add_setting('duola_featured_image', [
-        'sanitize_callback' => 'absint',
-    ]);
-    $customize->add_control(new WP_Customize_Media_Control($customize, 'duola_featured_image', [
-        'label' => __('首页精选照片', 'duola-pocket'),
-        'section' => 'duola_homepage',
-        'mime_type' => 'image',
-    ]));
-}
-add_action('customize_register', 'duola_pocket_customize_register');
-
 function duola_pocket_primary_menu_fallback(): void
 {
     $links = [
         __('首页', 'duola-pocket') => home_url('/'),
         __('照片', 'duola-pocket') => get_post_type_archive_link('album'),
         __('文章', 'duola-pocket') => get_permalink((int) get_option('page_for_posts')) ?: home_url('/'),
-        __('归档', 'duola-pocket') => home_url('/archive/'),
-        __('关于', 'duola-pocket') => home_url('/about/'),
     ];
 
     echo '<ul class="site-nav-list">';

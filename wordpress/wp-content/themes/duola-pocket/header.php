@@ -16,9 +16,13 @@ $window_label = $current_app['label'] ?? (get_the_title() ?: __('内容', 'duola
 ?>
 <div class="desktop-shell<?php echo $is_desktop ? ' is-home' : ' has-open-app'; ?>">
     <header class="system-bar">
-        <a class="site-brand" href="<?php echo esc_url(home_url('/')); ?>">哆啦D梦的口袋</a>
+        <a class="site-brand" href="<?php echo esc_url(home_url('/')); ?>">
+            <span class="site-brand-mark" aria-hidden="true"></span>
+            <span>哆啦D梦的口袋</span>
+        </a>
         <div class="system-status">
-            <span class="system-status-label">个人档案</span>
+            <span class="system-indicator"><span aria-hidden="true"></span>ONLINE</span>
+            <a class="system-about" href="<?php echo esc_url(home_url('/about/')); ?>">关于</a>
             <time data-system-clock datetime="<?php echo esc_attr(current_time('c')); ?>"><?php echo esc_html(wp_date('m月d日 H:i')); ?></time>
         </div>
     </header>

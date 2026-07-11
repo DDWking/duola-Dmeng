@@ -3,7 +3,7 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.4.0
+Version: 1.5.0
 Text Domain: duola-pocket
 */
 
@@ -825,113 +825,6 @@ main { min-height: calc(100dvh - 4.75rem); }
   .app-icon { width: 2.75rem; height: 2.75rem; }
 }
 
-.code-desktop {
-  position: relative;
-  min-height: calc(100dvh - var(--admin-bar-offset));
-  overflow: hidden;
-  background-color: #11171b;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px);
-  background-size: 32px 32px;
-  color: #e8edf0;
-}
-
-.code-canvas {
-  position: absolute;
-  inset: 3rem 0 0 7.25rem;
-  display: grid;
-  align-items: center;
-  padding: 2rem 7vw 5rem;
-  border-left: 1px solid #29343a;
-  background: rgba(17, 23, 27, .9);
-}
-
-.code-lines {
-  width: min(920px, 88%);
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-  counter-reset: code-line;
-  color: #d7e0e5;
-  font-family: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 1.08rem;
-  line-height: 2.05;
-}
-
-.code-lines li {
-  display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
-  min-height: 2.05em;
-  counter-increment: code-line;
-  opacity: 0;
-  transform: translateX(-12px);
-  animation: code-line-enter .65s cubic-bezier(.16, 1, .3, 1) forwards;
-  animation-delay: calc(180ms + var(--line-index, 0) * 55ms);
-}
-
-.code-lines li::before {
-  color: #52616a;
-  content: counter(code-line);
-  font-size: .78em;
-  text-align: right;
-  padding-right: 1.3rem;
-  user-select: none;
-}
-
-.code-lines li:nth-child(1) { --line-index: 1; }
-.code-lines li:nth-child(2) { --line-index: 2; }
-.code-lines li:nth-child(3) { --line-index: 3; }
-.code-lines li:nth-child(4) { --line-index: 4; }
-.code-lines li:nth-child(5) { --line-index: 5; }
-.code-lines li:nth-child(6) { --line-index: 6; }
-.code-lines li:nth-child(7) { --line-index: 7; }
-.code-lines li:nth-child(8) { --line-index: 8; }
-.code-lines li:nth-child(9) { --line-index: 9; }
-.code-lines li:nth-child(10) { --line-index: 10; }
-.code-lines li:nth-child(11) { --line-index: 11; }
-.code-lines li:nth-child(12) { --line-index: 12; }
-.code-lines li:nth-child(13) { --line-index: 13; }
-
-.code-lines code { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.code-comment { color: #758c72; }
-.code-keyword { color: #d888c6; }
-.code-string { color: #d5b778; }
-.code-function { color: #64b5cb; }
-.code-cursor { color: #f1f5f7; animation: code-cursor-blink .9s steps(1) infinite; }
-
-.desktop-guide {
-  position: absolute;
-  z-index: 3;
-  right: 2.5rem;
-  bottom: 2rem;
-  color: #f3f6f7;
-  text-align: right;
-}
-
-.desktop-guide h1 {
-  margin: 0;
-  font-size: 2.2rem;
-  line-height: 1.15;
-}
-
-.desktop-guide p {
-  margin: .3rem 0 0;
-  color: #8fb9c5;
-  font-family: "Cascadia Code", Consolas, monospace;
-  font-size: .88rem;
-  font-weight: 700;
-}
-
-@keyframes code-line-enter {
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes code-cursor-blink {
-  0%, 48% { opacity: 1; }
-  49%, 100% { opacity: 0; }
-}
-
 @media (min-width: 761px) {
   .app-dock {
     top: 5rem;
@@ -972,22 +865,189 @@ main { min-height: calc(100dvh - 4.75rem); }
 }
 
 @media (max-width: 760px) {
-  .code-desktop { min-height: calc(100dvh - var(--admin-bar-offset)); }
-  .code-canvas {
-    inset: 2.85rem 0 0;
-    align-items: start;
-    padding: 5.5rem .75rem 8rem;
-    border-left: 0;
-  }
-  .code-lines {
-    width: 100%;
-    font-size: .76rem;
-    line-height: 1.9;
-  }
-  .code-lines li { grid-template-columns: 2.15rem minmax(0, 1fr); min-height: 1.9em; }
-  .code-lines li::before { padding-right: .65rem; }
-  .desktop-guide { right: 1.25rem; bottom: 7.25rem; }
-  .desktop-guide h1 { font-size: 1.65rem; }
-  .desktop-guide p { font-size: .76rem; }
   .desktop-shell.is-home .app-dock-label { color: #2f4855; text-shadow: none; }
+}
+
+.desktop-shell,
+.desktop-shell.has-open-app {
+  background: #00a0e9;
+}
+
+.system-bar,
+.desktop-shell.is-home .system-bar {
+  border-bottom-color: rgba(255, 255, 255, .22);
+  background: #008fd3;
+  color: #ffffff;
+  box-shadow: 0 1px 0 rgba(0, 71, 112, .18);
+}
+
+.system-bar .site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  color: #ffffff;
+}
+
+.site-brand-mark {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 68, 105, .18);
+}
+
+.site-brand-mark::after {
+  position: absolute;
+  right: .22rem;
+  bottom: .2rem;
+  left: .22rem;
+  height: .48rem;
+  border: 2px solid #0097df;
+  border-top: 0;
+  border-radius: 0 0 999px 999px;
+  content: "";
+}
+
+.system-status { gap: .75rem; }
+.system-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: rgba(255, 255, 255, .72);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .66rem;
+  font-weight: 700;
+}
+.system-indicator > span {
+  width: .38rem;
+  height: .38rem;
+  border-radius: 999px;
+  background: #ffd84d;
+  box-shadow: 0 0 0 3px rgba(255, 216, 77, .16);
+}
+.system-about {
+  padding: .12rem .48rem;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, .88);
+  font-size: .68rem;
+  line-height: 1.45;
+  transition: background-color .2s ease, color .2s ease;
+}
+.system-about:hover { background: #ffffff; color: #007ebc; }
+
+.code-desktop {
+  display: grid;
+  place-items: center;
+  min-height: calc(100dvh - var(--admin-bar-offset));
+  background-color: #00a0e9;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .07) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.code-desktop .desktop-guide {
+  position: relative;
+  inset: auto;
+  z-index: 3;
+  color: #ffffff;
+  text-align: center;
+  transform: translateY(-.5rem);
+}
+
+.code-desktop .desktop-guide h1 {
+  display: inline-flex;
+  align-items: baseline;
+  width: 8.2em;
+  margin: 0;
+  overflow: hidden;
+  font-size: 3.6rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: left;
+  text-shadow: 0 5px 24px rgba(0, 76, 116, .24);
+  white-space: nowrap;
+}
+
+.typing-text {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing-text-enter 1.55s steps(7, end) .3s forwards;
+}
+
+.typing-cursor {
+  color: #ffd84d;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-weight: 500;
+  animation: typing-cursor-blink .85s steps(1) infinite;
+}
+
+.code-desktop .desktop-guide p {
+  margin: .5rem 0 0;
+  color: rgba(255, 255, 255, .8);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.desktop-shell .app-dock .app-icon,
+.desktop-shell .app-dock-item:nth-child(1) .app-icon,
+.desktop-shell .app-dock-item:nth-child(2) .app-icon {
+  border-color: rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .15);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 75, 116, .18), inset 0 1px 0 rgba(255, 255, 255, .28);
+  backdrop-filter: blur(12px);
+}
+
+.desktop-shell .app-dock-label,
+.desktop-shell.has-open-app .app-dock-label,
+.desktop-shell.is-home .app-dock-label {
+  color: #ffffff;
+  text-shadow: 0 1px 5px rgba(0, 70, 106, .42);
+}
+
+.desktop-shell .app-dock-item::after { background: #ffd84d; }
+.desktop-shell .app-dock-item:hover { color: #ffffff; }
+
+.app-window {
+  border-color: rgba(0, 91, 139, .24);
+  box-shadow: 0 24px 70px rgba(0, 75, 116, .24), 0 2px 8px rgba(0, 75, 116, .1);
+}
+
+.app-window-bar { background: #eef9fe; }
+.app-window-title .dashicons { color: #0097df; }
+
+@keyframes typing-text-enter {
+  from { width: 0; }
+  to { width: 7em; }
+}
+
+@keyframes typing-cursor-blink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+
+@media (max-width: 760px) {
+  .system-indicator { display: none; }
+  .system-status { gap: .5rem; }
+  .code-desktop .desktop-guide { transform: translateY(-2.4rem); }
+  .code-desktop .desktop-guide h1 { font-size: 2.25rem; }
+  .code-desktop .desktop-guide p { font-size: .78rem; }
+  .desktop-shell.is-home .app-dock {
+    border-color: rgba(255, 255, 255, .28);
+    background: rgba(0, 126, 188, .88);
+    box-shadow: 0 14px 38px rgba(0, 69, 106, .26), inset 0 1px 0 rgba(255, 255, 255, .18);
+  }
+  .desktop-shell.has-open-app .app-dock {
+    border-top-color: rgba(255, 255, 255, .2);
+    background: #008fd3;
+  }
 }
