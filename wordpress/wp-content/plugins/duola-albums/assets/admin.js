@@ -29,7 +29,7 @@
     const item = $('<li>').attr('data-id', attachment.id);
     const actions = $('<div>').addClass('duola-photo-actions');
     item.append($('<img>').attr({ src: source, alt: '' }));
-    actions.append($('<span>').addClass('duola-visual-pending').text('保存相册后可视觉编辑'));
+    actions.append($('<span>').addClass('duola-visual-pending').text('保存后可编辑图片信息'));
     actions.append($('<button>').attr('type', 'button').addClass('button-link duola-set-cover').text('设为封面'));
     actions.append($('<button>').attr('type', 'button').addClass('button-link-delete duola-remove-photo').text('移除'));
     item.append(actions);

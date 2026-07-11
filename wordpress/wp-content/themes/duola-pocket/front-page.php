@@ -1,22 +1,14 @@
 <?php
 get_header();
 
-$latest_posts = new WP_Query([
-    'post_type' => 'post',
-    'post_status' => 'publish',
-    'posts_per_page' => 4,
-]);
-
 $home_photos = [];
-$home_photo_slots = [];
-$home_photo_scenes = [];
 $seen_photo_ids = [];
-$home_visual_layout = function_exists('duola_visual_get_home_layout') ? duola_visual_get_home_layout() : [];
+
 if (function_exists('duola_albums_get_cover_id') && function_exists('duola_albums_get_photos')) {
     $albums = get_posts([
         'post_type' => 'album',
         'post_status' => 'publish',
-        'numberposts' => 6,
+        'numberposts' => 8,
         'orderby' => 'date',
         'order' => 'DESC',
     ]);
@@ -37,106 +29,122 @@ if (function_exists('duola_albums_get_cover_id') && function_exists('duola_album
                 continue;
             }
 
-            $settings = function_exists('duola_albums_get_photo_settings')
-                ? duola_albums_get_photo_settings((int) $album->ID, $photo_id)
-                : [];
-            if (isset($settings['show_home']) && !$settings['show_home']) {
-                continue;
-            }
-
             $seen_photo_ids[$photo_id] = true;
             $home_photos[] = [
                 'id' => $photo_id,
                 'url' => $full_url,
                 'title' => get_the_title($album),
-                'album_id' => (int) $album->ID,
                 'caption' => wp_get_attachment_caption($photo_id),
-                'settings' => $settings,
             ];
-            if (function_exists('duola_visual_get_photo_scene')) {
-                $home_photo_scenes[(string) $photo_id] = duola_visual_get_photo_scene((int) $album->ID, $photo_id);
-            }
 
-            if (count($home_photos) >= 10) {
+            if (count($home_photos) >= 6) {
                 break 2;
             }
         }
     }
 }
 
-if ($home_photos) {
-    $slot_count = max(9, count($home_photos));
-    for ($slot_index = 0; $slot_index < $slot_count; $slot_index++) {
-        $photo_index = $slot_index % count($home_photos);
-        $home_photo_slots[] = [
-            'photo' => $home_photos[$photo_index],
-            'photo_index' => $photo_index,
-            'position' => max(8, min(92, (int) ($home_photos[$photo_index]['settings']['focus_x'] ?? 50) + ($slot_index >= count($home_photos) ? (($slot_index * 17) % 21) - 10 : 0))),
-        ];
-    }
-}
+$latest_posts = new WP_Query([
+    'post_type' => 'post',
+    'post_status' => 'publish',
+    'posts_per_page' => 5,
+]);
+$asset_url = get_template_directory_uri() . '/assets/images/';
+$months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 ?>
-<section class="kinetic-home" aria-label="首页">
-    <div class="home-articles" id="duola-home-articles" data-visual-role="home-articles">
-        <div class="home-section-heading">
-            <span>NOTES</span>
-            <a href="<?php echo esc_url(get_permalink((int) get_option('page_for_posts')) ?: home_url('/')); ?>">全部文章</a>
+<section class="scrapbook-home" aria-label="首页">
+    <div class="paper-wash" aria-hidden="true"></div>
+    <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" alt="Stay alive!">
+    <span class="sparkle sparkle-one" aria-hidden="true"></span>
+    <span class="sparkle sparkle-two" aria-hidden="true"></span>
+    <span class="brush-mark" aria-hidden="true"></span>
+
+    <section class="home-notes" aria-labelledby="latest-notes-title">
+        <div class="home-notes-heading">
+            <div>
+                <span class="section-kicker">Daily notes</span>
+                <h1 id="latest-notes-title">最近写下的</h1>
+            </div>
+            <a href="<?php echo esc_url(duola_pocket_articles_url()); ?>">查看全部</a>
         </div>
         <?php if ($latest_posts->have_posts()) : ?>
-            <div class="home-article-list">
+            <div class="home-note-list">
                 <?php $post_index = 0; while ($latest_posts->have_posts()) : $latest_posts->the_post(); $post_index++; ?>
-                    <article class="home-article-item">
+                    <?php
+                    $tags = get_the_tags();
+                    $label = $tags ? $tags[0]->name : '随笔';
+                    $summary = get_the_excerpt();
+                    if (!$summary) {
+                        $summary = wp_trim_words(wp_strip_all_tags(get_the_content()), 24);
+                    }
+                    $fallback_photo = $home_photos ? $home_photos[($post_index - 1) % count($home_photos)] : null;
+                    ?>
+                    <article class="home-note-card">
                         <a href="<?php the_permalink(); ?>">
-                            <span class="home-article-index"><?php echo esc_html(str_pad((string) $post_index, 2, '0', STR_PAD_LEFT)); ?></span>
-                            <span class="home-article-copy">
-                                <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(duola_pocket_format_date(get_the_ID())); ?></time>
-                                <strong><?php the_title(); ?></strong>
-                            </span>
+                            <div class="home-note-thumb">
+                                <?php if (has_post_thumbnail()) : ?>
+                                    <?php the_post_thumbnail('thumbnail', ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'alt' => '']); ?>
+                                <?php elseif ($fallback_photo) : ?>
+                                    <?php echo wp_get_attachment_image($fallback_photo['id'], 'thumbnail', false, ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'alt' => '']); ?>
+                                <?php else : ?>
+                                    <span aria-hidden="true"></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="home-note-copy">
+                                <span class="home-note-tag"><?php echo esc_html($label); ?></span>
+                                <h2><?php the_title(); ?></h2>
+                                <?php if ($summary) : ?><p><?php echo esc_html($summary); ?></p><?php endif; ?>
+                            </div>
+                            <time class="home-note-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>">
+                                <span><?php echo esc_html($months[(int) get_the_date('n')]); ?></span>
+                                <strong><?php echo esc_html(get_the_date('d')); ?></strong>
+                                <span><?php echo esc_html(get_the_date('Y')); ?></span>
+                            </time>
                         </a>
                     </article>
                 <?php endwhile; wp_reset_postdata(); ?>
             </div>
         <?php else : ?>
-            <p class="home-empty">文字还在路上。</p>
+            <p class="empty-state">文字还在路上。</p>
         <?php endif; ?>
-    </div>
+    </section>
 
-    <?php if ($home_photos) : ?>
-        <div class="home-preview-control" id="duola-home-preview" data-home-preview-control data-visual-role="home-preview">
-            <span class="home-preview-current" data-home-preview-current>01</span>
-            <div class="home-preview-track">
-                <span aria-hidden="true"></span>
-                <input type="range" min="0" max="<?php echo esc_attr(max(0, count($home_photos) - 1)); ?>" value="0" step="0.001" aria-label="滑动预览照片">
-            </div>
-            <span class="home-preview-total"><?php echo esc_html(str_pad((string) count($home_photos), 2, '0', STR_PAD_LEFT)); ?></span>
+    <section class="memory-board" aria-labelledby="latest-photos-title">
+        <div class="memory-board-heading">
+            <span class="section-kicker">Pocket memories</span>
+            <h2 id="latest-photos-title">最近珍藏的画面</h2>
         </div>
-        <div class="home-photo-rail" id="duola-home-rail" data-home-photo-rail data-lightbox-gallery data-gallery-title="照片" data-visual-role="home-rail">
-            <div class="home-photo-track" data-home-photo-track>
-                <?php foreach ($home_photo_slots as $slot_index => $slot) : ?>
-                    <?php $photo = $slot['photo']; $settings = $photo['settings']; ?>
-                    <button class="home-photo-slice is-width-<?php echo esc_attr($settings['home_width'] ?? 'standard'); ?>" type="button"
-                        style="--slice-position: <?php echo esc_attr($slot['position']); ?>%;"
-                        data-home-slot="<?php echo esc_attr($slot_index); ?>"
+        <div class="memory-collage" data-memory-collage data-lightbox-gallery data-gallery-title="照片">
+            <span class="collage-dots" aria-hidden="true"></span>
+            <?php if ($home_photos) : ?>
+                <?php foreach ($home_photos as $index => $photo) : ?>
+                    <button class="photo-note photo-note-<?php echo esc_attr($index + 1); ?>" type="button"
+                        data-collage-note
+                        data-depth="<?php echo esc_attr(number_format(0.35 + ($index % 3) * 0.2, 2)); ?>"
                         data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
                         data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
                         data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
                         data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
-                        data-lightbox-headline="<?php echo esc_attr($settings['headline'] ?? ''); ?>"
-                        data-lightbox-description="<?php echo esc_attr($settings['description'] ?? ''); ?>"
-                        data-lightbox-date="<?php echo esc_attr($settings['date'] ?? ''); ?>"
-                        aria-label="查看照片 <?php echo esc_attr($slot['photo_index'] + 1); ?>">
-                        <?php echo wp_get_attachment_image($photo['id'], 'large', false, [
-                            'loading' => $slot_index < 5 ? 'eager' : 'lazy',
-                            'fetchpriority' => 0 === $slot_index ? 'high' : 'auto',
+                        aria-label="查看照片 <?php echo esc_attr($index + 1); ?>">
+                        <span class="photo-note-tape" aria-hidden="true"></span>
+                        <?php echo wp_get_attachment_image($photo['id'], 'duola-home-note', false, [
+                            'loading' => $index < 2 ? 'eager' : 'lazy',
+                            'fetchpriority' => 0 === $index ? 'high' : 'auto',
                             'alt' => '',
                         ]); ?>
                     </button>
                 <?php endforeach; ?>
-            </div>
+            <?php else : ?>
+                <div class="memory-placeholder">第一张照片正在路上。</div>
+            <?php endif; ?>
+            <span class="postmark" aria-hidden="true"><i></i></span>
         </div>
-        <a class="home-all-photos" id="duola-home-link" data-visual-role="home-link" href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部照片</a>
-    <?php endif; ?>
+        <a class="all-photos-link" href="<?php echo esc_url(get_post_type_archive_link('album') ?: home_url('/photos/')); ?>">
+            <span>翻看全部相册</span><i aria-hidden="true">→</i>
+        </a>
+    </section>
+
+    <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="" aria-hidden="true">
+    <p class="home-whisper">愿每一次快门和落笔，<br>都能替今天留下一个温柔的坐标。</p>
 </section>
-<?php if ($home_visual_layout) : ?><script type="application/json" id="duola-home-visual-layout"><?php echo wp_json_encode($home_visual_layout, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script><?php endif; ?>
-<?php if ($home_photo_scenes) : ?><script type="application/json" id="duola-photo-scenes"><?php echo wp_json_encode($home_photo_scenes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script><?php endif; ?>
 <?php get_footer(); ?>

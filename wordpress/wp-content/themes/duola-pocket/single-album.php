@@ -5,12 +5,6 @@ while (have_posts()) : the_post();
     $year = duola_albums_get_year(get_the_ID());
     $location = get_post_meta(get_the_ID(), '_duola_album_location', true);
     $description = duola_albums_get_description(get_the_ID());
-    $photo_scenes = [];
-    if (function_exists('duola_visual_get_photo_scene')) {
-        foreach ($photos as $photo) {
-            $photo_scenes[(string) $photo['id']] = duola_visual_get_photo_scene(get_the_ID(), $photo['id']);
-        }
-    }
 ?>
 <section class="album-header">
     <div class="album-meta">
@@ -47,5 +41,4 @@ while (have_posts()) : the_post();
 <?php else : ?>
     <p class="empty-state">这个相册还没有照片。</p>
 <?php endif; ?>
-<?php if ($photo_scenes) : ?><script type="application/json" id="duola-photo-scenes"><?php echo wp_json_encode($photo_scenes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script><?php endif; ?>
 <?php endwhile; get_footer(); ?>

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 哆啦D梦相册
  * Description: 提供按年份管理、批量上传、封面选择和拖拽排序的相册内容类型。
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: DDWking
  * Text Domain: duola-albums
  */
@@ -11,11 +11,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DUOLA_ALBUMS_VERSION', '1.4.0');
+define('DUOLA_ALBUMS_VERSION', '1.5.0');
 define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
-
-require_once DUOLA_ALBUMS_PATH . 'includes/visual-editor.php';
 
 function duola_albums_register_content_type(): void
 {
@@ -212,8 +210,6 @@ function duola_albums_render_meta_box(WP_Post $post): void
     $description = duola_albums_get_description($post->ID);
     $cover_id = duola_albums_get_cover_id($post->ID);
     $photos = duola_albums_get_photos($post->ID);
-    $photo_scenes = get_post_meta($post->ID, '_duola_album_photo_scenes', true);
-    $photo_scenes = is_array($photo_scenes) ? $photo_scenes : [];
     wp_nonce_field('duola_albums_save_album', 'duola_albums_nonce');
     ?>
     <div class="duola-album-workspace">
@@ -233,14 +229,14 @@ function duola_albums_render_meta_box(WP_Post $post): void
 
         <div class="duola-photo-toolbar">
             <strong id="duola-photo-count"><?php echo esc_html(sprintf(_n('%d 张照片', '%d 张照片', count($photos), 'duola-albums'), count($photos))); ?></strong>
-            <span><?php esc_html_e('拖拽调整顺序；视觉编辑可单独设置桌面与手机画面。', 'duola-albums'); ?></span>
+            <span><?php esc_html_e('拖拽调整顺序；图片标题和说明可以之后在照片库中补充。', 'duola-albums'); ?></span>
         </div>
         <ul id="duola-album-photo-list" class="duola-album-photo-list">
             <?php foreach ($photos as $photo) : ?>
-                <li data-id="<?php echo esc_attr($photo['id']); ?>" class="<?php echo trim(($cover_id === $photo['id'] ? 'is-cover ' : '') . (!empty($photo_scenes[(string) $photo['id']]) ? 'has-settings' : '')); ?>">
+                <li data-id="<?php echo esc_attr($photo['id']); ?>" class="<?php echo $cover_id === $photo['id'] ? 'is-cover' : ''; ?>">
                     <?php echo wp_get_attachment_image($photo['id'], 'thumbnail'); ?>
                     <div class="duola-photo-actions">
-                        <a class="button-link duola-edit-photo" href="<?php echo esc_url(duola_visual_editor_url($post->ID, $photo['id'])); ?>"><?php esc_html_e('打开视觉编辑', 'duola-albums'); ?></a>
+                        <a class="button-link duola-edit-photo" href="<?php echo esc_url(get_edit_post_link($photo['id'])); ?>"><?php esc_html_e('编辑图片信息', 'duola-albums'); ?></a>
                         <button type="button" class="button-link duola-set-cover"><?php esc_html_e('设为封面', 'duola-albums'); ?></button>
                         <button type="button" class="button-link-delete duola-remove-photo"><?php esc_html_e('移除', 'duola-albums'); ?></button>
                     </div>
@@ -299,9 +295,7 @@ function duola_albums_save_album(int $post_id): void
     update_post_meta($post_id, '_duola_album_photos', $photo_ids);
     $valid_photo_keys = array_flip(array_map('strval', $photo_ids));
     $existing_settings = duola_albums_get_all_photo_settings($post_id);
-    $existing_scenes = get_post_meta($post_id, '_duola_album_photo_scenes', true);
     update_post_meta($post_id, '_duola_album_photo_settings', array_intersect_key($existing_settings, $valid_photo_keys));
-    update_post_meta($post_id, '_duola_album_photo_scenes', array_intersect_key(is_array($existing_scenes) ? $existing_scenes : [], $valid_photo_keys));
 
     if (!$cover_id && $photo_ids) {
         $cover_id = $photo_ids[0];

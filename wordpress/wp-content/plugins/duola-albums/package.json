@@ -1,9 +1,0 @@
-{
-  "name": "duola-albums-admin",
-  "private": true,
-  "version": "1.4.0",
-  "description": "Local visual editor dependencies for the Duola albums plugin.",
-  "dependencies": {
-    "grapesjs": "0.23.2"
-  }
-}
