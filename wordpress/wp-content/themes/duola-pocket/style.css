@@ -759,7 +759,7 @@ body.is-lightbox-open { overflow: hidden; }
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: 72vh;
   box-sizing: border-box;
   border: 8px solid rgba(255, 255, 255, 0.97);
   border-radius: 5px;
@@ -960,7 +960,7 @@ body.is-lightbox-open { overflow: hidden; }
   .lightbox-nav { width: 34px; }
   .lightbox-media { height: 72vh; }
   .lightbox-viewport { width: 100%; max-width: 82vw; height: 64vh; }
-  .lightbox-media img { border-width: 5px; }
+  .lightbox-media img { max-height: 64vh; border-width: 5px; }
   .lightbox-loader { width: 66vw; height: 48vh; }
   .lightbox-media figcaption { bottom: 1rem; width: 80%; text-align: center; }
 }
