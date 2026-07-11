@@ -16,6 +16,7 @@ define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
 
 require_once DUOLA_ALBUMS_PATH . 'includes/migration.php';
+require_once DUOLA_ALBUMS_PATH . 'includes/admin-customization.php';
 
 function duola_albums_register_content_type(): void
 {

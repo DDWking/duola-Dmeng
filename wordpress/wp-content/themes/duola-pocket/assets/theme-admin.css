@@ -9,6 +9,11 @@
   border-radius: 8px;
   background: #fff;
 }
+.duola-avatar-control {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
 .duola-avatar-setting img {
   width: 112px;
   height: 112px;

@@ -6,13 +6,14 @@ if (!defined('ABSPATH')) {
 
 function duola_migration_add_admin_page(): void
 {
-    add_submenu_page(
-        'edit.php?post_type=album',
-        __('迁移与备份', 'duola-albums'),
-        __('迁移与备份', 'duola-albums'),
+    add_menu_page(
+        __('备份迁移', 'duola-albums'),
+        __('备份迁移', 'duola-albums'),
         'manage_options',
         'duola-migration',
-        'duola_migration_render_admin_page'
+        'duola_migration_render_admin_page',
+        'dashicons-migrate',
+        8
     );
 }
 add_action('admin_menu', 'duola_migration_add_admin_page', 30);
@@ -30,7 +31,7 @@ function duola_migration_render_admin_page(): void
     }
     ?>
     <div class="wrap duola-migration-page">
-        <h1><?php esc_html_e('迁移与备份', 'duola-albums'); ?></h1>
+        <h1><?php esc_html_e('备份迁移', 'duola-albums'); ?></h1>
         <p><?php esc_html_e('迁移包包含文章、标签、相册、相册主题、全部图片原图、封面、说明、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
 
         <?php if ($error) : ?>
@@ -558,7 +559,7 @@ function duola_migration_import_content(): void
         'posts' => $post_count,
         'albums' => $album_count,
         'media' => count($media_ids),
-    ], admin_url('edit.php')));
+    ], admin_url('admin.php?page=duola-migration')));
     exit;
 }
 add_action('admin_post_duola_import_content', 'duola_migration_import_content');

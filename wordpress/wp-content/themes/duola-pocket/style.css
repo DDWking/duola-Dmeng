@@ -439,29 +439,6 @@ button { color: inherit; }
   border: 1px dashed var(--lavender-pale);
   color: var(--ink-soft);
 }
-.all-photos-link {
-  position: absolute;
-  z-index: 8;
-  bottom: 2.6rem;
-  left: 8%;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.85rem;
-  color: var(--ink-soft);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-.all-photos-link i {
-  display: grid;
-  width: 28px;
-  aspect-ratio: 1;
-  place-items: center;
-  border: 1px solid rgba(98, 113, 166, 0.25);
-  border-radius: 50%;
-  font-style: normal;
-  transition: color 220ms ease, background 220ms ease, transform 220ms ease;
-}
-.all-photos-link:hover i { color: #fff; background: var(--lavender); transform: translateX(4px); }
 .home-character {
   position: absolute;
   z-index: 6;
@@ -819,7 +796,6 @@ body.is-lightbox-open { overflow: hidden; }
   .memory-board-heading { top: 2rem; left: 0; }
   .memory-collage { width: 92%; height: 650px; margin-left: -1%; }
   .home-character { right: -12%; bottom: 8%; width: 68%; max-height: 46%; }
-  .all-photos-link { bottom: 1rem; left: 0; }
   .site-main:not(.is-home) { width: min(100% - 2rem, 760px); padding-top: 2.5rem; }
   .album-grid,
   .album-grid-archive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -856,7 +832,6 @@ body.is-lightbox-open { overflow: hidden; }
   .photo-note-tape { top: -8px; width: 36px; height: 16px; }
   .postmark { bottom: 0; left: 1%; width: 54px; }
   .home-character { right: -20%; bottom: 10%; width: 82%; max-height: 38%; opacity: 0.83; }
-  .all-photos-link { bottom: 0.2rem; }
   .page-intro h1,
   .album-header h1,
   .article-header h1,

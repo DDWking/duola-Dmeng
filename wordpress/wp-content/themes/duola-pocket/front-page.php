@@ -139,9 +139,6 @@ $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
             <?php endif; ?>
             <span class="postmark" aria-hidden="true"><i></i></span>
         </div>
-        <a class="all-photos-link" href="<?php echo esc_url(get_post_type_archive_link('album') ?: home_url('/photos/')); ?>">
-            <span>翻看全部相册</span><i aria-hidden="true">→</i>
-        </a>
     </section>
 
     <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="" aria-hidden="true">

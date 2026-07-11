@@ -1,0 +1,272 @@
+:root {
+  --duola-admin-paper: #f5f5f0;
+  --duola-admin-card: #fffefa;
+  --duola-admin-navy: #1d2746;
+  --duola-admin-text: #303956;
+  --duola-admin-muted: #747b91;
+  --duola-admin-accent: #7183d1;
+  --duola-admin-accent-dark: #5367bb;
+  --duola-admin-accent-soft: #e9ecfa;
+  --duola-admin-border: #dfe2ec;
+  --duola-admin-shadow: 0 16px 42px rgba(57, 68, 112, 0.08);
+}
+
+body.wp-admin {
+  color: var(--duola-admin-text);
+  background: var(--duola-admin-paper);
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+#wpadminbar { background: var(--duola-admin-navy); }
+#adminmenuback,
+#adminmenuwrap,
+#adminmenu { background: #202a49; }
+#adminmenu a { color: #dce1f5; }
+#adminmenu .wp-submenu { background: #19213a; }
+#adminmenu .wp-submenu a { color: #c8cee4; }
+#adminmenu div.wp-menu-image::before { color: #aeb8dd; }
+#adminmenu li.menu-top:hover,
+#adminmenu li.opensub > a.menu-top,
+#adminmenu li > a.menu-top:focus { background: #2b365b; color: #fff; }
+#adminmenu li.current a.menu-top,
+#adminmenu li.wp-has-current-submenu a.wp-has-current-submenu { background: var(--duola-admin-accent); color: #fff; }
+#adminmenu li.current div.wp-menu-image::before,
+#adminmenu li.wp-has-current-submenu div.wp-menu-image::before { color: #fff; }
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head { background: var(--duola-admin-accent); }
+#adminmenu .wp-submenu a:focus,
+#adminmenu .wp-submenu a:hover,
+#adminmenu .wp-submenu li.current a { color: #fff; }
+#collapse-button { color: #b8c0df; }
+
+#wpcontent { min-height: calc(100vh - 32px); }
+.wrap { margin-top: 28px; }
+.wrap > h1,
+.wrap > .wp-heading-inline { color: var(--duola-admin-navy); font-size: 28px; font-weight: 750; letter-spacing: -0.025em; }
+.wrap .page-title-action {
+  top: -3px;
+  margin-left: 12px;
+  padding: 6px 13px;
+  border-color: var(--duola-admin-accent);
+  border-radius: 8px;
+  color: var(--duola-admin-accent-dark);
+}
+
+.button,
+.button-primary,
+.button-secondary,
+.wp-core-ui .button,
+.wp-core-ui .button-primary,
+.wp-core-ui .button-secondary {
+  min-height: 34px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-weight: 600;
+}
+.wp-core-ui .button-primary {
+  border-color: var(--duola-admin-accent-dark);
+  background: var(--duola-admin-accent);
+}
+.wp-core-ui .button-primary:hover,
+.wp-core-ui .button-primary:focus { border-color: #4256a8; background: var(--duola-admin-accent-dark); }
+.wp-core-ui .button-secondary { border-color: #b8bfd8; color: #5262a4; }
+.wp-core-ui .button:focus { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--duola-admin-accent); }
+
+input[type="text"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+input[type="url"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  border-color: #cfd4e2;
+  border-radius: 8px;
+  background: #fff;
+}
+input:focus,
+select:focus,
+textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px var(--duola-admin-accent); }
+
+.postbox,
+.stuffbox,
+.card,
+.wp-list-table {
+  border-color: var(--duola-admin-border);
+  border-radius: 12px;
+  background: var(--duola-admin-card);
+  box-shadow: var(--duola-admin-shadow);
+}
+.wp-list-table { overflow: hidden; }
+.wp-list-table thead th,
+.wp-list-table thead td { border-bottom-color: var(--duola-admin-border); background: #f1f2f8; }
+.wp-list-table tbody tr:nth-child(even) { background: #fafafd; }
+.wp-list-table .row-title { color: var(--duola-admin-navy); }
+.tablenav .actions select { min-width: 132px; }
+.subsubsub a.current { color: var(--duola-admin-accent-dark); }
+.notice { border-radius: 8px; }
+
+.column-duola_thumbnail { width: 88px; }
+.column-duola_thumbnail img { width: 72px; height: 50px; border-radius: 7px; object-fit: cover; }
+.column-tags { width: 18%; }
+.column-date { width: 160px; }
+
+#dashboard-widgets-wrap { margin: 0; }
+#dashboard-widgets .postbox-container { width: 100%; }
+#dashboard-widgets #duola_dashboard { border: 0; background: transparent; box-shadow: none; }
+#duola_dashboard > .postbox-header { display: none; }
+#duola_dashboard .inside { margin: 0; padding: 0; }
+.duola-dashboard-shell { max-width: 1180px; color: var(--duola-admin-text); }
+.duola-dashboard-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  overflow: hidden;
+  padding: 28px 32px;
+  border: 1px solid #d7dced;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 88% 16%, rgba(145, 160, 224, 0.2), transparent 34%),
+    linear-gradient(135deg, #fffefa, #f1f3fb);
+  box-shadow: var(--duola-admin-shadow);
+}
+.duola-dashboard-hero::after {
+  position: absolute;
+  top: -54px;
+  right: -28px;
+  width: 180px;
+  height: 180px;
+  border: 22px solid rgba(113, 131, 209, 0.08);
+  border-radius: 50%;
+  content: "";
+}
+.duola-dashboard-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 76px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  place-items: center;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: var(--duola-admin-accent-soft);
+  box-shadow: 0 10px 26px rgba(77, 91, 151, 0.18);
+}
+.duola-dashboard-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.duola-dashboard-avatar .dashicons { width: 32px; height: 32px; color: var(--duola-admin-accent); font-size: 32px; }
+.duola-dashboard-hero span { color: var(--duola-admin-accent-dark); font-size: 11px; font-weight: 800; letter-spacing: 0.18em; }
+.duola-dashboard-hero h2 { margin: 4px 0 5px; color: var(--duola-admin-navy); font-size: clamp(21px, 2.4vw, 30px); line-height: 1.25; }
+.duola-dashboard-hero p { margin: 0; color: var(--duola-admin-muted); }
+
+.duola-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 18px 0;
+  overflow: hidden;
+  border: 1px solid var(--duola-admin-border);
+  border-radius: 14px;
+  background: var(--duola-admin-card);
+}
+.duola-dashboard-stats a { display: flex; align-items: baseline; gap: 8px; padding: 20px 22px; border-right: 1px solid var(--duola-admin-border); color: inherit; text-decoration: none; }
+.duola-dashboard-stats a:last-child { border-right: 0; }
+.duola-dashboard-stats a:hover { background: var(--duola-admin-accent-soft); }
+.duola-dashboard-stats strong { color: var(--duola-admin-navy); font-size: 28px; }
+.duola-dashboard-stats span { color: var(--duola-admin-muted); font-size: 12px; }
+
+.duola-dashboard-actions,
+.duola-dashboard-columns > section {
+  padding: 24px;
+  border: 1px solid var(--duola-admin-border);
+  border-radius: 14px;
+  background: var(--duola-admin-card);
+  box-shadow: var(--duola-admin-shadow);
+}
+.duola-dashboard-actions h3,
+.duola-dashboard-columns h3 { margin: 0 0 16px; color: var(--duola-admin-navy); font-size: 16px; }
+.duola-dashboard-actions > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.duola-dashboard-actions a {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 2px 10px;
+  min-height: 68px;
+  padding: 15px;
+  border: 1px solid var(--duola-admin-border);
+  border-radius: 11px;
+  color: var(--duola-admin-text);
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.duola-dashboard-actions a:hover { border-color: #adb7df; box-shadow: 0 10px 22px rgba(72, 85, 143, 0.1); transform: translateY(-2px); }
+.duola-dashboard-actions a:active { transform: translateY(0); }
+.duola-dashboard-actions a.duola-action-primary { border-color: #b8c1e5; background: var(--duola-admin-accent-soft); }
+.duola-dashboard-actions .dashicons { grid-row: 1 / 3; width: 30px; height: 30px; color: var(--duola-admin-accent-dark); font-size: 26px; }
+.duola-dashboard-actions b { color: var(--duola-admin-navy); font-size: 14px; }
+.duola-dashboard-actions small { color: var(--duola-admin-muted); }
+
+.duola-dashboard-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+.duola-dashboard-section-heading { display: flex; align-items: center; justify-content: space-between; }
+.duola-dashboard-section-heading h3 { margin-bottom: 10px; }
+.duola-dashboard-section-heading a { color: var(--duola-admin-accent-dark); text-decoration: none; }
+.duola-dashboard-recent { margin: 0; }
+.duola-dashboard-recent li { margin: 0; border-top: 1px solid #e8eaf1; }
+.duola-dashboard-recent a { display: flex; justify-content: space-between; gap: 16px; padding: 11px 2px; color: var(--duola-admin-text); text-decoration: none; }
+.duola-dashboard-recent a:hover span { color: var(--duola-admin-accent-dark); }
+.duola-dashboard-recent small { flex: 0 0 auto; color: var(--duola-admin-muted); }
+.duola-dashboard-empty { margin-bottom: 0; color: var(--duola-admin-muted); }
+
+.block-editor-page .edit-post-layout,
+.block-editor-page .interface-interface-skeleton__content { background: var(--duola-admin-paper); }
+.block-editor-page .edit-post-visual-editor,
+.block-editor-page .editor-styles-wrapper { background: #fffefb; }
+.block-editor-page .interface-interface-skeleton__sidebar,
+.block-editor-page .edit-post-sidebar { border-left-color: var(--duola-admin-border); }
+.block-editor-page .edit-post-header,
+.block-editor-page .interface-interface-skeleton__header { border-bottom-color: var(--duola-admin-border); box-shadow: none; }
+
+.duola-settings-heading { max-width: 760px; margin-bottom: 24px; }
+.duola-settings-heading > span { color: var(--duola-admin-accent-dark); font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+.duola-settings-heading h1 { margin: 5px 0 7px; color: var(--duola-admin-navy); font-size: 30px; }
+.duola-settings-heading p { margin: 0; color: var(--duola-admin-muted); }
+.duola-settings-grid { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(340px, 1fr); gap: 18px; max-width: 1040px; }
+.duola-settings-card { padding: 26px; border: 1px solid var(--duola-admin-border); border-radius: 14px; background: var(--duola-admin-card); box-shadow: var(--duola-admin-shadow); }
+.duola-settings-card h2 { margin: 0 0 20px; color: var(--duola-admin-navy); }
+.duola-settings-field { margin: 0 0 20px; }
+.duola-settings-field:last-child { margin-bottom: 0; }
+.duola-settings-field label { display: block; margin-bottom: 7px; font-weight: 700; }
+.duola-settings-field input { width: 100%; max-width: none; }
+.duola-settings-field .description { display: block; margin-top: 6px; color: var(--duola-admin-muted); }
+.duola-avatar-setting { display: block; max-width: none; margin: 0; padding: 26px; }
+.duola-avatar-setting > div:first-child p { margin: -13px 0 18px; color: var(--duola-admin-muted); }
+.duola-avatar-control { display: flex; align-items: center; gap: 18px; }
+.duola-avatar-control img { width: 96px; height: 96px; }
+.duola-avatar-control > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.duola-settings-submit { grid-column: 1 / -1; }
+
+#wpfooter { color: #7d8396; }
+
+@media (max-width: 960px) {
+  .duola-dashboard-actions > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .duola-settings-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 782px) {
+  #wpcontent { min-height: calc(100vh - 46px); }
+  .wrap { margin-top: 20px; }
+  .duola-dashboard-hero { align-items: flex-start; padding: 22px; }
+  .duola-dashboard-avatar { width: 62px; }
+  .duola-dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .duola-dashboard-stats a:nth-child(2) { border-right: 0; }
+  .duola-dashboard-stats a:nth-child(-n+2) { border-bottom: 1px solid var(--duola-admin-border); }
+  .duola-dashboard-columns { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .duola-dashboard-hero { gap: 14px; }
+  .duola-dashboard-avatar { width: 52px; }
+  .duola-dashboard-actions > div { grid-template-columns: 1fr; }
+  .duola-dashboard-stats a { padding: 16px; }
+  .duola-dashboard-stats strong { font-size: 23px; }
+  .duola-dashboard-recent a { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .duola-avatar-control { align-items: flex-start; flex-direction: column; }
+}

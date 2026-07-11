@@ -16,7 +16,7 @@ function duola_pocket_setup(): void
     add_theme_support('align-wide');
     add_theme_support('wp-block-styles');
     add_theme_support('editor-styles');
-    add_editor_style('style.css');
+    add_editor_style('assets/editor-style.css');
 
     add_image_size('duola-album-card', 960, 720, true);
     add_image_size('duola-home-note', 720, 960, true);
@@ -33,49 +33,84 @@ function duola_pocket_enqueue_assets(): void
 }
 add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_assets');
 
-function duola_pocket_register_appearance_setting(): void
+function duola_pocket_register_site_settings(): void
 {
-    register_setting('duola_appearance', 'duola_site_avatar_id', [
+    register_setting('duola_site_settings', 'duola_site_avatar_id', [
         'type' => 'integer',
         'sanitize_callback' => 'absint',
         'default' => 0,
     ]);
+    register_setting('duola_site_settings', 'blogname', [
+        'type' => 'string',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
+    register_setting('duola_site_settings', 'blogdescription', [
+        'type' => 'string',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
 }
-add_action('admin_init', 'duola_pocket_register_appearance_setting');
+add_action('admin_init', 'duola_pocket_register_site_settings');
 
-function duola_pocket_add_appearance_page(): void
+function duola_pocket_add_site_settings_page(): void
 {
-    add_theme_page(
-        __('网站外观', 'duola-pocket'),
-        __('网站外观', 'duola-pocket'),
+    add_menu_page(
+        __('网站设置', 'duola-pocket'),
+        __('网站设置', 'duola-pocket'),
         'manage_options',
-        'duola-appearance',
-        'duola_pocket_render_appearance_page'
+        'duola-site-settings',
+        'duola_pocket_render_site_settings_page',
+        'dashicons-admin-settings',
+        7
     );
 }
-add_action('admin_menu', 'duola_pocket_add_appearance_page');
+add_action('admin_menu', 'duola_pocket_add_site_settings_page');
 
-function duola_pocket_render_appearance_page(): void
+function duola_pocket_render_site_settings_page(): void
 {
     $avatar_id = (int) get_option('duola_site_avatar_id');
     $fallback_url = get_template_directory_uri() . '/assets/images/anime-girl.webp';
     $avatar_url = $avatar_id ? wp_get_attachment_image_url($avatar_id, 'thumbnail') : '';
     ?>
-    <div class="wrap duola-appearance-page">
-        <h1><?php esc_html_e('网站外观', 'duola-pocket'); ?></h1>
-        <p><?php esc_html_e('设置首页右上角显示的网站头像。', 'duola-pocket'); ?></p>
+    <div class="wrap duola-site-settings-page">
+        <?php settings_errors(); ?>
+        <div class="duola-settings-heading">
+            <span><?php esc_html_e('Pocket settings', 'duola-pocket'); ?></span>
+            <h1><?php esc_html_e('网站设置', 'duola-pocket'); ?></h1>
+            <p><?php esc_html_e('这里仅保留日常会用到的名称、说明和头像。', 'duola-pocket'); ?></p>
+        </div>
         <form action="options.php" method="post">
-            <?php settings_fields('duola_appearance'); ?>
-            <div class="duola-avatar-setting">
-                <img id="duola-avatar-preview" src="<?php echo esc_url($avatar_url ?: $fallback_url); ?>" alt="">
-                <div>
-                    <input id="duola-site-avatar-id" name="duola_site_avatar_id" type="hidden" value="<?php echo esc_attr($avatar_id); ?>">
-                    <button id="duola-select-avatar" class="button button-primary" type="button"><?php esc_html_e('从照片库选择头像', 'duola-pocket'); ?></button>
-                    <button id="duola-remove-avatar" class="button" type="button"<?php echo $avatar_id ? '' : ' hidden'; ?>><?php esc_html_e('恢复默认头像', 'duola-pocket'); ?></button>
-                    <p class="description"><?php esc_html_e('建议使用正方形图片，网站会自动裁成圆形。', 'duola-pocket'); ?></p>
+            <?php settings_fields('duola_site_settings'); ?>
+            <div class="duola-settings-grid">
+                <section class="duola-settings-card">
+                    <h2><?php esc_html_e('基础信息', 'duola-pocket'); ?></h2>
+                    <p class="duola-settings-field">
+                        <label for="duola-blogname"><?php esc_html_e('网站名称', 'duola-pocket'); ?></label>
+                        <input id="duola-blogname" class="regular-text" name="blogname" type="text" value="<?php echo esc_attr(get_option('blogname')); ?>" required>
+                    </p>
+                    <p class="duola-settings-field">
+                        <label for="duola-blogdescription"><?php esc_html_e('一句话说明', 'duola-pocket'); ?></label>
+                        <input id="duola-blogdescription" class="regular-text" name="blogdescription" type="text" value="<?php echo esc_attr(get_option('blogdescription')); ?>">
+                        <span class="description"><?php esc_html_e('会用于网站简介和搜索摘要，留空也可以。', 'duola-pocket'); ?></span>
+                    </p>
+                </section>
+                <section class="duola-settings-card duola-avatar-setting">
+                    <div>
+                        <h2><?php esc_html_e('网站头像', 'duola-pocket'); ?></h2>
+                        <p><?php esc_html_e('显示在首页右上角，建议使用正方形图片。', 'duola-pocket'); ?></p>
+                    </div>
+                    <div class="duola-avatar-control">
+                        <img id="duola-avatar-preview" src="<?php echo esc_url($avatar_url ?: $fallback_url); ?>" alt="">
+                        <div>
+                            <input id="duola-site-avatar-id" name="duola_site_avatar_id" type="hidden" value="<?php echo esc_attr($avatar_id); ?>">
+                            <button id="duola-select-avatar" class="button button-primary" type="button"><?php esc_html_e('从照片库选择', 'duola-pocket'); ?></button>
+                            <button id="duola-remove-avatar" class="button" type="button"<?php echo $avatar_id ? '' : ' hidden'; ?>><?php esc_html_e('恢复默认', 'duola-pocket'); ?></button>
+                        </div>
+                    </div>
+                </section>
+                <div class="duola-settings-submit">
+                    <?php submit_button(__('保存网站设置', 'duola-pocket'), 'primary', 'submit', false); ?>
                 </div>
             </div>
-            <?php submit_button(__('保存头像', 'duola-pocket')); ?>
         </form>
     </div>
     <?php
@@ -83,7 +118,7 @@ function duola_pocket_render_appearance_page(): void
 
 function duola_pocket_enqueue_admin_assets(string $hook): void
 {
-    if ('appearance_page_duola-appearance' !== $hook) {
+    if ('toplevel_page_duola-site-settings' !== $hook) {
         return;
     }
 
