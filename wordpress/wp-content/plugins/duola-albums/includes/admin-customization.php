@@ -168,7 +168,17 @@ add_filter('update_footer', '__return_empty_string', 20);
 
 function duola_admin_dashboard_label(string $translation, string $text): string
 {
-    return is_admin() && 'Dashboard' === $text ? __('首页', 'duola-albums') : $translation;
+    global $pagenow;
+
+    if (!is_admin() && 'wp-login.php' !== $pagenow) {
+        return $translation;
+    }
+
+    if ('Dashboard' === $text) {
+        return __('首页', 'duola-albums');
+    }
+
+    return str_ireplace('WordPress', get_bloginfo('name'), $translation);
 }
 add_filter('gettext', 'duola_admin_dashboard_label', 10, 2);
 
