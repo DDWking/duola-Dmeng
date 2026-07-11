@@ -113,18 +113,29 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 
 #dashboard-widgets-wrap { margin: 0; }
 #welcome-panel { display: none !important; }
-#dashboard-widgets .postbox-container { width: 100%; }
+.index-php .wrap > h1 { display: none; }
+.index-php #dashboard-widgets.columns-1 .postbox-container,
+.index-php #dashboard-widgets.columns-2 .postbox-container,
+.index-php #dashboard-widgets.columns-3 .postbox-container,
+.index-php #dashboard-widgets.columns-4 .postbox-container,
+.index-php #postbox-container-1 { width: 100% !important; }
+.index-php #postbox-container-2,
+.index-php #postbox-container-3,
+.index-php #postbox-container-4 { display: none !important; }
 #dashboard-widgets #duola_dashboard { border: 0; background: transparent; box-shadow: none; }
 #duola_dashboard > .postbox-header { display: none; }
 #duola_dashboard .inside { margin: 0; padding: 0; }
-.duola-dashboard-shell { max-width: 1180px; color: var(--duola-admin-text); }
+.duola-dashboard-shell { width: min(100% - 20px, 1380px); color: var(--duola-admin-text); }
+.duola-dashboard-overview { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(360px, 0.8fr); gap: 18px; }
 .duola-dashboard-hero {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 22px;
+  min-height: 152px;
   overflow: hidden;
-  padding: 28px 32px;
+  padding: 30px 32px;
   border: 1px solid #d7dced;
   border-radius: 16px;
   background:
@@ -142,6 +153,7 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
   border-radius: 50%;
   content: "";
 }
+.duola-dashboard-identity { position: relative; z-index: 1; display: flex; align-items: center; gap: 22px; min-width: 0; }
 .duola-dashboard-avatar {
   display: grid;
   flex: 0 0 auto;
@@ -156,24 +168,55 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 }
 .duola-dashboard-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .duola-dashboard-avatar .dashicons { width: 32px; height: 32px; color: var(--duola-admin-accent); font-size: 32px; }
-.duola-dashboard-hero span { color: var(--duola-admin-accent-dark); font-size: 11px; font-weight: 800; letter-spacing: 0.18em; }
+.duola-dashboard-kicker { color: var(--duola-admin-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: 0.16em; }
 .duola-dashboard-hero h2 { margin: 4px 0 5px; color: var(--duola-admin-navy); font-size: clamp(21px, 2.4vw, 30px); line-height: 1.25; }
 .duola-dashboard-hero p { margin: 0; color: var(--duola-admin-muted); }
+.duola-dashboard-site-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid rgba(113, 131, 209, 0.34);
+  border-radius: 9px;
+  color: var(--duola-admin-accent-dark);
+  background: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+}
+.duola-dashboard-site-link:hover { border-color: var(--duola-admin-accent); color: var(--duola-admin-navy); background: #fff; }
+.duola-dashboard-site-link .dashicons { width: 16px; height: 16px; font-size: 16px; }
 
 .duola-dashboard-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 18px 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
   overflow: hidden;
   border: 1px solid var(--duola-admin-border);
   border-radius: 14px;
   background: var(--duola-admin-card);
+  box-shadow: var(--duola-admin-shadow);
 }
-.duola-dashboard-stats a { display: flex; align-items: baseline; gap: 8px; padding: 20px 22px; border-right: 1px solid var(--duola-admin-border); color: inherit; text-decoration: none; }
-.duola-dashboard-stats a:last-child { border-right: 0; }
+.duola-dashboard-stats a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: center;
+  gap: 0 8px;
+  min-height: 88px;
+  padding: 15px 18px;
+  border-right: 1px solid var(--duola-admin-border);
+  border-bottom: 1px solid var(--duola-admin-border);
+  color: inherit;
+  text-decoration: none;
+}
+.duola-dashboard-stats a:nth-child(2n) { border-right: 0; }
+.duola-dashboard-stats a:nth-last-child(-n + 2) { border-bottom: 0; }
 .duola-dashboard-stats a:hover { background: var(--duola-admin-accent-soft); }
-.duola-dashboard-stats strong { color: var(--duola-admin-navy); font-size: 28px; }
-.duola-dashboard-stats span { color: var(--duola-admin-muted); font-size: 12px; }
+.duola-dashboard-stats i { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 24px; height: 24px; color: #a9b3dc; font-size: 24px; font-style: normal; }
+.duola-dashboard-stats strong { color: var(--duola-admin-navy); font-size: 27px; line-height: 1; }
+.duola-dashboard-stats span { margin-top: 6px; color: var(--duola-admin-muted); font-size: 11px; }
 
 .duola-dashboard-actions,
 .duola-dashboard-columns > section {
@@ -183,6 +226,7 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
   background: var(--duola-admin-card);
   box-shadow: var(--duola-admin-shadow);
 }
+.duola-dashboard-actions { margin-top: 18px; }
 .duola-dashboard-actions h3,
 .duola-dashboard-columns h3 { margin: 0 0 16px; color: var(--duola-admin-navy); font-size: 16px; }
 .duola-dashboard-actions > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -296,6 +340,11 @@ body.login {
 .login .language-switcher { margin-top: 22px; }
 #wp-admin-bar-my-account .avatar { display: none; }
 
+@media (max-width: 1100px) {
+  .duola-dashboard-overview { grid-template-columns: 1fr; }
+  .duola-dashboard-stats a { min-height: 78px; }
+}
+
 @media (max-width: 960px) {
   .duola-dashboard-actions > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .duola-settings-grid { grid-template-columns: 1fr; }
@@ -304,6 +353,7 @@ body.login {
 @media (max-width: 782px) {
   #wpcontent { min-height: calc(100vh - 46px); }
   .wrap { margin-top: 20px; }
+  .duola-dashboard-shell { width: calc(100% - 10px); }
   .duola-dashboard-hero { align-items: flex-start; padding: 22px; }
   .duola-dashboard-avatar { width: 62px; }
   .duola-dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -313,8 +363,10 @@ body.login {
 }
 
 @media (max-width: 520px) {
-  .duola-dashboard-hero { gap: 14px; }
+  .duola-dashboard-hero { align-items: stretch; flex-direction: column; gap: 18px; }
+  .duola-dashboard-identity { align-items: flex-start; gap: 14px; }
   .duola-dashboard-avatar { width: 52px; }
+  .duola-dashboard-site-link { justify-content: center; }
   .duola-dashboard-actions > div { grid-template-columns: 1fr; }
   .duola-dashboard-stats a { padding: 16px; }
   .duola-dashboard-stats strong { font-size: 23px; }

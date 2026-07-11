@@ -191,6 +191,19 @@ function duola_admin_dashboard_setup(): void
 }
 add_action('wp_dashboard_setup', 'duola_admin_dashboard_setup', 999);
 
+function duola_admin_dashboard_columns(array $columns): array
+{
+    $columns['dashboard'] = 1;
+    return $columns;
+}
+add_filter('screen_layout_columns', 'duola_admin_dashboard_columns');
+
+function duola_admin_dashboard_layout($layout): int
+{
+    return 1;
+}
+add_filter('get_user_option_screen_layout_dashboard', 'duola_admin_dashboard_layout');
+
 function duola_admin_login_title(string $login_title, string $title): string
 {
     return sprintf('%1$s ‹ %2$s', $title, get_bloginfo('name'));
@@ -283,21 +296,28 @@ function duola_admin_render_dashboard(): void
     $theme_count = is_wp_error($theme_count) ? 0 : (int) $theme_count;
     ?>
     <div class="duola-dashboard-shell">
-        <header class="duola-dashboard-hero">
-            <div class="duola-dashboard-avatar"><?php echo $avatar ?: '<span class="dashicons dashicons-format-image" aria-hidden="true"></span>'; ?></div>
-            <div>
-                <span><?php esc_html_e('STAY ALIVE', 'duola-albums'); ?></span>
-                <h2><?php echo esc_html(wp_get_current_user()->display_name); ?>，今天想记录什么？</h2>
-                <p><?php echo esc_html(get_option('blogdescription') ?: __('照片和文字，都收进自己的口袋里。', 'duola-albums')); ?></p>
-            </div>
-        </header>
+        <div class="duola-dashboard-overview">
+            <header class="duola-dashboard-hero">
+                <div class="duola-dashboard-identity">
+                    <div class="duola-dashboard-avatar"><?php echo $avatar ?: '<span class="dashicons dashicons-format-image" aria-hidden="true"></span>'; ?></div>
+                    <div>
+                        <span class="duola-dashboard-kicker"><?php echo esc_html(wp_date('Y.m.d')); ?> · <?php esc_html_e('STAY ALIVE', 'duola-albums'); ?></span>
+                        <h2><?php echo esc_html(wp_get_current_user()->display_name); ?>，今天想记录什么？</h2>
+                        <p><?php echo esc_html(get_option('blogdescription') ?: __('照片和文字，都收进自己的口袋里。', 'duola-albums')); ?></p>
+                    </div>
+                </div>
+                <a class="duola-dashboard-site-link" href="<?php echo esc_url(home_url('/')); ?>" target="_blank" rel="noopener noreferrer">
+                    <span class="dashicons dashicons-external" aria-hidden="true"></span><?php esc_html_e('查看网站', 'duola-albums'); ?>
+                </a>
+            </header>
 
-        <section class="duola-dashboard-stats" aria-label="<?php esc_attr_e('内容统计', 'duola-albums'); ?>">
-            <a href="<?php echo esc_url(admin_url('edit.php')); ?>"><strong><?php echo esc_html(duola_admin_content_count('post')); ?></strong><span><?php esc_html_e('篇文章', 'duola-albums'); ?></span></a>
-            <a href="<?php echo esc_url(admin_url('edit.php?post_type=album')); ?>"><strong><?php echo esc_html(duola_admin_content_count('album')); ?></strong><span><?php esc_html_e('本相册', 'duola-albums'); ?></span></a>
-            <a href="<?php echo esc_url(admin_url('upload.php')); ?>"><strong><?php echo esc_html(duola_admin_image_count()); ?></strong><span><?php esc_html_e('张照片', 'duola-albums'); ?></span></a>
-            <a href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=album_theme&post_type=album')); ?>"><strong><?php echo esc_html($theme_count); ?></strong><span><?php esc_html_e('个主题', 'duola-albums'); ?></span></a>
-        </section>
+            <section class="duola-dashboard-stats" aria-label="<?php esc_attr_e('内容统计', 'duola-albums'); ?>">
+                <a href="<?php echo esc_url(admin_url('edit.php')); ?>"><i class="dashicons dashicons-text-page" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('post')); ?></strong><span><?php esc_html_e('篇文章', 'duola-albums'); ?></span></a>
+                <a href="<?php echo esc_url(admin_url('edit.php?post_type=album')); ?>"><i class="dashicons dashicons-format-gallery" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('album')); ?></strong><span><?php esc_html_e('本相册', 'duola-albums'); ?></span></a>
+                <a href="<?php echo esc_url(admin_url('upload.php')); ?>"><i class="dashicons dashicons-images-alt2" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_image_count()); ?></strong><span><?php esc_html_e('张照片', 'duola-albums'); ?></span></a>
+                <a href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=album_theme&post_type=album')); ?>"><i class="dashicons dashicons-category" aria-hidden="true"></i><strong><?php echo esc_html($theme_count); ?></strong><span><?php esc_html_e('个主题', 'duola-albums'); ?></span></a>
+            </section>
+        </div>
 
         <section class="duola-dashboard-actions">
             <h3><?php esc_html_e('快捷开始', 'duola-albums'); ?></h3>
