@@ -9,7 +9,9 @@ $latest_posts = new WP_Query([
 
 $home_photos = [];
 $home_photo_slots = [];
+$home_photo_scenes = [];
 $seen_photo_ids = [];
+$home_visual_layout = function_exists('duola_visual_get_home_layout') ? duola_visual_get_home_layout() : [];
 if (function_exists('duola_albums_get_cover_id') && function_exists('duola_albums_get_photos')) {
     $albums = get_posts([
         'post_type' => 'album',
@@ -47,9 +49,13 @@ if (function_exists('duola_albums_get_cover_id') && function_exists('duola_album
                 'id' => $photo_id,
                 'url' => $full_url,
                 'title' => get_the_title($album),
+                'album_id' => (int) $album->ID,
                 'caption' => wp_get_attachment_caption($photo_id),
                 'settings' => $settings,
             ];
+            if (function_exists('duola_visual_get_photo_scene')) {
+                $home_photo_scenes[(string) $photo_id] = duola_visual_get_photo_scene((int) $album->ID, $photo_id);
+            }
 
             if (count($home_photos) >= 10) {
                 break 2;
@@ -71,7 +77,7 @@ if ($home_photos) {
 }
 ?>
 <section class="kinetic-home" aria-label="首页">
-    <div class="home-articles">
+    <div class="home-articles" id="duola-home-articles" data-visual-role="home-articles">
         <div class="home-section-heading">
             <span>NOTES</span>
             <a href="<?php echo esc_url(get_permalink((int) get_option('page_for_posts')) ?: home_url('/')); ?>">全部文章</a>
@@ -96,42 +102,41 @@ if ($home_photos) {
     </div>
 
     <?php if ($home_photos) : ?>
-        <div class="home-preview-control" data-home-preview-control>
+        <div class="home-preview-control" id="duola-home-preview" data-home-preview-control data-visual-role="home-preview">
             <span class="home-preview-current" data-home-preview-current>01</span>
             <div class="home-preview-track">
                 <span aria-hidden="true"></span>
-                <input type="range" min="0" max="<?php echo esc_attr(max(0, count($home_photos) - 1)); ?>" value="0" step="1" aria-label="滑动预览照片">
+                <input type="range" min="0" max="<?php echo esc_attr(max(0, count($home_photos) - 1)); ?>" value="0" step="0.001" aria-label="滑动预览照片">
             </div>
             <span class="home-preview-total"><?php echo esc_html(str_pad((string) count($home_photos), 2, '0', STR_PAD_LEFT)); ?></span>
         </div>
-        <div class="home-photo-rail" data-home-photo-rail data-lightbox-gallery data-gallery-title="照片">
-            <?php foreach ($home_photo_slots as $slot_index => $slot) : ?>
-                <?php $photo = $slot['photo']; $settings = $photo['settings']; ?>
-                <button class="home-photo-slice is-width-<?php echo esc_attr($settings['home_width'] ?? 'standard'); ?>" type="button"
-                    style="--slice-position: <?php echo esc_attr($slot['position']); ?>%;"
-                    data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
-                    data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
-                    data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
-                    data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
-                    data-lightbox-headline="<?php echo esc_attr($settings['headline'] ?? ''); ?>"
-                    data-lightbox-description="<?php echo esc_attr($settings['description'] ?? ''); ?>"
-                    data-lightbox-date="<?php echo esc_attr($settings['date'] ?? ''); ?>"
-                    data-lightbox-layout="<?php echo esc_attr($settings['layout'] ?? 'standard'); ?>"
-                    data-lightbox-text-position="<?php echo esc_attr($settings['text_position'] ?? 'spread'); ?>"
-                    data-lightbox-focus-x="<?php echo esc_attr($settings['focus_x'] ?? 50); ?>"
-                    data-lightbox-focus-y="<?php echo esc_attr($settings['focus_y'] ?? 50); ?>"
-                    data-lightbox-accent="<?php echo esc_attr($settings['accent'] ?? '#009fe8'); ?>"
-                    data-lightbox-background="<?php echo esc_attr($settings['background'] ?? '#f3f3f0'); ?>"
-                    aria-label="查看照片 <?php echo esc_attr($slot['photo_index'] + 1); ?>">
-                    <?php echo wp_get_attachment_image($photo['id'], 'large', false, [
-                        'loading' => $slot_index < 5 ? 'eager' : 'lazy',
-                        'fetchpriority' => 0 === $slot_index ? 'high' : 'auto',
-                        'alt' => '',
-                    ]); ?>
-                </button>
-            <?php endforeach; ?>
+        <div class="home-photo-rail" id="duola-home-rail" data-home-photo-rail data-lightbox-gallery data-gallery-title="照片" data-visual-role="home-rail">
+            <div class="home-photo-track" data-home-photo-track>
+                <?php foreach ($home_photo_slots as $slot_index => $slot) : ?>
+                    <?php $photo = $slot['photo']; $settings = $photo['settings']; ?>
+                    <button class="home-photo-slice is-width-<?php echo esc_attr($settings['home_width'] ?? 'standard'); ?>" type="button"
+                        style="--slice-position: <?php echo esc_attr($slot['position']); ?>%;"
+                        data-home-slot="<?php echo esc_attr($slot_index); ?>"
+                        data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
+                        data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
+                        data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
+                        data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
+                        data-lightbox-headline="<?php echo esc_attr($settings['headline'] ?? ''); ?>"
+                        data-lightbox-description="<?php echo esc_attr($settings['description'] ?? ''); ?>"
+                        data-lightbox-date="<?php echo esc_attr($settings['date'] ?? ''); ?>"
+                        aria-label="查看照片 <?php echo esc_attr($slot['photo_index'] + 1); ?>">
+                        <?php echo wp_get_attachment_image($photo['id'], 'large', false, [
+                            'loading' => $slot_index < 5 ? 'eager' : 'lazy',
+                            'fetchpriority' => 0 === $slot_index ? 'high' : 'auto',
+                            'alt' => '',
+                        ]); ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
         </div>
-        <a class="home-all-photos" href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部照片</a>
+        <a class="home-all-photos" id="duola-home-link" data-visual-role="home-link" href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部照片</a>
     <?php endif; ?>
 </section>
+<?php if ($home_visual_layout) : ?><script type="application/json" id="duola-home-visual-layout"><?php echo wp_json_encode($home_visual_layout, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script><?php endif; ?>
+<?php if ($home_photo_scenes) : ?><script type="application/json" id="duola-photo-scenes"><?php echo wp_json_encode($home_photo_scenes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script><?php endif; ?>
 <?php get_footer(); ?>

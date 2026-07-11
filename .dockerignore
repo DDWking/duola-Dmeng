@@ -4,5 +4,6 @@
 !.env.example
 data
 backups
+**/node_modules
 PROJECT.md
 README.md

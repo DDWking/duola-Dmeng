@@ -133,7 +133,9 @@
   padding: 8px 9px;
   background: #fff;
 }
-.duola-photo-actions .duola-edit-photo { flex-basis: 100%; font-weight: 600; text-align: left; }
+.duola-photo-actions .duola-edit-photo,
+.duola-photo-actions .duola-visual-pending { flex-basis: 100%; font-weight: 600; text-align: left; }
+.duola-photo-actions .duola-visual-pending { color: var(--duola-admin-muted); font-size: 11px; }
 .duola-photo-actions button { cursor: pointer; }
 
 .duola-photo-editor[hidden] { display: none; }

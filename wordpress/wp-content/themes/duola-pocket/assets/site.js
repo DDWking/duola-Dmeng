@@ -19,9 +19,77 @@
     revealItems.forEach((item) => item.classList.add('is-visible'));
   }
 
+  const parseJsonScript = (selector, fallback = {}) => {
+    const script = document.querySelector(selector);
+    if (!script) return fallback;
+    try {
+      return JSON.parse(script.textContent || '') || fallback;
+    } catch (error) {
+      return fallback;
+    }
+  };
+
+  const homeLayout = parseJsonScript('#duola-home-visual-layout', {});
+  const photoScenes = parseJsonScript('#duola-photo-scenes', {});
+  const mobileMedia = window.matchMedia('(max-width: 760px)');
+  const applyStyle = (element, style = {}) => {
+    element.removeAttribute('style');
+    Object.entries(style).forEach(([property, value]) => element.style.setProperty(property, value));
+  };
+
+  const autoMobileStyle = (element, settings) => {
+    const map = {
+      'home-articles': { position: 'absolute', left: '4%', top: '13%', width: '92%', height: '22%', 'z-index': '3' },
+      'home-preview': { position: 'absolute', left: '4%', top: '7%', width: '92%', height: '3%', 'z-index': '5' },
+      'home-rail': { position: 'absolute', left: '4%', top: '38%', width: '104%', height: '26%', 'z-index': '2' },
+      'home-link': { position: 'absolute', left: '4%', top: '68%', width: '7rem', height: '1.5rem', 'z-index': '3', 'text-align': 'left' },
+      photo: { position: 'absolute', left: '3%', top: '20%', width: '94%', height: '58%', 'z-index': '2', 'object-fit': 'cover', 'object-position': `${settings.focus_x || 50}% ${settings.focus_y || 50}%` },
+      headline: { position: 'absolute', left: '3%', top: '40%', width: '94%', height: '24%', 'z-index': '4', color: settings.accent || '#009fe8', 'font-size': '18vw', 'font-weight': '900', 'line-height': '.8', 'text-align': 'center' },
+      date: { position: 'absolute', left: '4%', bottom: '5%', width: '12rem', height: '1.5rem', 'z-index': '5', 'font-size': '.62rem', 'font-weight': '700' },
+      description: { position: 'absolute', left: '4%', bottom: '2%', width: '82%', 'min-height': '2rem', 'z-index': '5', 'font-size': '.62rem', 'font-weight': '700', 'text-align': 'left' },
+    };
+    if (map[element.type]) return map[element.type];
+    return { ...(element.desktop || {}), width: element.desktop?.width || ('image' === element.type ? '38%' : '70%'), 'font-size': 'text' === element.type ? '8vw' : element.desktop?.['font-size'] };
+  };
+
+  const styleFor = (element, layout) => mobileMedia.matches
+    ? { ...autoMobileStyle(element, layout.settings || {}), ...(element.mobile || {}) }
+    : { ...(element.desktop || {}) };
+
+  const applyHomeLayout = () => {
+    if (!homeLayout.elements) return;
+    const home = document.querySelector('.kinetic-home');
+    if (!home) return;
+    home.querySelectorAll('.home-visual-decoration').forEach((element) => element.remove());
+    const fixedTargets = {
+      'home-articles': document.querySelector('#duola-home-articles'),
+      'home-preview': document.querySelector('#duola-home-preview'),
+      'home-rail': document.querySelector('#duola-home-rail'),
+      'home-link': document.querySelector('#duola-home-link'),
+    };
+    home.style.background = homeLayout.settings?.background || '#111315';
+    homeLayout.elements.forEach((element) => {
+      let target = fixedTargets[element.type];
+      if (!target && ['text', 'image'].includes(element.type)) {
+        target = document.createElement('image' === element.type ? 'img' : 'div');
+        target.className = `home-visual-decoration is-${element.type}`;
+        target.dataset.visualId = element.id;
+        if ('image' === element.type) {
+          target.src = element.src;
+          target.alt = '';
+        } else {
+          target.textContent = element.content;
+        }
+        home.appendChild(target);
+      }
+      if (target) applyStyle(target, styleFor(element, homeLayout));
+    });
+  };
+  applyHomeLayout();
+  mobileMedia.addEventListener?.('change', applyHomeLayout);
+
   const gallery = document.querySelector('[data-lightbox-gallery]');
   if (!gallery) return;
-
   const triggers = Array.from(gallery.querySelectorAll('[data-lightbox-image]'));
   const itemIndexByKey = new Map();
   const items = [];
@@ -36,29 +104,124 @@
 
   const formatIndex = (index) => String(index + 1).padStart(2, '0');
   const homeRail = document.querySelector('[data-home-photo-rail]');
+  const homeTrack = document.querySelector('[data-home-photo-track]');
   const homePreview = document.querySelector('[data-home-preview-control]');
   const homePreviewInput = homePreview?.querySelector('input[type="range"]');
   const homePreviewCurrent = homePreview?.querySelector('[data-home-preview-current]');
+  const homePreviewTicks = homePreview?.querySelector('.home-preview-track > span');
+  let waveTarget = 0;
+  let waveCurrent = 0;
+  let waveLatency = 0;
+  let sliderDragging = false;
+  let railDragging = false;
+  let railDragged = false;
+  let dragStartX = 0;
+  let dragStartTarget = 0;
+  let wheelSnapTimer = 0;
 
-  const syncHomePreview = (index, shouldScroll = false) => {
-    if (!homePreviewInput || !homePreviewCurrent) return;
-    const normalizedIndex = Math.max(0, Math.min(items.length - 1, Number(index)));
-    homePreviewInput.value = String(normalizedIndex);
-    homePreviewCurrent.textContent = formatIndex(normalizedIndex);
+  const clampWave = (value) => Math.max(0, Math.min(items.length - 1, value));
+  const setWaveTarget = (value) => { waveTarget = clampWave(Number(value) || 0); };
+  const setActiveSlice = (index) => {
     triggers.forEach((trigger) => trigger.classList.remove('is-previewed'));
-    const previewTrigger = triggers.find((trigger) => Number(trigger.dataset.lightboxIndex) === normalizedIndex);
-    previewTrigger?.classList.add('is-previewed');
-    if (shouldScroll) {
-      previewTrigger?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-    }
+    triggers.find((trigger) => Number(trigger.dataset.lightboxIndex) === index)?.classList.add('is-previewed');
+    if (homePreviewCurrent) homePreviewCurrent.textContent = formatIndex(index);
   };
 
-  homePreviewInput?.addEventListener('input', () => syncHomePreview(homePreviewInput.value, true));
-  triggers.forEach((trigger) => {
-    trigger.addEventListener('pointerenter', () => syncHomePreview(trigger.dataset.lightboxIndex));
-    trigger.addEventListener('focus', () => syncHomePreview(trigger.dataset.lightboxIndex));
-  });
-  syncHomePreview(0);
+  if (homeRail && homeTrack && homePreviewInput) {
+    const wave = homeLayout.settings || {};
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    homeRail.classList.add('is-physics-ready');
+    triggers.forEach((trigger, index) => {
+      trigger.dataset.wavePosition = String(index);
+      trigger.addEventListener('pointerenter', () => {
+        if (!railDragging && !sliderDragging && index < items.length) setWaveTarget(trigger.dataset.lightboxIndex);
+      });
+      trigger.addEventListener('click', (event) => {
+        if (!railDragged) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        railDragged = false;
+      }, true);
+    });
+    homePreviewInput.addEventListener('pointerdown', () => { sliderDragging = true; });
+    homePreviewInput.addEventListener('input', () => setWaveTarget(homePreviewInput.value));
+    homePreviewInput.addEventListener('pointerup', () => {
+      sliderDragging = false;
+      setWaveTarget(Math.round(waveTarget));
+    });
+    homeRail.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      railDragging = true;
+      railDragged = false;
+      dragStartX = event.clientX;
+      dragStartTarget = waveTarget;
+      homeRail.setPointerCapture(event.pointerId);
+    });
+    homeRail.addEventListener('pointermove', (event) => {
+      if (!railDragging) return;
+      const distance = event.clientX - dragStartX;
+      if (Math.abs(distance) > 5) railDragged = true;
+      setWaveTarget(dragStartTarget - distance / Math.max(90, homeRail.clientWidth / Math.max(4, items.length + 1)));
+    });
+    const endRailDrag = (event) => {
+      if (!railDragging) return;
+      railDragging = false;
+      if (homeRail.hasPointerCapture(event.pointerId)) homeRail.releasePointerCapture(event.pointerId);
+      setWaveTarget(Math.round(waveTarget));
+      window.setTimeout(() => { railDragged = false; }, 80);
+    };
+    homeRail.addEventListener('pointerup', endRailDrag);
+    homeRail.addEventListener('pointercancel', endRailDrag);
+    homeRail.addEventListener('wheel', (event) => {
+      if (mobileMedia.matches) return;
+      event.preventDefault();
+      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      setWaveTarget(waveTarget + delta / 260);
+      window.clearTimeout(wheelSnapTimer);
+      wheelSnapTimer = window.setTimeout(() => setWaveTarget(Math.round(waveTarget)), 180);
+    }, { passive: false });
+
+    const animateWave = () => {
+      const damping = reducedMotion ? 1 : (Number(wave.wave_damping || 12) / 100);
+      const latency = reducedMotion ? 1 : (Number(wave.wave_latency || 7) / 100);
+      waveCurrent += (waveTarget - waveCurrent) * damping;
+      waveLatency += (waveCurrent - waveLatency) * latency;
+      const velocity = waveCurrent - waveLatency;
+      const activeIndex = Math.round(waveCurrent);
+      const amplitude = reducedMotion ? 0 : Number(wave.wave_amplitude || 28);
+      const expansion = Number(wave.wave_expansion || 96);
+      const rotation = reducedMotion ? 0 : Number(wave.wave_rotation || 4);
+
+      if (!sliderDragging) homePreviewInput.value = String(waveCurrent);
+      setActiveSlice(activeIndex);
+      if (homePreviewTicks) {
+        homePreviewTicks.style.backgroundPositionX = `${waveCurrent * -11}px`;
+        homePreviewTicks.style.transform = `translate3d(${velocity * -18}px, -50%, 0) skewX(${velocity * -8}deg)`;
+      }
+      triggers.forEach((trigger) => {
+        const position = Number(trigger.dataset.wavePosition || 0);
+        const distance = position - waveCurrent;
+        const proximity = Math.exp(-(distance * distance) * 1.15);
+        const base = trigger.classList.contains('is-width-wide') ? 112 : trigger.classList.contains('is-width-narrow') ? 58 : 76;
+        const width = base + proximity * expansion;
+        const energy = Math.min(1, Math.abs(velocity) * 8 + proximity * .15);
+        const lift = Math.sin(distance * 1.12 - velocity * 3.4) * amplitude * energy;
+        const tilt = Math.max(-12, Math.min(12, -velocity * rotation * 5 + Math.sin(distance) * rotation * (1 - proximity)));
+        trigger.style.flexBasis = `${width}px`;
+        trigger.style.opacity = String(.34 + proximity * .66);
+        trigger.style.filter = `grayscale(${1 - proximity}) brightness(${.48 + proximity * .52})`;
+        trigger.style.transform = `translate3d(0, ${lift}px, 0) rotate(${tilt}deg) scaleY(${1 + Math.abs(velocity) * .06})`;
+      });
+      if (mobileMedia.matches) {
+        const offset = window.innerWidth * .34 - waveCurrent * 82;
+        homeTrack.style.transform = `translate3d(${offset}px, 0, 0)`;
+      } else {
+        homeTrack.style.transform = 'translate3d(0, 0, 0)';
+      }
+      window.requestAnimationFrame(animateWave);
+    };
+    animateWave();
+  }
 
   const galleryTitle = gallery.dataset.galleryTitle || '照片';
   let currentIndex = 0;
@@ -72,7 +235,7 @@
   lightbox.setAttribute('aria-label', `${galleryTitle}照片查看器`);
   lightbox.setAttribute('aria-hidden', 'true');
   lightbox.innerHTML = `
-    <div class="lightbox-display-title" aria-hidden="true"></div>
+    <div class="lightbox-scene" data-lightbox-scene></div>
     <header class="lightbox-header">
       <span class="lightbox-album"></span>
       <div class="lightbox-progress">
@@ -82,44 +245,15 @@
       <button class="lightbox-close" type="button" aria-label="关闭查看器">×</button>
     </header>
     <button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张照片">←</button>
-    <div class="lightbox-stage">
-      <div class="lightbox-frame"><img class="lightbox-image" alt=""></div>
-    </div>
-    <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张照片">→</button>
-    <div class="lightbox-details">
-      <dl>
-        <div data-lightbox-date-row><dt>A</dt><dd data-lightbox-date></dd></div>
-        <div><dt>B</dt><dd data-lightbox-detail-album></dd></div>
-      </dl>
-      <p data-lightbox-description></p>
-    </div>
-    <div class="lightbox-thumbnails" role="tablist" aria-label="照片缩略图"></div>`;
+    <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张照片">→</button>`;
   document.body.appendChild(lightbox);
 
-  const image = lightbox.querySelector('.lightbox-image');
-  const displayTitle = lightbox.querySelector('.lightbox-display-title');
+  const sceneRoot = lightbox.querySelector('[data-lightbox-scene]');
   const albumLabel = lightbox.querySelector('.lightbox-album');
   const currentLabel = lightbox.querySelector('[data-lightbox-current]');
   const totalLabel = lightbox.querySelector('[data-lightbox-total]');
-  const detailAlbum = lightbox.querySelector('[data-lightbox-detail-album]');
-  const detailDate = lightbox.querySelector('[data-lightbox-date]');
-  const detailDateRow = lightbox.querySelector('[data-lightbox-date-row]');
-  const detailDescription = lightbox.querySelector('[data-lightbox-description]');
   const scrubber = lightbox.querySelector('.lightbox-scrubber');
   const closeButton = lightbox.querySelector('.lightbox-close');
-  const thumbnails = lightbox.querySelector('.lightbox-thumbnails');
-  const thumbnailButtons = [];
-
-  const renderDisplayTitle = (text) => {
-    const characters = Array.from(text.trim()).slice(0, 14);
-    displayTitle.style.setProperty('--title-count', String(Math.max(1, characters.filter((character) => !/\s/.test(character)).length)));
-    displayTitle.replaceChildren(...characters.map((character) => {
-      const span = document.createElement('span');
-      span.textContent = character;
-      if (/\s/.test(character)) span.className = 'is-space';
-      return span;
-    }));
-  };
 
   const getContrastColor = (hex) => {
     const normalized = hex.replace('#', '');
@@ -130,27 +264,47 @@
     return (red * 299 + green * 587 + blue * 114) / 1000 > 142 ? '#16191b' : '#f4f6f7';
   };
 
+  const renderScene = (scene, item, title) => {
+    const fallback = {
+      settings: { background: '#f3f3f0', accent: '#009fe8', focus_x: 50, focus_y: 50 },
+      elements: [
+        { id: 'photo', type: 'photo', src: item.dataset.lightboxImage, content: '', desktop: { position: 'absolute', left: '16%', top: '17%', width: '68%', height: '66%', 'z-index': '2', 'object-fit': 'cover' }, mobile: {} },
+        { id: 'headline', type: 'headline', content: item.dataset.lightboxHeadline || title, desktop: { position: 'absolute', left: '4%', top: '34%', width: '92%', height: '32%', 'z-index': '4', color: '#009fe8', 'font-size': '9vw', 'font-weight': '900', 'line-height': '.78', 'text-align': 'center' }, mobile: {} },
+      ],
+    };
+    const activeScene = scene?.elements?.length ? scene : fallback;
+    const settings = activeScene.settings || fallback.settings;
+    const background = settings.background || '#f3f3f0';
+    lightbox.style.setProperty('--lightbox-background', background);
+    lightbox.style.setProperty('--lightbox-accent', settings.accent || '#009fe8');
+    lightbox.style.setProperty('--lightbox-ink', getContrastColor(background));
+    sceneRoot.replaceChildren();
+    activeScene.elements.forEach((element) => {
+      let node;
+      if (['photo', 'image'].includes(element.type)) {
+        node = document.createElement('img');
+        node.src = 'photo' === element.type ? item.dataset.lightboxImage : element.src;
+        node.alt = '';
+      } else {
+        node = document.createElement('div');
+        let content = element.content || '';
+        if ('headline' === element.type && !content) content = item.dataset.lightboxHeadline || title;
+        if ('date' === element.type && !content) content = item.dataset.lightboxDate || '';
+        if ('description' === element.type && !content) content = item.dataset.lightboxDescription || item.dataset.lightboxCaption || '';
+        node.textContent = 'date' === element.type ? content.replaceAll('-', '.') : content;
+      }
+      node.className = `lightbox-scene-element is-${element.type}`;
+      node.dataset.sceneId = element.id;
+      applyStyle(node, styleFor(element, activeScene));
+      sceneRoot.appendChild(node);
+    });
+    sceneRoot.classList.remove('is-entering-forward', 'is-entering-backward');
+    void sceneRoot.offsetWidth;
+  };
+
   albumLabel.textContent = galleryTitle;
-  detailAlbum.textContent = galleryTitle;
   totalLabel.textContent = String(items.length).padStart(2, '0');
   scrubber.max = String(Math.max(0, items.length - 1));
-
-  items.forEach((item, index) => {
-    const sourceImage = item.querySelector('img');
-    const button = document.createElement('button');
-    const thumbnail = document.createElement('img');
-    button.className = 'lightbox-thumbnail';
-    button.type = 'button';
-    button.setAttribute('role', 'tab');
-    button.setAttribute('aria-label', `查看第 ${index + 1} 张照片`);
-    button.dataset.lightboxThumbnail = String(index);
-    thumbnail.src = sourceImage?.currentSrc || sourceImage?.src || item.dataset.lightboxImage;
-    thumbnail.alt = '';
-    button.appendChild(thumbnail);
-    button.addEventListener('click', () => show(index, index >= currentIndex ? 1 : -1));
-    thumbnails.appendChild(button);
-    thumbnailButtons.push(button);
-  });
 
   const preloadAdjacent = () => {
     [-1, 1].forEach((offset) => {
@@ -164,43 +318,13 @@
     currentIndex = (index + items.length) % items.length;
     const item = items[currentIndex];
     const itemTitle = item.dataset.lightboxTitle || galleryTitle;
-    const headline = item.dataset.lightboxHeadline || itemTitle;
-    const description = item.dataset.lightboxDescription || item.dataset.lightboxCaption || '';
-    const date = item.dataset.lightboxDate || '';
-    image.classList.remove('is-entering-forward', 'is-entering-backward');
-    displayTitle.classList.remove('is-shifting-forward', 'is-shifting-backward');
-    void image.offsetWidth;
-
-    lightbox.dataset.layout = item.dataset.lightboxLayout || 'standard';
-    lightbox.dataset.textPosition = item.dataset.lightboxTextPosition || 'spread';
-    const background = item.dataset.lightboxBackground || '#f3f3f0';
-    lightbox.style.setProperty('--lightbox-accent', item.dataset.lightboxAccent || '#009fe8');
-    lightbox.style.setProperty('--lightbox-background', background);
-    lightbox.style.setProperty('--lightbox-ink', getContrastColor(background));
-    lightbox.style.setProperty('--lightbox-focus-x', `${item.dataset.lightboxFocusX || 50}%`);
-    lightbox.style.setProperty('--lightbox-focus-y', `${item.dataset.lightboxFocusY || 50}%`);
-
-    renderDisplayTitle(headline);
+    const key = item.dataset.lightboxKey || item.dataset.lightboxImage;
+    renderScene(photoScenes[key], item, itemTitle);
     albumLabel.textContent = itemTitle;
-    detailAlbum.textContent = itemTitle;
-    detailDate.textContent = date.replaceAll('-', '.');
-    detailDateRow.hidden = !date;
-    detailDescription.textContent = description;
-    detailDescription.hidden = !description;
-    image.src = item.dataset.lightboxImage;
-    image.alt = description;
     currentLabel.textContent = formatIndex(currentIndex);
     scrubber.value = String(currentIndex);
-    image.classList.add(direction >= 0 ? 'is-entering-forward' : 'is-entering-backward');
-    displayTitle.classList.add(direction >= 0 ? 'is-shifting-forward' : 'is-shifting-backward');
-    thumbnailButtons.forEach((button, buttonIndex) => {
-      const isActive = buttonIndex === currentIndex;
-      button.classList.toggle('is-active', isActive);
-      button.setAttribute('aria-selected', String(isActive));
-      button.tabIndex = isActive ? 0 : -1;
-    });
-    thumbnailButtons[currentIndex]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: opening ? 'auto' : 'smooth' });
-    syncHomePreview(currentIndex);
+    sceneRoot.classList.add(direction >= 0 ? 'is-entering-forward' : 'is-entering-backward');
+    setWaveTarget(currentIndex);
     lightbox.classList.add('is-open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -228,7 +352,7 @@
   lightbox.querySelector('.lightbox-next').addEventListener('click', () => show(currentIndex + 1, 1));
   lightbox.addEventListener('click', (event) => { if (event.target === lightbox) close(); });
   lightbox.addEventListener('wheel', (event) => {
-    if (event.target.matches('input[type="range"]')) return;
+    if (event.target instanceof Element && event.target.matches('input[type="range"]')) return;
     event.preventDefault();
     if (wheelLocked || Math.abs(event.deltaY) < 18) return;
     wheelLocked = true;
@@ -236,9 +360,7 @@
     show(currentIndex + direction, direction);
     window.setTimeout(() => { wheelLocked = false; }, 650);
   }, { passive: false });
-  lightbox.addEventListener('touchstart', (event) => {
-    touchStartX = event.changedTouches[0].clientX;
-  }, { passive: true });
+  lightbox.addEventListener('touchstart', (event) => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
   lightbox.addEventListener('touchend', (event) => {
     const distance = event.changedTouches[0].clientX - touchStartX;
     if (Math.abs(distance) < 48) return;
@@ -252,19 +374,8 @@
     if (event.key === 'ArrowRight') show(currentIndex + 1, 1);
   });
 
-  if (homeRail && window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
-    const home = homeRail.closest('.kinetic-home');
-    let railFrame = 0;
-    home?.addEventListener('pointermove', (event) => {
-      if (railFrame) return;
-      railFrame = window.requestAnimationFrame(() => {
-        const progress = event.clientX / window.innerWidth - 0.5;
-        homeRail.style.setProperty('--rail-drift', `${progress * -22}px`);
-        railFrame = 0;
-      });
-    });
-    home?.addEventListener('pointerleave', () => {
-      homeRail.style.setProperty('--rail-drift', '0px');
-    });
+  const requestedPhoto = new URLSearchParams(window.location.search).get('duola_photo');
+  if (requestedPhoto && itemIndexByKey.has(requestedPhoto)) {
+    window.setTimeout(() => show(itemIndexByKey.get(requestedPhoto), 1, true), 250);
   }
 })();
