@@ -17,7 +17,7 @@ while (have_posts()) : the_post();
 </section>
 
 <?php if ($photos) : ?>
-    <section class="photo-grid <?php echo 1 === count($photos) ? 'photo-grid-single' : 'photo-grid-masonry'; ?>" data-lightbox-gallery>
+    <section class="photo-grid <?php echo 1 === count($photos) ? 'photo-grid-single' : 'photo-grid-masonry'; ?>" data-lightbox-gallery data-gallery-title="<?php echo esc_attr(get_the_title()); ?>">
         <?php foreach ($photos as $index => $photo) : ?>
             <?php $full = wp_get_attachment_image_url($photo['id'], 'duola-lightbox') ?: wp_get_attachment_image_url($photo['id'], 'full'); ?>
             <button class="photo-button" type="button" data-lightbox-image="<?php echo esc_url($full); ?>" data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>" aria-label="查看照片 <?php echo esc_attr($index + 1); ?>">
