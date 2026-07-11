@@ -88,6 +88,40 @@ function duola_migration_get_uuid(int $post_id): string
     return $uuid;
 }
 
+function duola_migration_get_original_media_file(int $attachment_id, string $display_file, array $metadata): string
+{
+    $directory = dirname($display_file);
+    $display_stem = pathinfo($display_file, PATHINFO_FILENAME);
+    $mime_type = (string) get_post_mime_type($attachment_id);
+    $extensions = match ($mime_type) {
+        'image/jpeg' => ['jpg', 'jpeg'],
+        'image/png' => ['png'],
+        'image/webp' => ['webp'],
+        'image/avif' => ['avif'],
+        default => [],
+    };
+    $candidates = [];
+
+    if (str_ends_with($display_stem, '-scaled')) {
+        $candidates[] = substr($display_stem, 0, -7);
+    }
+    if (!empty($metadata['original_image'])) {
+        $candidates[] = pathinfo((string) $metadata['original_image'], PATHINFO_FILENAME);
+    }
+    $candidates[] = $display_stem;
+
+    foreach (array_unique($candidates) as $stem) {
+        foreach ($extensions as $extension) {
+            $candidate = $directory . DIRECTORY_SEPARATOR . $stem . '.' . $extension;
+            if (is_file($candidate) && is_readable($candidate)) {
+                return $candidate;
+            }
+        }
+    }
+
+    return $display_file;
+}
+
 function duola_migration_collect_media(): array
 {
     $attachments = get_posts([
@@ -107,10 +141,11 @@ function duola_migration_collect_media(): array
             continue;
         }
 
-        $uuid = duola_migration_get_uuid((int) $attachment->ID);
-        $filename = sanitize_file_name(wp_basename($file));
-        $urls = ['full' => wp_get_attachment_url($attachment->ID)];
         $metadata = wp_get_attachment_metadata($attachment->ID);
+        $source_file = duola_migration_get_original_media_file((int) $attachment->ID, $file, is_array($metadata) ? $metadata : []);
+        $uuid = duola_migration_get_uuid((int) $attachment->ID);
+        $filename = sanitize_file_name(wp_basename($source_file));
+        $urls = ['full' => wp_get_attachment_url($attachment->ID)];
         foreach (array_keys(is_array($metadata['sizes'] ?? null) ? $metadata['sizes'] : []) as $size) {
             $size_url = wp_get_attachment_image_url($attachment->ID, $size);
             if ($size_url) {
@@ -122,9 +157,9 @@ function duola_migration_collect_media(): array
         $entries[] = [
             'uuid' => $uuid,
             'archive_path' => 'media/' . $uuid . '-' . $filename,
-            'source_path' => $file,
+            'source_path' => $source_file,
             'filename' => $filename,
-            'mime_type' => (string) get_post_mime_type($attachment->ID),
+            'mime_type' => (string) (wp_check_filetype($source_file)['type'] ?? get_post_mime_type($attachment->ID)),
             'title' => $attachment->post_title,
             'caption' => $attachment->post_excerpt,
             'description' => $attachment->post_content,
