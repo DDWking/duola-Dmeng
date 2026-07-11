@@ -73,7 +73,7 @@ function duola_visual_sanitize_layout($value): array
             'background' => sanitize_hex_color($settings['background'] ?? '') ?: '#111315',
             'accent' => sanitize_hex_color($settings['accent'] ?? '') ?: '#009fe8',
             'show_home' => !isset($settings['show_home']) || !empty($settings['show_home']),
-            'home_width' => in_array(($settings['home_width'] ?? 'standard'), ['narrow', 'standard', 'wide'], true) ? $settings['home_width'] : 'standard',
+            'home_width' => in_array(($settings['home_width'] ?? 'standard'), ['narrow', 'standard', 'wide'], true) ? ($settings['home_width'] ?? 'standard') : 'standard',
             'focus_x' => max(0, min(100, absint($settings['focus_x'] ?? 50))),
             'focus_y' => max(0, min(100, absint($settings['focus_y'] ?? 50))),
             'wave_damping' => max(4, min(30, absint($settings['wave_damping'] ?? 12))),
