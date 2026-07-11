@@ -3,6 +3,9 @@
   const hiddenIds = $('#duola-album-photo-ids');
   const coverId = $('#duola-album-cover-id');
   const photoCount = $('#duola-photo-count');
+  const uploadButton = $('#duola-upload-files');
+  const fileInput = $('#duola-photo-files');
+  const uploadStatus = $('#duola-upload-status');
 
   if (!list.length) return;
 
@@ -25,7 +28,10 @@
 
   const appendPhoto = (attachment) => {
     if (list.children(`[data-id="${attachment.id}"]`).length) return;
-    const source = attachment.sizes?.thumbnail?.url || attachment.url;
+    const source = attachment.sizes?.thumbnail?.url
+      || attachment.media_details?.sizes?.thumbnail?.source_url
+      || attachment.source_url
+      || attachment.url;
     const item = $('<li>').attr('data-id', attachment.id);
     const actions = $('<div>').addClass('duola-photo-actions');
     item.append($('<img>').attr({ src: source, alt: '' }));
@@ -49,7 +55,7 @@
     const frame = wp.media({
       title: duolaAlbums.title,
       button: { text: duolaAlbums.add },
-      multiple: true,
+      multiple: 'add',
       library: { type: 'image' },
     });
     frame.on('select', () => {
@@ -57,6 +63,55 @@
       updateIds();
     });
     frame.open();
+  });
+
+  const formatUploadText = (template, values) => values.reduce(
+    (text, value, index) => text.replace(`%${index + 1}$d`, value).replace(`%${index + 1}$s`, value),
+    template,
+  );
+
+  const uploadFile = async (file) => {
+    const body = new FormData();
+    body.append('file', file, file.name);
+    const response = await window.fetch(duolaAlbums.restUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-WP-Nonce': duolaAlbums.restNonce },
+      body,
+    });
+    const attachment = await response.json();
+    if (!response.ok) throw new Error(attachment.message || duolaAlbums.uploadFailed);
+    return attachment;
+  };
+
+  uploadButton.on('click', () => fileInput.trigger('click'));
+  fileInput.on('change', async (event) => {
+    const files = Array.from(event.target.files || []).filter((file) => file.type.startsWith('image/'));
+    if (!files.length) return;
+
+    uploadButton.prop('disabled', true);
+    $('#duola-add-photos').prop('disabled', true);
+    let uploaded = 0;
+    let failed = 0;
+
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      uploadStatus.text(formatUploadText(duolaAlbums.uploading, [index + 1, files.length, file.name]));
+      try {
+        appendPhoto(await uploadFile(file));
+        uploaded += 1;
+      } catch (error) {
+        failed += 1;
+      }
+      updateIds();
+    }
+
+    uploadStatus.text(failed
+      ? formatUploadText(duolaAlbums.uploadPartial, [uploaded, failed])
+      : duolaAlbums.uploadComplete.replace('%d', uploaded));
+    uploadButton.prop('disabled', false);
+    $('#duola-add-photos').prop('disabled', false);
+    fileInput.val('');
   });
 
   updateIds();

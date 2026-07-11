@@ -61,6 +61,9 @@
   white-space: nowrap;
 }
 .duola-upload-panel .dashicons { margin-right: 7px; }
+.duola-upload-actions { flex: 0 0 auto; text-align: right; }
+.duola-upload-actions > div { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.duola-upload-actions #duola-upload-status { min-height: 18px; margin: 7px 0 0; color: var(--duola-admin-muted); font-size: 11px; }
 
 .duola-photo-toolbar {
   display: flex;
@@ -300,6 +303,8 @@
   .duola-admin-intro, .duola-upload-panel { align-items: stretch; flex-direction: column; }
   .duola-admin-intro-actions { flex-wrap: wrap; }
   .duola-upload-panel .button-hero { width: 100%; }
+  .duola-upload-actions { width: 100%; text-align: left; }
+  .duola-upload-actions > div { align-items: stretch; flex-direction: column; }
   .duola-photo-toolbar { align-items: flex-start; flex-direction: column; gap: 3px; }
   .duola-album-photo-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .duola-fields-grid { grid-template-columns: 1fr; gap: 0; }

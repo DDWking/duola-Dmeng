@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 哆啦D梦相册
  * Description: 提供按年份管理、批量上传、封面选择和拖拽排序的相册内容类型。
- * Version: 1.6.0
+ * Version: 1.7.0
  * Author: DDWking
  * Text Domain: duola-albums
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DUOLA_ALBUMS_VERSION', '1.6.0');
+define('DUOLA_ALBUMS_VERSION', '1.7.0');
 define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
 
@@ -284,10 +284,17 @@ function duola_albums_render_meta_box(WP_Post $post): void
                 <h3><?php esc_html_e('把照片放进这个相册', 'duola-albums'); ?></h3>
                 <p><?php esc_html_e('可以一次选择多张照片，无需填写照片名称或说明。', 'duola-albums'); ?></p>
             </div>
-            <button type="button" class="button button-primary button-hero" id="duola-add-photos">
-                <span class="dashicons dashicons-upload" aria-hidden="true"></span>
-                <?php esc_html_e('批量上传或选择照片', 'duola-albums'); ?>
-            </button>
+            <div class="duola-upload-actions">
+                <div>
+                    <button type="button" class="button button-primary button-hero" id="duola-upload-files">
+                        <span class="dashicons dashicons-upload" aria-hidden="true"></span>
+                        <?php esc_html_e('从电脑批量上传', 'duola-albums'); ?>
+                    </button>
+                    <button type="button" class="button" id="duola-add-photos"><?php esc_html_e('从照片库选择', 'duola-albums'); ?></button>
+                    <input id="duola-photo-files" type="file" accept="image/*" multiple hidden>
+                </div>
+                <p id="duola-upload-status" role="status" aria-live="polite"></p>
+            </div>
         </section>
 
         <input id="duola-album-cover-id" name="duola_album_cover_id" type="hidden" value="<?php echo esc_attr($cover_id); ?>">
@@ -408,6 +415,12 @@ function duola_albums_admin_assets(string $hook): void
         'title' => __('选择照片', 'duola-albums'),
         'add' => __('添加到相册', 'duola-albums'),
         'count' => __('%d 张照片', 'duola-albums'),
+        'restUrl' => esc_url_raw(rest_url('wp/v2/media')),
+        'restNonce' => wp_create_nonce('wp_rest'),
+        'uploading' => __('正在上传 %1$d / %2$d：%3$s', 'duola-albums'),
+        'uploadComplete' => __('已添加 %d 张照片，请点击“发布”或“更新”保存相册。', 'duola-albums'),
+        'uploadPartial' => __('成功添加 %1$d 张，%2$d 张上传失败。可以重新选择失败的照片。', 'duola-albums'),
+        'uploadFailed' => __('上传失败，请重试。', 'duola-albums'),
     ]);
 }
 add_action('admin_enqueue_scripts', 'duola_albums_admin_assets');
