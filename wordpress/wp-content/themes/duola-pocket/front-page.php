@@ -20,13 +20,8 @@ foreach ($latest_albums->posts as $album) {
         $add_hero_image((int) $photo['id']);
     }
 }
-$latest_posts = new WP_Query([
-    'post_type' => 'post',
-    'posts_per_page' => 4,
-    'post_status' => 'publish',
-]);
 ?>
-<section class="hero <?php echo $hero_image_ids ? 'hero-photo' : 'hero-pocket'; ?>"<?php echo count($hero_image_ids) > 1 ? ' data-hero-carousel data-interval="6500"' : ''; ?>>
+<section class="hero desktop-wallpaper <?php echo $hero_image_ids ? 'hero-photo' : 'hero-pocket'; ?>"<?php echo count($hero_image_ids) > 1 ? ' data-hero-carousel data-interval="6500"' : ''; ?>>
     <?php if ($hero_image_ids) : ?>
         <div class="hero-slides">
             <?php foreach ($hero_image_ids as $index => $image_id) : ?>
@@ -53,38 +48,6 @@ $latest_posts = new WP_Query([
             <button type="button" class="hero-carousel-arrow" data-carousel-next aria-label="下一张照片">›</button>
             <span class="screen-reader-text" data-carousel-status aria-live="polite"></span>
         </div>
-    <?php endif; ?>
-</section>
-
-<section class="section">
-    <div class="section-heading">
-        <h2>那些曾经</h2>
-        <a href="<?php echo esc_url(get_post_type_archive_link('album')); ?>">全部照片</a>
-    </div>
-    <?php if ($latest_albums->have_posts()) : ?>
-        <div class="album-grid album-grid-featured">
-            <?php while ($latest_albums->have_posts()) : $latest_albums->the_post(); ?>
-                <?php get_template_part('template-parts/album', 'card'); ?>
-            <?php endwhile; wp_reset_postdata(); ?>
-        </div>
-    <?php else : ?>
-        <p class="empty-state">第一本相册正在准备中。</p>
-    <?php endif; ?>
-</section>
-
-<section class="section">
-    <div class="section-heading">
-        <h2>胡思乱想</h2>
-        <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts')) ?: home_url('/')); ?>">全部文章</a>
-    </div>
-    <?php if ($latest_posts->have_posts()) : ?>
-        <div class="post-list">
-            <?php while ($latest_posts->have_posts()) : $latest_posts->the_post(); ?>
-                <?php get_template_part('template-parts/post', 'row'); ?>
-            <?php endwhile; wp_reset_postdata(); ?>
-        </div>
-    <?php else : ?>
-        <p class="empty-state">这里很快会有第一篇文字。</p>
     <?php endif; ?>
 </section>
 <?php get_footer(); ?>

@@ -7,18 +7,33 @@
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<header class="site-header">
-    <a class="site-brand" href="<?php echo esc_url(home_url('/')); ?>">哆啦D梦的口袋</a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">菜单</button>
-    <nav id="primary-navigation" class="site-nav" aria-label="主导航">
-        <?php
-        wp_nav_menu([
-            'theme_location' => 'primary',
-            'container' => false,
-            'menu_class' => 'site-nav-list',
-            'fallback_cb' => 'duola_pocket_primary_menu_fallback',
-        ]);
-        ?>
-    </nav>
-</header>
-<main>
+<?php
+$is_desktop = is_front_page();
+$apps = duola_pocket_get_apps();
+$current_app_key = duola_pocket_get_current_app();
+$current_app = $current_app_key && isset($apps[$current_app_key]) ? $apps[$current_app_key] : null;
+$window_label = $current_app['label'] ?? (get_the_title() ?: __('内容', 'duola-pocket'));
+?>
+<div class="desktop-shell<?php echo $is_desktop ? ' is-home' : ' has-open-app'; ?>">
+    <header class="system-bar">
+        <a class="site-brand" href="<?php echo esc_url(home_url('/')); ?>">哆啦D梦的口袋</a>
+        <div class="system-status">
+            <span class="system-status-label">个人档案</span>
+            <time data-system-clock datetime="<?php echo esc_attr(current_time('c')); ?>"><?php echo esc_html(wp_date('m月d日 H:i')); ?></time>
+        </div>
+    </header>
+    <?php if (!$is_desktop) : ?>
+        <section class="app-window" aria-label="<?php echo esc_attr($window_label); ?>应用窗口">
+            <header class="app-window-bar">
+                <a class="app-window-home" href="<?php echo esc_url(home_url('/')); ?>" aria-label="返回桌面">
+                    <span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span>
+                </a>
+                <div class="app-window-title">
+                    <span class="dashicons <?php echo esc_attr($current_app['icon'] ?? 'dashicons-admin-page'); ?>" aria-hidden="true"></span>
+                    <span><?php echo esc_html($window_label); ?></span>
+                </div>
+                <span class="app-window-context">哆啦D梦的口袋</span>
+            </header>
+            <div class="app-window-scroll">
+    <?php endif; ?>
+    <main id="main-content" class="<?php echo $is_desktop ? 'desktop-home' : 'app-content'; ?>">

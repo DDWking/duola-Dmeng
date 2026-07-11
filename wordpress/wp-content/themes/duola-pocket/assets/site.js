@@ -1,26 +1,19 @@
 ﻿(() => {
-  const menuButton = document.querySelector('.menu-toggle');
-  const navigation = document.querySelector('.site-nav');
-
-  if (menuButton && navigation) {
-    const closeMenu = () => {
-      navigation.classList.remove('is-open');
-      menuButton.setAttribute('aria-expanded', 'false');
+  const systemClock = document.querySelector('[data-system-clock]');
+  if (systemClock) {
+    const updateClock = () => {
+      const now = new Date();
+      systemClock.dateTime = now.toISOString();
+      systemClock.textContent = new Intl.DateTimeFormat('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(now).replace('/', '月').replace(' ', '日 ');
     };
-
-    menuButton.addEventListener('click', () => {
-      const isOpen = navigation.classList.toggle('is-open');
-      menuButton.setAttribute('aria-expanded', String(isOpen));
-    });
-    navigation.addEventListener('click', (event) => {
-      if (event.target.closest('a')) closeMenu();
-    });
-    document.addEventListener('click', (event) => {
-      if (!navigation.contains(event.target) && !menuButton.contains(event.target)) closeMenu();
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeMenu();
-    });
+    updateClock();
+    window.setInterval(updateClock, 30000);
   }
 
   const carousel = document.querySelector('[data-hero-carousel]');
