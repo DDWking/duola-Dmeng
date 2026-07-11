@@ -3,7 +3,7 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.3.0
+Version: 1.4.0
 Text Domain: duola-pocket
 */
 
@@ -823,4 +823,171 @@ main { min-height: calc(100dvh - 4.75rem); }
   .app-window { height: calc(100dvh - var(--admin-bar-offset) - 8.5rem); min-height: 0; margin-top: .75rem; }
   .app-dock { bottom: .65rem; }
   .app-icon { width: 2.75rem; height: 2.75rem; }
+}
+
+.code-desktop {
+  position: relative;
+  min-height: calc(100dvh - var(--admin-bar-offset));
+  overflow: hidden;
+  background-color: #11171b;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: #e8edf0;
+}
+
+.code-canvas {
+  position: absolute;
+  inset: 3rem 0 0 7.25rem;
+  display: grid;
+  align-items: center;
+  padding: 2rem 7vw 5rem;
+  border-left: 1px solid #29343a;
+  background: rgba(17, 23, 27, .9);
+}
+
+.code-lines {
+  width: min(920px, 88%);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  counter-reset: code-line;
+  color: #d7e0e5;
+  font-family: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 1.08rem;
+  line-height: 2.05;
+}
+
+.code-lines li {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  min-height: 2.05em;
+  counter-increment: code-line;
+  opacity: 0;
+  transform: translateX(-12px);
+  animation: code-line-enter .65s cubic-bezier(.16, 1, .3, 1) forwards;
+  animation-delay: calc(180ms + var(--line-index, 0) * 55ms);
+}
+
+.code-lines li::before {
+  color: #52616a;
+  content: counter(code-line);
+  font-size: .78em;
+  text-align: right;
+  padding-right: 1.3rem;
+  user-select: none;
+}
+
+.code-lines li:nth-child(1) { --line-index: 1; }
+.code-lines li:nth-child(2) { --line-index: 2; }
+.code-lines li:nth-child(3) { --line-index: 3; }
+.code-lines li:nth-child(4) { --line-index: 4; }
+.code-lines li:nth-child(5) { --line-index: 5; }
+.code-lines li:nth-child(6) { --line-index: 6; }
+.code-lines li:nth-child(7) { --line-index: 7; }
+.code-lines li:nth-child(8) { --line-index: 8; }
+.code-lines li:nth-child(9) { --line-index: 9; }
+.code-lines li:nth-child(10) { --line-index: 10; }
+.code-lines li:nth-child(11) { --line-index: 11; }
+.code-lines li:nth-child(12) { --line-index: 12; }
+.code-lines li:nth-child(13) { --line-index: 13; }
+
+.code-lines code { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-comment { color: #758c72; }
+.code-keyword { color: #d888c6; }
+.code-string { color: #d5b778; }
+.code-function { color: #64b5cb; }
+.code-cursor { color: #f1f5f7; animation: code-cursor-blink .9s steps(1) infinite; }
+
+.desktop-guide {
+  position: absolute;
+  z-index: 3;
+  right: 2.5rem;
+  bottom: 2rem;
+  color: #f3f6f7;
+  text-align: right;
+}
+
+.desktop-guide h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  line-height: 1.15;
+}
+
+.desktop-guide p {
+  margin: .3rem 0 0;
+  color: #8fb9c5;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+@keyframes code-line-enter {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes code-cursor-blink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+
+@media (min-width: 761px) {
+  .app-dock {
+    top: 5rem;
+    bottom: auto;
+    left: 1rem;
+    align-items: center;
+    flex-direction: column;
+    gap: .8rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    transform: none;
+  }
+
+  .app-dock-item { width: 5.25rem; color: #f3f6f7; }
+  .app-dock-label { color: inherit; text-shadow: 0 1px 5px rgba(0, 0, 0, .75); }
+  .app-dock-item::after {
+    top: 1.45rem;
+    right: -.1rem;
+    bottom: auto;
+  }
+  .app-dock-item:hover { color: #ffffff; }
+  .app-dock-item:hover .app-icon { transform: translateX(5px) scale(1.07); }
+  .app-dock-item:active .app-icon { transform: translateX(2px) scale(.98); }
+
+  .desktop-shell.has-open-app .app-dock-label {
+    color: #29424f;
+    text-shadow: none;
+  }
+
+  .desktop-shell.has-open-app .app-window {
+    width: min(1440px, calc(100% - 8rem));
+    height: calc(100dvh - var(--admin-bar-offset) - 5.5rem);
+    margin: 1.25rem 1.5rem 0 auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .code-desktop { min-height: calc(100dvh - var(--admin-bar-offset)); }
+  .code-canvas {
+    inset: 2.85rem 0 0;
+    align-items: start;
+    padding: 5.5rem .75rem 8rem;
+    border-left: 0;
+  }
+  .code-lines {
+    width: 100%;
+    font-size: .76rem;
+    line-height: 1.9;
+  }
+  .code-lines li { grid-template-columns: 2.15rem minmax(0, 1fr); min-height: 1.9em; }
+  .code-lines li::before { padding-right: .65rem; }
+  .desktop-guide { right: 1.25rem; bottom: 7.25rem; }
+  .desktop-guide h1 { font-size: 1.65rem; }
+  .desktop-guide p { font-size: .76rem; }
+  .desktop-shell.is-home .app-dock-label { color: #2f4855; text-shadow: none; }
 }
