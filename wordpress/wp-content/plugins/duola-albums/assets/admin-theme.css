@@ -112,6 +112,7 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 .column-date { width: 160px; }
 
 #dashboard-widgets-wrap { margin: 0; }
+#welcome-panel { display: none !important; }
 #dashboard-widgets .postbox-container { width: 100%; }
 #dashboard-widgets #duola_dashboard { border: 0; background: transparent; box-shadow: none; }
 #duola_dashboard > .postbox-header { display: none; }
@@ -244,6 +245,56 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 .duola-settings-submit { grid-column: 1 / -1; }
 
 #wpfooter { color: #7d8396; }
+
+body.login {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  color: var(--duola-admin-text);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(137, 152, 221, 0.2), transparent 30%),
+    radial-gradient(circle at 88% 84%, rgba(113, 131, 209, 0.14), transparent 26%),
+    var(--duola-admin-paper);
+}
+.login #login { width: min(400px, calc(100% - 36px)); padding: 30px 0; }
+.login h1 { display: none; }
+.duola-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+.duola-login-brand img {
+  width: 62px;
+  height: 62px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 10px 24px rgba(66, 79, 137, 0.16);
+  object-fit: cover;
+}
+.duola-login-brand div { display: grid; gap: 3px; }
+.duola-login-brand span { color: var(--duola-admin-accent-dark); font-size: 10px; font-weight: 800; letter-spacing: 0.16em; }
+.duola-login-brand strong { color: var(--duola-admin-navy); font-size: 22px; letter-spacing: -0.02em; }
+.login form {
+  margin-top: 0;
+  padding: 28px;
+  border: 1px solid var(--duola-admin-border);
+  border-radius: 16px;
+  background: var(--duola-admin-card);
+  box-shadow: var(--duola-admin-shadow);
+}
+.login label { color: var(--duola-admin-text); font-weight: 600; }
+.login form .input,
+.login input[type="text"] { min-height: 46px; border-radius: 9px; font-size: 17px; }
+.login .button.wp-hide-pw { min-height: 40px; color: var(--duola-admin-accent-dark); }
+.login .button-primary { min-height: 40px; padding: 0 18px; }
+.login #nav,
+.login #backtoblog { padding: 0 8px; }
+.login #nav a,
+.login #backtoblog a { color: var(--duola-admin-muted); }
+.login .language-switcher { margin-top: 22px; }
+#wp-admin-bar-my-account .avatar { display: none; }
 
 @media (max-width: 960px) {
   .duola-dashboard-actions > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }

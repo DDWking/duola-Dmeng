@@ -175,11 +175,60 @@ add_filter('gettext', 'duola_admin_dashboard_label', 10, 2);
 function duola_admin_dashboard_setup(): void
 {
     global $wp_meta_boxes;
+    remove_all_actions('welcome_panel');
     $wp_meta_boxes['dashboard'] = [];
     wp_add_dashboard_widget('duola_dashboard', __('我的口袋', 'duola-albums'), 'duola_admin_render_dashboard');
 }
 add_action('wp_dashboard_setup', 'duola_admin_dashboard_setup', 999);
-remove_action('welcome_panel', 'wp_welcome_panel');
+
+function duola_admin_login_title(string $login_title, string $title): string
+{
+    return sprintf('%1$s ‹ %2$s', $title, get_bloginfo('name'));
+}
+add_filter('login_title', 'duola_admin_login_title', 10, 2);
+
+function duola_admin_login_header_url(): string
+{
+    return home_url('/');
+}
+add_filter('login_headerurl', 'duola_admin_login_header_url');
+
+function duola_admin_login_header_text(): string
+{
+    return (string) get_bloginfo('name');
+}
+add_filter('login_headertext', 'duola_admin_login_header_text');
+
+function duola_admin_login_message(string $message): string
+{
+    $avatar_id = (int) get_option('duola_site_avatar_id');
+    $avatar_url = $avatar_id ? wp_get_attachment_image_url($avatar_id, 'thumbnail') : '';
+    if (!$avatar_url) {
+        $avatar_url = get_template_directory_uri() . '/assets/images/anime-girl.webp';
+    }
+
+    $brand = '<div class="duola-login-brand">';
+    $brand .= '<img src="' . esc_url($avatar_url) . '" alt="">';
+    $brand .= '<div><span>' . esc_html__('PRIVATE POCKET', 'duola-albums') . '</span><strong>' . esc_html(get_bloginfo('name')) . '</strong></div>';
+    $brand .= '</div>';
+    return $brand . $message;
+}
+add_filter('login_message', 'duola_admin_login_message');
+
+function duola_admin_site_icon_url(string $url, int $size, int $blog_id): string
+{
+    if ($url) {
+        return $url;
+    }
+
+    $avatar_id = (int) get_option('duola_site_avatar_id');
+    $avatar_url = $avatar_id ? wp_get_attachment_image_url($avatar_id, [$size, $size]) : '';
+    return $avatar_url ?: get_template_directory_uri() . '/assets/images/anime-girl.webp';
+}
+add_filter('get_site_icon_url', 'duola_admin_site_icon_url', 10, 3);
+
+remove_action('wp_head', 'wp_generator');
+add_filter('the_generator', '__return_empty_string');
 
 function duola_admin_content_count(string $post_type): int
 {
@@ -264,3 +313,4 @@ function duola_admin_enqueue_theme(): void
     wp_enqueue_style('duola-admin-theme', DUOLA_ALBUMS_URL . 'assets/admin-theme.css', [], (string) filemtime($style_path));
 }
 add_action('admin_enqueue_scripts', 'duola_admin_enqueue_theme', 100);
+add_action('login_enqueue_scripts', 'duola_admin_enqueue_theme');
