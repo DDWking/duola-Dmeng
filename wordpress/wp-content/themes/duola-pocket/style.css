@@ -3,7 +3,7 @@ Theme Name: 哆啦D梦的口袋
 Theme URI: https://example.com/
 Author: DDWking
 Description: 蓝色、明亮、大图、留白的个人摄影与文章主题。
-Version: 1.8.0
+Version: 2.0.0
 Text Domain: duola-pocket
 */
 
@@ -1705,4 +1705,246 @@ main { min-height: calc(100dvh - 4.75rem); }
   }
   .desktop-shell.is-home .app-dock-label { color: rgba(255, 255, 255, .72); text-shadow: none; }
   .desktop-shell.has-open-app .app-dock-label { color: #53636c; text-shadow: none; }
+}
+
+.desktop-shell.is-home { background: #111315; }
+.desktop-shell.is-home .system-bar {
+  color: #eef1f2;
+  border-bottom: 0;
+  background: transparent;
+}
+.desktop-shell.is-home .site-brand,
+.desktop-shell.is-home .system-about { text-shadow: none; }
+.desktop-shell.is-home .app-dock { display: none; }
+
+.kinetic-home {
+  position: relative;
+  min-height: calc(100dvh - var(--admin-bar-offset));
+  overflow: hidden;
+  background: #111315;
+  color: #eef1f2;
+}
+
+.home-articles {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 3.25rem;
+  width: min(31vw, 25rem);
+  transform: translateY(-47%);
+}
+
+.home-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  color: rgba(238, 241, 242, .48);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .64rem;
+  font-weight: 700;
+}
+
+.home-section-heading a {
+  padding-bottom: .12rem;
+  border-bottom: 1px solid transparent;
+  color: inherit;
+  transition: border-color .2s ease, color .2s ease;
+}
+
+.home-section-heading a:hover { border-bottom-color: currentColor; color: #eef1f2; }
+.home-article-list { display: grid; gap: 1.15rem; }
+.home-article-item { min-width: 0; }
+
+.home-article-item a {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: .75rem;
+  align-items: start;
+  color: rgba(238, 241, 242, .72);
+}
+
+.home-article-index {
+  padding-top: .12rem;
+  color: rgba(238, 241, 242, .3);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .62rem;
+  transition: color .3s ease;
+}
+
+.home-article-copy {
+  display: grid;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.home-article-copy time {
+  color: rgba(238, 241, 242, .32);
+  font-size: .62rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-article-copy strong {
+  overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 680;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .3s ease, transform .4s cubic-bezier(.16, 1, .3, 1);
+}
+
+.home-article-item a:hover { color: #ffffff; }
+.home-article-item a:hover .home-article-index { color: #009fe8; }
+.home-article-item a:hover strong { color: #ffffff; transform: translateX(.45rem); }
+.home-empty { color: rgba(238, 241, 242, .45); font-size: .8rem; }
+
+.home-photo-rail {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: -1.5rem;
+  left: 45%;
+  display: flex;
+  gap: .55rem;
+  height: 14rem;
+  overflow: hidden;
+  transform: translateY(-50%);
+}
+
+.home-photo-slice {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 3.5rem;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #202326;
+  cursor: pointer;
+  filter: grayscale(1) brightness(.62);
+  opacity: .72;
+  transform: translateY(1.25rem);
+  animation: home-slice-enter .9s cubic-bezier(.16, 1, .3, 1) forwards;
+  transition: flex-grow .65s cubic-bezier(.16, 1, .3, 1), filter .45s ease, opacity .45s ease, transform .65s cubic-bezier(.16, 1, .3, 1);
+}
+
+.home-photo-slice:nth-child(2) { animation-delay: 60ms; }
+.home-photo-slice:nth-child(3) { animation-delay: 120ms; }
+.home-photo-slice:nth-child(4) { animation-delay: 180ms; }
+.home-photo-slice:nth-child(5) { animation-delay: 240ms; }
+.home-photo-slice:nth-child(6) { animation-delay: 300ms; }
+.home-photo-slice:nth-child(7) { animation-delay: 360ms; }
+.home-photo-slice:nth-child(8) { animation-delay: 420ms; }
+.home-photo-slice:nth-child(9) { animation-delay: 480ms; }
+.home-photo-slice:nth-child(10) { animation-delay: 540ms; }
+
+.home-photo-slice img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  transition: transform .8s cubic-bezier(.16, 1, .3, 1);
+}
+
+.home-photo-rail:hover .home-photo-slice { opacity: .38; filter: grayscale(1) brightness(.5); }
+.home-photo-rail .home-photo-slice:hover {
+  flex-grow: 1.85;
+  opacity: 1;
+  filter: grayscale(0) brightness(1);
+  transform: translateY(0);
+}
+.home-photo-slice:hover img { transform: scale(1.04); }
+
+.home-all-photos {
+  position: absolute;
+  z-index: 3;
+  right: 2rem;
+  bottom: 1.75rem;
+  padding-bottom: .15rem;
+  border-bottom: 1px solid rgba(238, 241, 242, .38);
+  color: rgba(238, 241, 242, .62);
+  font-size: .68rem;
+  font-weight: 700;
+}
+.home-all-photos:hover { border-bottom-color: #eef1f2; color: #eef1f2; }
+
+@keyframes home-slice-enter {
+  to { opacity: .72; transform: translateY(0); }
+}
+
+.lightbox {
+  background: #f3f3f0;
+  color: #16191b;
+}
+
+.lightbox-backdrop-title { color: #009fe8; opacity: .9; }
+.lightbox-album { color: #16191b; }
+.lightbox-counter { color: #5f686d; }
+.lightbox-close { color: #16191b; }
+.lightbox-close:hover { color: #009fe8; }
+.lightbox-frame { background: #ffffff; box-shadow: 0 24px 70px rgba(30, 38, 42, .12); }
+.lightbox-caption { color: #677177; }
+.lightbox-nav { color: rgba(22, 25, 27, .5); }
+.lightbox-nav:hover { color: #009fe8; }
+.lightbox-thumbnail { background: #dfe3e5; }
+
+@media (max-width: 760px) {
+  .kinetic-home {
+    min-height: calc(100dvh - var(--admin-bar-offset));
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .home-articles {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    padding: 5.5rem 1rem 1.75rem;
+    transform: none;
+  }
+
+  .home-section-heading { margin-bottom: 1.15rem; }
+  .home-article-list { gap: .85rem; }
+  .home-article-item:nth-child(n+4) { display: none; }
+  .home-article-copy strong { font-size: .94rem; }
+
+  .home-photo-rail {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    width: calc(100% + 1rem);
+    height: 13rem;
+    margin-left: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    transform: none;
+  }
+
+  .home-photo-rail::-webkit-scrollbar { display: none; }
+  .home-photo-slice,
+  .home-photo-rail:hover .home-photo-slice,
+  .home-photo-rail .home-photo-slice:hover {
+    flex: 0 0 4.15rem;
+    min-width: 4.15rem;
+    opacity: .7;
+    filter: grayscale(1) brightness(.68);
+    scroll-snap-align: start;
+    transform: none;
+  }
+  .home-photo-rail .home-photo-slice:focus-visible { opacity: 1; filter: grayscale(0); }
+  .home-all-photos {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    display: inline-block;
+    margin: 1.1rem 0 2rem 1rem;
+  }
+
+  .lightbox { background: #f3f3f0; }
+  .lightbox-frame { background: #ffffff; }
 }

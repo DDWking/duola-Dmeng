@@ -93,9 +93,12 @@
   const show = (index, direction = 1, opening = false) => {
     currentIndex = (index + items.length) % items.length;
     const item = items[currentIndex];
+    const itemTitle = item.dataset.lightboxTitle || galleryTitle;
     image.classList.remove('is-entering-forward', 'is-entering-backward');
     backdropTitle.classList.remove('is-shifting-forward', 'is-shifting-backward');
     void image.offsetWidth;
+    backdropTitle.textContent = itemTitle;
+    albumLabel.textContent = itemTitle;
     image.src = item.dataset.lightboxImage;
     image.alt = item.dataset.lightboxCaption || '';
     caption.textContent = item.dataset.lightboxCaption || '';
