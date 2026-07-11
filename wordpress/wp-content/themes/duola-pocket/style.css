@@ -156,6 +156,7 @@ button { color: inherit; }
   min-height: calc(100dvh - 98px);
   padding: 0.5rem clamp(1rem, 2.6vw, 2.8rem) 4.5rem;
   margin: 0 auto;
+  overflow: clip;
   isolation: isolate;
 }
 .paper-wash {
@@ -472,8 +473,8 @@ button { color: inherit; }
   filter: saturate(0.75) contrast(0.92) brightness(1.02);
   mix-blend-mode: multiply;
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(ellipse 62% 74% at 56% 51%, #000 52%, rgba(0, 0, 0, 0.9) 68%, transparent 88%);
-  mask-image: radial-gradient(ellipse 62% 74% at 56% 51%, #000 52%, rgba(0, 0, 0, 0.9) 68%, transparent 88%);
+  -webkit-mask-image: radial-gradient(ellipse 58% 64% at 58% 53%, #000 46%, rgba(0, 0, 0, 0.86) 58%, transparent 78%);
+  mask-image: radial-gradient(ellipse 58% 64% at 58% 53%, #000 46%, rgba(0, 0, 0, 0.86) 58%, transparent 78%);
   animation: character-arrive 1100ms 240ms both cubic-bezier(0.22, 1, 0.36, 1);
 }
 .home-whisper {
