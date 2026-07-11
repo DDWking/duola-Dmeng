@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   document.documentElement.classList.add('motion-ready');
   const revealItems = Array.from(document.querySelectorAll('.section, .page-intro, .album-header, .album-card, .post-row, .photo-button, .article, .page-content'));
   revealItems.forEach((item, index) => {
@@ -33,6 +33,33 @@
     }
     trigger.dataset.lightboxIndex = String(itemIndexByKey.get(key));
   });
+
+  const formatIndex = (index) => String(index + 1).padStart(2, '0');
+  const homeRail = document.querySelector('[data-home-photo-rail]');
+  const homePreview = document.querySelector('[data-home-preview-control]');
+  const homePreviewInput = homePreview?.querySelector('input[type="range"]');
+  const homePreviewCurrent = homePreview?.querySelector('[data-home-preview-current]');
+
+  const syncHomePreview = (index, shouldScroll = false) => {
+    if (!homePreviewInput || !homePreviewCurrent) return;
+    const normalizedIndex = Math.max(0, Math.min(items.length - 1, Number(index)));
+    homePreviewInput.value = String(normalizedIndex);
+    homePreviewCurrent.textContent = formatIndex(normalizedIndex);
+    triggers.forEach((trigger) => trigger.classList.remove('is-previewed'));
+    const previewTrigger = triggers.find((trigger) => Number(trigger.dataset.lightboxIndex) === normalizedIndex);
+    previewTrigger?.classList.add('is-previewed');
+    if (shouldScroll) {
+      previewTrigger?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+  };
+
+  homePreviewInput?.addEventListener('input', () => syncHomePreview(homePreviewInput.value, true));
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('pointerenter', () => syncHomePreview(trigger.dataset.lightboxIndex));
+    trigger.addEventListener('focus', () => syncHomePreview(trigger.dataset.lightboxIndex));
+  });
+  syncHomePreview(0);
+
   const galleryTitle = gallery.dataset.galleryTitle || '照片';
   let currentIndex = 0;
   let previousFocus = null;
@@ -45,35 +72,68 @@
   lightbox.setAttribute('aria-label', `${galleryTitle}照片查看器`);
   lightbox.setAttribute('aria-hidden', 'true');
   lightbox.innerHTML = `
-    <div class="lightbox-backdrop-title" aria-hidden="true"></div>
+    <div class="lightbox-display-title" aria-hidden="true"></div>
     <header class="lightbox-header">
       <span class="lightbox-album"></span>
-      <div class="lightbox-counter" aria-live="polite"><span data-lightbox-current>01</span><span>/</span><span data-lightbox-total>01</span></div>
+      <div class="lightbox-progress">
+        <div class="lightbox-counter" aria-live="polite"><span data-lightbox-current>01</span><span>/</span><span data-lightbox-total>01</span></div>
+        <div class="lightbox-scrubber-track"><span aria-hidden="true"></span><input class="lightbox-scrubber" type="range" min="0" value="0" step="1" aria-label="滑动预览照片"></div>
+      </div>
       <button class="lightbox-close" type="button" aria-label="关闭查看器">×</button>
     </header>
     <button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张照片">←</button>
     <div class="lightbox-stage">
       <div class="lightbox-frame"><img class="lightbox-image" alt=""></div>
-      <div class="lightbox-caption"></div>
     </div>
     <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张照片">→</button>
+    <div class="lightbox-details">
+      <dl>
+        <div data-lightbox-date-row><dt>A</dt><dd data-lightbox-date></dd></div>
+        <div><dt>B</dt><dd data-lightbox-detail-album></dd></div>
+      </dl>
+      <p data-lightbox-description></p>
+    </div>
     <div class="lightbox-thumbnails" role="tablist" aria-label="照片缩略图"></div>`;
   document.body.appendChild(lightbox);
 
   const image = lightbox.querySelector('.lightbox-image');
-  const caption = lightbox.querySelector('.lightbox-caption');
-  const backdropTitle = lightbox.querySelector('.lightbox-backdrop-title');
+  const displayTitle = lightbox.querySelector('.lightbox-display-title');
   const albumLabel = lightbox.querySelector('.lightbox-album');
   const currentLabel = lightbox.querySelector('[data-lightbox-current]');
   const totalLabel = lightbox.querySelector('[data-lightbox-total]');
+  const detailAlbum = lightbox.querySelector('[data-lightbox-detail-album]');
+  const detailDate = lightbox.querySelector('[data-lightbox-date]');
+  const detailDateRow = lightbox.querySelector('[data-lightbox-date-row]');
+  const detailDescription = lightbox.querySelector('[data-lightbox-description]');
+  const scrubber = lightbox.querySelector('.lightbox-scrubber');
   const closeButton = lightbox.querySelector('.lightbox-close');
   const thumbnails = lightbox.querySelector('.lightbox-thumbnails');
   const thumbnailButtons = [];
-  const formatIndex = (index) => String(index + 1).padStart(2, '0');
 
-  backdropTitle.textContent = galleryTitle;
+  const renderDisplayTitle = (text) => {
+    const characters = Array.from(text.trim()).slice(0, 14);
+    displayTitle.style.setProperty('--title-count', String(Math.max(1, characters.filter((character) => !/\s/.test(character)).length)));
+    displayTitle.replaceChildren(...characters.map((character) => {
+      const span = document.createElement('span');
+      span.textContent = character;
+      if (/\s/.test(character)) span.className = 'is-space';
+      return span;
+    }));
+  };
+
+  const getContrastColor = (hex) => {
+    const normalized = hex.replace('#', '');
+    if (!/^[0-9a-f]{6}$/i.test(normalized)) return '#16191b';
+    const red = Number.parseInt(normalized.slice(0, 2), 16);
+    const green = Number.parseInt(normalized.slice(2, 4), 16);
+    const blue = Number.parseInt(normalized.slice(4, 6), 16);
+    return (red * 299 + green * 587 + blue * 114) / 1000 > 142 ? '#16191b' : '#f4f6f7';
+  };
+
   albumLabel.textContent = galleryTitle;
+  detailAlbum.textContent = galleryTitle;
   totalLabel.textContent = String(items.length).padStart(2, '0');
+  scrubber.max = String(Math.max(0, items.length - 1));
 
   items.forEach((item, index) => {
     const sourceImage = item.querySelector('img');
@@ -104,18 +164,35 @@
     currentIndex = (index + items.length) % items.length;
     const item = items[currentIndex];
     const itemTitle = item.dataset.lightboxTitle || galleryTitle;
+    const headline = item.dataset.lightboxHeadline || itemTitle;
+    const description = item.dataset.lightboxDescription || item.dataset.lightboxCaption || '';
+    const date = item.dataset.lightboxDate || '';
     image.classList.remove('is-entering-forward', 'is-entering-backward');
-    backdropTitle.classList.remove('is-shifting-forward', 'is-shifting-backward');
+    displayTitle.classList.remove('is-shifting-forward', 'is-shifting-backward');
     void image.offsetWidth;
-    backdropTitle.textContent = itemTitle;
+
+    lightbox.dataset.layout = item.dataset.lightboxLayout || 'standard';
+    lightbox.dataset.textPosition = item.dataset.lightboxTextPosition || 'spread';
+    const background = item.dataset.lightboxBackground || '#f3f3f0';
+    lightbox.style.setProperty('--lightbox-accent', item.dataset.lightboxAccent || '#009fe8');
+    lightbox.style.setProperty('--lightbox-background', background);
+    lightbox.style.setProperty('--lightbox-ink', getContrastColor(background));
+    lightbox.style.setProperty('--lightbox-focus-x', `${item.dataset.lightboxFocusX || 50}%`);
+    lightbox.style.setProperty('--lightbox-focus-y', `${item.dataset.lightboxFocusY || 50}%`);
+
+    renderDisplayTitle(headline);
     albumLabel.textContent = itemTitle;
+    detailAlbum.textContent = itemTitle;
+    detailDate.textContent = date.replaceAll('-', '.');
+    detailDateRow.hidden = !date;
+    detailDescription.textContent = description;
+    detailDescription.hidden = !description;
     image.src = item.dataset.lightboxImage;
-    image.alt = item.dataset.lightboxCaption || '';
-    caption.textContent = item.dataset.lightboxCaption || '';
-    caption.hidden = !item.dataset.lightboxCaption;
+    image.alt = description;
     currentLabel.textContent = formatIndex(currentIndex);
+    scrubber.value = String(currentIndex);
     image.classList.add(direction >= 0 ? 'is-entering-forward' : 'is-entering-backward');
-    backdropTitle.classList.add(direction >= 0 ? 'is-shifting-forward' : 'is-shifting-backward');
+    displayTitle.classList.add(direction >= 0 ? 'is-shifting-forward' : 'is-shifting-backward');
     thumbnailButtons.forEach((button, buttonIndex) => {
       const isActive = buttonIndex === currentIndex;
       button.classList.toggle('is-active', isActive);
@@ -123,12 +200,14 @@
       button.tabIndex = isActive ? 0 : -1;
     });
     thumbnailButtons[currentIndex]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: opening ? 'auto' : 'smooth' });
+    syncHomePreview(currentIndex);
     lightbox.classList.add('is-open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     preloadAdjacent();
     if (opening) window.requestAnimationFrame(() => closeButton.focus());
   };
+
   const close = () => {
     lightbox.classList.remove('is-open');
     lightbox.setAttribute('aria-hidden', 'true');
@@ -140,11 +219,16 @@
     previousFocus = item;
     show(Number(item.dataset.lightboxIndex), 1, true);
   }));
+  scrubber.addEventListener('input', () => {
+    const nextIndex = Number(scrubber.value);
+    show(nextIndex, nextIndex >= currentIndex ? 1 : -1);
+  });
   closeButton.addEventListener('click', close);
   lightbox.querySelector('.lightbox-prev').addEventListener('click', () => show(currentIndex - 1, -1));
   lightbox.querySelector('.lightbox-next').addEventListener('click', () => show(currentIndex + 1, 1));
   lightbox.addEventListener('click', (event) => { if (event.target === lightbox) close(); });
   lightbox.addEventListener('wheel', (event) => {
+    if (event.target.matches('input[type="range"]')) return;
     event.preventDefault();
     if (wheelLocked || Math.abs(event.deltaY) < 18) return;
     wheelLocked = true;
@@ -168,7 +252,6 @@
     if (event.key === 'ArrowRight') show(currentIndex + 1, 1);
   });
 
-  const homeRail = document.querySelector('[data-home-photo-rail]');
   if (homeRail && window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
     const home = homeRail.closest('.kinetic-home');
     let railFrame = 0;

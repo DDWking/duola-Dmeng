@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 哆啦D梦相册
  * Description: 提供按年份管理、批量上传、封面选择和拖拽排序的相册内容类型。
- * Version: 1.2.2
+ * Version: 1.3.0
  * Author: DDWking
  * Text Domain: duola-albums
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DUOLA_ALBUMS_VERSION', '1.2.2');
+define('DUOLA_ALBUMS_VERSION', '1.3.0');
 define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 
 function duola_albums_register_content_type(): void
@@ -108,6 +108,7 @@ function duola_albums_register_meta(): void
         '_duola_album_description' => ['type' => 'string', 'sanitize_callback' => 'wp_kses_post'],
         '_duola_album_cover_id' => ['type' => 'integer', 'sanitize_callback' => 'absint'],
         '_duola_album_photos' => ['type' => 'array', 'sanitize_callback' => 'duola_albums_sanitize_photo_ids'],
+        '_duola_album_photo_settings' => ['type' => 'object', 'sanitize_callback' => 'duola_albums_sanitize_photo_settings'],
     ];
 
     foreach ($meta as $key => $args) {
@@ -127,6 +128,65 @@ function duola_albums_sanitize_photo_ids($value): array
     }
 
     return array_values(array_filter(array_map('absint', $value)));
+}
+
+function duola_albums_photo_setting_defaults(): array
+{
+    return [
+        'headline' => '',
+        'description' => '',
+        'date' => '',
+        'layout' => 'standard',
+        'text_position' => 'spread',
+        'focus_x' => 50,
+        'focus_y' => 50,
+        'accent' => '#009fe8',
+        'background' => '#f3f3f0',
+        'home_width' => 'standard',
+        'show_home' => true,
+    ];
+}
+
+function duola_albums_sanitize_photo_settings($value): array
+{
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $settings = [];
+    $allowed_layouts = ['compact', 'standard', 'wide'];
+    $allowed_positions = ['left', 'spread', 'right'];
+    $allowed_home_widths = ['narrow', 'standard', 'wide'];
+
+    foreach ($value as $photo_id => $photo_settings) {
+        $photo_id = absint($photo_id);
+        if (!$photo_id || !is_array($photo_settings)) {
+            continue;
+        }
+
+        $layout = sanitize_key($photo_settings['layout'] ?? 'standard');
+        $text_position = sanitize_key($photo_settings['text_position'] ?? 'spread');
+        $home_width = sanitize_key($photo_settings['home_width'] ?? 'standard');
+        $date = sanitize_text_field($photo_settings['date'] ?? '');
+        $accent = sanitize_hex_color($photo_settings['accent'] ?? '') ?: '#009fe8';
+        $background = sanitize_hex_color($photo_settings['background'] ?? '') ?: '#f3f3f0';
+
+        $settings[(string) $photo_id] = [
+            'headline' => sanitize_text_field($photo_settings['headline'] ?? ''),
+            'description' => sanitize_textarea_field($photo_settings['description'] ?? ''),
+            'date' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) ? $date : '',
+            'layout' => in_array($layout, $allowed_layouts, true) ? $layout : 'standard',
+            'text_position' => in_array($text_position, $allowed_positions, true) ? $text_position : 'spread',
+            'focus_x' => max(0, min(100, absint($photo_settings['focus_x'] ?? 50))),
+            'focus_y' => max(0, min(100, absint($photo_settings['focus_y'] ?? 50))),
+            'accent' => $accent,
+            'background' => $background,
+            'home_width' => in_array($home_width, $allowed_home_widths, true) ? $home_width : 'standard',
+            'show_home' => !empty($photo_settings['show_home']),
+        ];
+    }
+
+    return $settings;
 }
 
 function duola_albums_add_meta_boxes(): void
@@ -149,6 +209,7 @@ function duola_albums_render_meta_box(WP_Post $post): void
     $description = duola_albums_get_description($post->ID);
     $cover_id = duola_albums_get_cover_id($post->ID);
     $photos = duola_albums_get_photos($post->ID);
+    $photo_settings = duola_albums_get_all_photo_settings($post->ID);
     wp_nonce_field('duola_albums_save_album', 'duola_albums_nonce');
     ?>
     <div class="duola-album-workspace">
@@ -165,6 +226,7 @@ function duola_albums_render_meta_box(WP_Post $post): void
 
         <input id="duola-album-cover-id" name="duola_album_cover_id" type="hidden" value="<?php echo esc_attr($cover_id); ?>">
         <input id="duola-album-photo-ids" name="duola_album_photo_ids" type="hidden" value="<?php echo esc_attr(wp_json_encode(wp_list_pluck($photos, 'id'))); ?>">
+        <input id="duola-album-photo-settings" name="duola_album_photo_settings" type="hidden" value="<?php echo esc_attr(wp_json_encode($photo_settings)); ?>">
 
         <div class="duola-photo-toolbar">
             <strong id="duola-photo-count"><?php echo esc_html(sprintf(_n('%d 张照片', '%d 张照片', count($photos), 'duola-albums'), count($photos))); ?></strong>
@@ -172,15 +234,99 @@ function duola_albums_render_meta_box(WP_Post $post): void
         </div>
         <ul id="duola-album-photo-list" class="duola-album-photo-list">
             <?php foreach ($photos as $photo) : ?>
-                <li data-id="<?php echo esc_attr($photo['id']); ?>" class="<?php echo $cover_id === $photo['id'] ? 'is-cover' : ''; ?>">
+                <li data-id="<?php echo esc_attr($photo['id']); ?>" class="<?php echo trim(($cover_id === $photo['id'] ? 'is-cover ' : '') . (!empty($photo_settings[(string) $photo['id']]) ? 'has-settings' : '')); ?>">
                     <?php echo wp_get_attachment_image($photo['id'], 'thumbnail'); ?>
                     <div class="duola-photo-actions">
+                        <button type="button" class="button-link duola-edit-photo"><?php esc_html_e('编辑信息与排版', 'duola-albums'); ?></button>
                         <button type="button" class="button-link duola-set-cover"><?php esc_html_e('设为封面', 'duola-albums'); ?></button>
                         <button type="button" class="button-link-delete duola-remove-photo"><?php esc_html_e('移除', 'duola-albums'); ?></button>
                     </div>
                 </li>
             <?php endforeach; ?>
         </ul>
+
+        <section id="duola-photo-editor" class="duola-photo-editor" hidden>
+            <header class="duola-photo-editor-header">
+                <div>
+                    <span><?php esc_html_e('单张照片设置', 'duola-albums'); ?></span>
+                    <strong id="duola-photo-editor-title"></strong>
+                </div>
+                <button type="button" class="button-link" id="duola-close-photo-editor"><?php esc_html_e('关闭', 'duola-albums'); ?></button>
+            </header>
+            <div class="duola-photo-editor-body">
+                <div class="duola-editor-preview" id="duola-editor-preview">
+                    <img id="duola-editor-preview-image" alt="">
+                    <div class="duola-editor-preview-headline" id="duola-editor-preview-headline"></div>
+                    <div class="duola-editor-preview-meta">
+                        <span id="duola-editor-preview-date"></span>
+                        <p id="duola-editor-preview-description"></p>
+                    </div>
+                </div>
+                <div class="duola-photo-fields">
+                    <div class="duola-field duola-field-wide">
+                        <label for="duola-photo-headline"><?php esc_html_e('覆盖装饰文字', 'duola-albums'); ?></label>
+                        <input id="duola-photo-headline" type="text" maxlength="80" placeholder="<?php esc_attr_e('例如：STAY ALIVE / 山海之间', 'duola-albums'); ?>">
+                        <span><?php esc_html_e('留空时使用相册标题。', 'duola-albums'); ?></span>
+                    </div>
+                    <div class="duola-field duola-field-wide">
+                        <label for="duola-photo-description"><?php esc_html_e('图片描述', 'duola-albums'); ?></label>
+                        <textarea id="duola-photo-description" rows="3" maxlength="240" placeholder="<?php esc_attr_e('一两句就够，留空则不显示。', 'duola-albums'); ?>"></textarea>
+                    </div>
+                    <div class="duola-field">
+                        <label for="duola-photo-date"><?php esc_html_e('拍摄日期', 'duola-albums'); ?></label>
+                        <input id="duola-photo-date" type="date">
+                    </div>
+                    <div class="duola-field">
+                        <label for="duola-photo-layout"><?php esc_html_e('看图页画面尺寸', 'duola-albums'); ?></label>
+                        <select id="duola-photo-layout">
+                            <option value="compact"><?php esc_html_e('紧凑', 'duola-albums'); ?></option>
+                            <option value="standard"><?php esc_html_e('标准', 'duola-albums'); ?></option>
+                            <option value="wide"><?php esc_html_e('宽幅', 'duola-albums'); ?></option>
+                        </select>
+                    </div>
+                    <div class="duola-field">
+                        <label for="duola-photo-text-position"><?php esc_html_e('装饰文字位置', 'duola-albums'); ?></label>
+                        <select id="duola-photo-text-position">
+                            <option value="left"><?php esc_html_e('靠左', 'duola-albums'); ?></option>
+                            <option value="spread"><?php esc_html_e('跨画面分散', 'duola-albums'); ?></option>
+                            <option value="right"><?php esc_html_e('靠右', 'duola-albums'); ?></option>
+                        </select>
+                    </div>
+                    <div class="duola-field">
+                        <label for="duola-photo-home-width"><?php esc_html_e('首页切片宽度', 'duola-albums'); ?></label>
+                        <select id="duola-photo-home-width">
+                            <option value="narrow"><?php esc_html_e('窄', 'duola-albums'); ?></option>
+                            <option value="standard"><?php esc_html_e('标准', 'duola-albums'); ?></option>
+                            <option value="wide"><?php esc_html_e('宽', 'duola-albums'); ?></option>
+                        </select>
+                    </div>
+                    <div class="duola-field duola-field-range">
+                        <label for="duola-photo-focus-x"><?php esc_html_e('水平焦点', 'duola-albums'); ?> <output id="duola-photo-focus-x-value">50%</output></label>
+                        <input id="duola-photo-focus-x" type="range" min="0" max="100" value="50">
+                    </div>
+                    <div class="duola-field duola-field-range">
+                        <label for="duola-photo-focus-y"><?php esc_html_e('垂直焦点', 'duola-albums'); ?> <output id="duola-photo-focus-y-value">50%</output></label>
+                        <input id="duola-photo-focus-y" type="range" min="0" max="100" value="50">
+                    </div>
+                    <div class="duola-field duola-field-color">
+                        <label for="duola-photo-accent"><?php esc_html_e('装饰文字颜色', 'duola-albums'); ?></label>
+                        <input id="duola-photo-accent" type="color" value="#009fe8">
+                    </div>
+                    <div class="duola-field duola-field-color">
+                        <label for="duola-photo-background"><?php esc_html_e('看图页背景', 'duola-albums'); ?></label>
+                        <input id="duola-photo-background" type="color" value="#f3f3f0">
+                    </div>
+                    <label class="duola-home-visibility">
+                        <input id="duola-photo-show-home" type="checkbox" checked>
+                        <span><?php esc_html_e('在首页照片轨道中显示', 'duola-albums'); ?></span>
+                    </label>
+                    <div class="duola-photo-editor-actions">
+                        <button type="button" class="button" id="duola-reset-photo-settings"><?php esc_html_e('恢复默认', 'duola-albums'); ?></button>
+                        <span><?php esc_html_e('修改会在保存相册时一起保存。', 'duola-albums'); ?></span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <details class="duola-optional-settings" <?php echo ($location || $description) ? 'open' : ''; ?>>
             <summary><?php esc_html_e('补充相册信息（可选）', 'duola-albums'); ?></summary>
@@ -221,16 +367,23 @@ function duola_albums_save_album(int $post_id): void
     $description = isset($_POST['duola_album_description']) ? wp_kses_post(wp_unslash($_POST['duola_album_description'])) : '';
     $cover_id = isset($_POST['duola_album_cover_id']) ? absint($_POST['duola_album_cover_id']) : 0;
     $photo_ids = [];
+    $photo_settings = [];
 
     if (isset($_POST['duola_album_photo_ids'])) {
         $decoded = json_decode(wp_unslash($_POST['duola_album_photo_ids']), true);
         $photo_ids = duola_albums_sanitize_photo_ids($decoded);
     }
 
+    if (isset($_POST['duola_album_photo_settings'])) {
+        $decoded_settings = json_decode(wp_unslash($_POST['duola_album_photo_settings']), true);
+        $photo_settings = duola_albums_sanitize_photo_settings($decoded_settings);
+    }
+
     update_post_meta($post_id, '_duola_album_year', $year);
     update_post_meta($post_id, '_duola_album_location', $location);
     update_post_meta($post_id, '_duola_album_description', $description);
     update_post_meta($post_id, '_duola_album_photos', $photo_ids);
+    update_post_meta($post_id, '_duola_album_photo_settings', array_intersect_key($photo_settings, array_flip(array_map('strval', $photo_ids))));
 
     if (!$cover_id && $photo_ids) {
         $cover_id = $photo_ids[0];
@@ -371,9 +524,21 @@ function duola_albums_get_photos(int $album_id): array
         $photos[] = [
             'id' => $photo_id,
             'caption' => wp_get_attachment_caption($photo_id),
+            'settings' => duola_albums_get_photo_settings($album_id, $photo_id),
         ];
     }
     return $photos;
+}
+
+function duola_albums_get_all_photo_settings(int $album_id): array
+{
+    return duola_albums_sanitize_photo_settings(get_post_meta($album_id, '_duola_album_photo_settings', true));
+}
+
+function duola_albums_get_photo_settings(int $album_id, int $photo_id): array
+{
+    $all_settings = duola_albums_get_all_photo_settings($album_id);
+    return array_merge(duola_albums_photo_setting_defaults(), $all_settings[(string) $photo_id] ?? []);
 }
 
 function duola_albums_get_years(): array

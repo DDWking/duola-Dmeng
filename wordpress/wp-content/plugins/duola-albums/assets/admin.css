@@ -107,15 +107,153 @@
   font-size: 11px;
   font-weight: 600;
 }
+.duola-album-photo-list li.has-settings::after {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: #172b3a;
+  color: #fff;
+  content: "已排版";
+  font-size: 11px;
+  font-weight: 600;
+}
+.duola-album-photo-list li.is-editing {
+  border-color: #172b3a;
+  box-shadow: 0 0 0 2px rgba(23, 43, 58, .12);
+}
 .duola-album-photo-list img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .duola-photo-actions {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 8px;
   padding: 8px 9px;
   background: #fff;
 }
+.duola-photo-actions .duola-edit-photo { flex-basis: 100%; font-weight: 600; text-align: left; }
 .duola-photo-actions button { cursor: pointer; }
+
+.duola-photo-editor[hidden] { display: none; }
+.duola-photo-editor {
+  margin: 0 24px 24px;
+  border: 1px solid var(--duola-admin-line);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(23, 43, 58, .09);
+}
+.duola-photo-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--duola-admin-line);
+}
+.duola-photo-editor-header div { display: grid; gap: 2px; }
+.duola-photo-editor-header span { color: var(--duola-admin-muted); font-size: 11px; font-weight: 600; }
+.duola-photo-editor-header strong { font-size: 15px; }
+.duola-photo-editor-body {
+  display: grid;
+  grid-template-columns: minmax(300px, .82fr) minmax(420px, 1.18fr);
+  gap: 24px;
+  padding: 18px;
+}
+.duola-editor-preview {
+  --preview-accent: #009fe8;
+  --preview-background: #f3f3f0;
+  position: sticky;
+  top: 46px;
+  align-self: start;
+  min-height: 360px;
+  overflow: hidden;
+  background: var(--preview-background);
+  isolation: isolate;
+}
+.duola-editor-preview img {
+  position: absolute;
+  z-index: 1;
+  top: 15%;
+  right: 12%;
+  bottom: 15%;
+  left: 12%;
+  width: 76%;
+  height: 70%;
+  object-fit: cover;
+  object-position: var(--preview-focus-x) var(--preview-focus-y);
+}
+.duola-editor-preview-headline {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 5%;
+  left: 5%;
+  color: var(--preview-accent);
+  font-size: clamp(32px, 4vw, 64px);
+  font-weight: 900;
+  line-height: .82;
+  overflow-wrap: anywhere;
+  transform: translateY(-50%);
+}
+.duola-editor-preview[data-text-position="spread"] .duola-editor-preview-headline { text-align: center; }
+.duola-editor-preview[data-text-position="right"] .duola-editor-preview-headline { text-align: right; }
+.duola-editor-preview-meta {
+  position: absolute;
+  z-index: 3;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  color: #172b3a;
+  font-size: 11px;
+}
+.duola-editor-preview-meta p { max-width: 52%; margin: 0; text-align: right; }
+.duola-editor-preview-meta .is-placeholder { opacity: .42; }
+.duola-photo-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.duola-field { min-width: 0; }
+.duola-field-wide { grid-column: 1 / -1; }
+.duola-field label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.duola-field > span { display: block; margin-top: 4px; color: var(--duola-admin-muted); font-size: 11px; }
+.duola-field input[type="text"],
+.duola-field input[type="date"],
+.duola-field textarea,
+.duola-field select { width: 100%; }
+.duola-field textarea { resize: vertical; }
+.duola-field-range input { width: 100%; }
+.duola-field-range output { color: var(--duola-admin-blue); font-weight: 500; }
+.duola-field-color input { width: 100%; height: 36px; padding: 2px; }
+.duola-home-visibility {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 12px;
+  background: var(--duola-admin-blue-soft);
+  font-weight: 600;
+}
+.duola-photo-editor-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 2px;
+}
+.duola-photo-editor-actions span { color: var(--duola-admin-muted); font-size: 11px; }
 
 .duola-optional-settings {
   padding: 0 24px 24px;
@@ -141,4 +279,9 @@
   .duola-photo-toolbar { align-items: flex-start; flex-direction: column; gap: 3px; }
   .duola-album-photo-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .duola-fields-grid { grid-template-columns: 1fr; gap: 0; }
+  .duola-photo-editor { margin-right: 12px; margin-left: 12px; }
+  .duola-photo-editor-body { grid-template-columns: 1fr; }
+  .duola-editor-preview { position: relative; top: auto; min-height: 300px; }
+  .duola-photo-fields { grid-template-columns: 1fr; }
+  .duola-field-wide, .duola-home-visibility, .duola-photo-editor-actions { grid-column: 1; }
 }
