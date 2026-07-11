@@ -340,7 +340,7 @@ button { color: inherit; }
 .memory-board-heading h2 { font-size: 0.9rem; font-weight: 700; }
 .memory-collage {
   position: relative;
-  width: 68%;
+  width: 64%;
   height: 780px;
   margin: 0 auto 0 0;
   perspective: 1200px;
@@ -444,7 +444,7 @@ button { color: inherit; }
   z-index: 6;
   right: 0;
   bottom: 7%;
-  width: min(40%, 600px);
+  width: min(34%, 560px);
   max-height: 68%;
   object-fit: contain;
   object-position: right bottom;
@@ -755,8 +755,8 @@ body.is-lightbox-open { overflow: hidden; }
   .home-note-card > a { grid-template-columns: 105px minmax(0, 1fr) 52px; }
   .home-note-thumb { height: 66px; }
   .memory-board { padding-left: 0; }
-  .memory-collage { width: 70%; }
-  .home-character { right: 0; width: 40%; }
+  .memory-collage { width: 64%; }
+  .home-character { right: 0; width: 34%; }
   .album-grid-archive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -765,7 +765,7 @@ body.is-lightbox-open { overflow: hidden; }
     top: 24%;
     right: 0;
     bottom: auto;
-    width: min(34%, 480px);
+    width: min(33%, 460px);
     max-height: 56vh;
   }
 }
@@ -802,7 +802,7 @@ body.is-lightbox-open { overflow: hidden; }
     display: block;
     width: min(68%, 480px);
     max-height: none;
-    margin: -3.5rem -8% 0 auto;
+    margin: -3.5rem 0 0 auto;
     object-position: right bottom;
   }
   .site-main:not(.is-home) { width: min(100% - 2rem, 760px); padding-top: 2.5rem; }
@@ -845,7 +845,7 @@ body.is-lightbox-open { overflow: hidden; }
     bottom: auto;
     width: min(78%, 340px);
     max-height: none;
-    margin: -4.5rem -12% 0 auto;
+    margin: -4.5rem 0 0 auto;
     opacity: 0.9;
   }
   .page-intro h1,
