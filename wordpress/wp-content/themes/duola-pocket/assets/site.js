@@ -22,7 +22,17 @@
   const gallery = document.querySelector('[data-lightbox-gallery]');
   if (!gallery) return;
 
-  const items = Array.from(gallery.querySelectorAll('[data-lightbox-image]'));
+  const triggers = Array.from(gallery.querySelectorAll('[data-lightbox-image]'));
+  const itemIndexByKey = new Map();
+  const items = [];
+  triggers.forEach((trigger) => {
+    const key = trigger.dataset.lightboxKey || trigger.dataset.lightboxImage;
+    if (!itemIndexByKey.has(key)) {
+      itemIndexByKey.set(key, items.length);
+      items.push(trigger);
+    }
+    trigger.dataset.lightboxIndex = String(itemIndexByKey.get(key));
+  });
   const galleryTitle = gallery.dataset.galleryTitle || '照片';
   let currentIndex = 0;
   let previousFocus = null;
@@ -126,9 +136,9 @@
     previousFocus?.focus();
   };
 
-  items.forEach((item, index) => item.addEventListener('click', () => {
+  triggers.forEach((item) => item.addEventListener('click', () => {
     previousFocus = item;
-    show(index, 1, true);
+    show(Number(item.dataset.lightboxIndex), 1, true);
   }));
   closeButton.addEventListener('click', close);
   lightbox.querySelector('.lightbox-prev').addEventListener('click', () => show(currentIndex - 1, -1));
@@ -157,4 +167,21 @@
     if (event.key === 'ArrowLeft') show(currentIndex - 1, -1);
     if (event.key === 'ArrowRight') show(currentIndex + 1, 1);
   });
+
+  const homeRail = document.querySelector('[data-home-photo-rail]');
+  if (homeRail && window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+    const home = homeRail.closest('.kinetic-home');
+    let railFrame = 0;
+    home?.addEventListener('pointermove', (event) => {
+      if (railFrame) return;
+      railFrame = window.requestAnimationFrame(() => {
+        const progress = event.clientX / window.innerWidth - 0.5;
+        homeRail.style.setProperty('--rail-drift', `${progress * -22}px`);
+        railFrame = 0;
+      });
+    });
+    home?.addEventListener('pointerleave', () => {
+      homeRail.style.setProperty('--rail-drift', '0px');
+    });
+  }
 })();

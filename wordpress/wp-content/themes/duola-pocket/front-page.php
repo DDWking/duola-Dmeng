@@ -8,6 +8,7 @@ $latest_posts = new WP_Query([
 ]);
 
 $home_photos = [];
+$home_photo_slots = [];
 $seen_photo_ids = [];
 if (function_exists('duola_albums_get_cover_id') && function_exists('duola_albums_get_photos')) {
     $albums = get_posts([
@@ -48,6 +49,18 @@ if (function_exists('duola_albums_get_cover_id') && function_exists('duola_album
         }
     }
 }
+
+if ($home_photos) {
+    $slot_count = max(9, count($home_photos));
+    for ($slot_index = 0; $slot_index < $slot_count; $slot_index++) {
+        $photo_index = $slot_index % count($home_photos);
+        $home_photo_slots[] = [
+            'photo' => $home_photos[$photo_index],
+            'photo_index' => $photo_index,
+            'position' => 18 + (($slot_index * 23 + $photo_index * 11) % 65),
+        ];
+    }
+}
 ?>
 <section class="kinetic-home" aria-label="首页">
     <div class="home-articles">
@@ -75,16 +88,19 @@ if (function_exists('duola_albums_get_cover_id') && function_exists('duola_album
     </div>
 
     <?php if ($home_photos) : ?>
-        <div class="home-photo-rail" data-lightbox-gallery data-gallery-title="照片">
-            <?php foreach ($home_photos as $index => $photo) : ?>
+        <div class="home-photo-rail" data-home-photo-rail data-lightbox-gallery data-gallery-title="照片">
+            <?php foreach ($home_photo_slots as $slot_index => $slot) : ?>
+                <?php $photo = $slot['photo']; ?>
                 <button class="home-photo-slice" type="button"
+                    style="--slice-position: <?php echo esc_attr($slot['position']); ?>%;"
                     data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
+                    data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
                     data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
                     data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
-                    aria-label="查看照片 <?php echo esc_attr($index + 1); ?>">
+                    aria-label="查看照片 <?php echo esc_attr($slot['photo_index'] + 1); ?>">
                     <?php echo wp_get_attachment_image($photo['id'], 'large', false, [
-                        'loading' => $index < 4 ? 'eager' : 'lazy',
-                        'fetchpriority' => 0 === $index ? 'high' : 'auto',
+                        'loading' => $slot_index < 5 ? 'eager' : 'lazy',
+                        'fetchpriority' => 0 === $slot_index ? 'high' : 'auto',
                         'alt' => '',
                     ]); ?>
                 </button>
