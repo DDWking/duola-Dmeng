@@ -521,30 +521,6 @@ button { color: inherit; }
   mask-image: radial-gradient(ellipse 58% 64% at 58% 53%, #000 46%, rgba(0, 0, 0, 0.86) 58%, transparent 78%);
   animation: character-arrive 1100ms 240ms both cubic-bezier(0.22, 1, 0.36, 1);
 }
-.meteor-field {
-  position: absolute;
-  z-index: 1;
-  inset: -24% -12% 2% -30%;
-  overflow: hidden;
-  border-radius: 42%;
-  pointer-events: none;
-}
-.meteor {
-  position: absolute;
-  width: 230px;
-  height: 5px;
-  border-radius: 2px;
-  opacity: 0;
-  background: linear-gradient(90deg, transparent 0, rgba(42, 111, 235, 0.18) 16%, rgba(50, 126, 242, 0.78) 56%, rgba(151, 218, 255, 0.96) 100%);
-  box-shadow: 0 0 8px rgba(65, 137, 244, 0.28), 0 0 18px rgba(104, 184, 255, 0.14);
-  transform: rotate(-18deg);
-  transform-origin: left center;
-}
-.meteor-one { top: 9%; right: -12%; width: 280px; animation: meteor-flight 7.2s 0.4s infinite cubic-bezier(0.2, 0.7, 0.2, 1); }
-.meteor-two { top: 32%; right: -20%; width: 210px; height: 4px; animation: meteor-flight 8.4s 2.6s infinite cubic-bezier(0.2, 0.7, 0.2, 1); }
-.meteor-three { top: 2%; right: 18%; width: 170px; height: 4px; animation: meteor-flight 9.2s 4.8s infinite cubic-bezier(0.2, 0.7, 0.2, 1); }
-.meteor-four { top: 53%; right: -16%; width: 250px; animation: meteor-flight 10.2s 6.5s infinite cubic-bezier(0.2, 0.7, 0.2, 1); }
-
 /* Archive and article pages */
 .page-intro {
   position: relative;
@@ -902,12 +878,6 @@ body.is-lightbox-open { overflow: hidden; }
   0%, 100% { transform: translate3d(0, 0, 0) rotate(48deg); }
   50% { transform: translate3d(10px, -6px, 0) rotate(96deg); }
 }
-@keyframes meteor-flight {
-  0%, 65% { opacity: 0; transform: translate3d(130px, -70px, 0) rotate(-18deg) scaleX(0.72); }
-  69% { opacity: 0.88; }
-  86% { opacity: 0.68; }
-  100% { opacity: 0; transform: translate3d(-360px, 150px, 0) rotate(-18deg) scaleX(1); }
-}
 @keyframes collage-exit-next {
   to { opacity: 0; filter: blur(5px); transform: translate3d(calc(var(--parallax-x) - 54px), var(--parallax-y), 0) rotate(calc(var(--note-rotate) - 2deg)) scale(0.97); }
 }
@@ -1033,7 +1003,6 @@ body.is-lightbox-open { overflow: hidden; }
     margin: -4.5rem 0 0 auto;
   }
   .home-character { opacity: 0.9; }
-  .meteor { width: 150px; height: 3px; }
   .page-intro h1,
   .album-header h1,
   .article-header h1,

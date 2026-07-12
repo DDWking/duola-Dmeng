@@ -153,12 +153,6 @@ $has_more_home_photos = count($home_photos) > 4;
     </section>
 
     <div class="home-character-scene" aria-hidden="true">
-        <div class="meteor-field">
-            <span class="meteor meteor-one"></span>
-            <span class="meteor meteor-two"></span>
-            <span class="meteor meteor-three"></span>
-            <span class="meteor meteor-four"></span>
-        </div>
         <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="">
     </div>
 </section>
