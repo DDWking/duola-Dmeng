@@ -130,29 +130,30 @@
   }
 
   function ensureWritingBlock() {
+    var attempts = 0;
+
     function initialize() {
+      attempts += 1;
       var selector = wp.data.select('core/block-editor');
       var editor = wp.data.select('core/editor');
       if (!selector || !editor || !editor.getCurrentPostId()) {
-        return false;
+        if (attempts < 12) {
+          window.setTimeout(initialize, 250);
+        }
+        return;
       }
 
-      if (!selector.getBlocks().length) {
-        wp.data.dispatch('core/block-editor').insertDefaultBlock();
+      if (selector.getBlocks().length) {
+        return;
       }
 
-      return true;
+      wp.data.dispatch('core/block-editor').insertDefaultBlock();
+      if (attempts < 12) {
+        window.setTimeout(initialize, 250);
+      }
     }
 
-    if (initialize()) {
-      return;
-    }
-
-    var unsubscribe = wp.data.subscribe(function () {
-      if (initialize()) {
-        unsubscribe();
-      }
-    });
+    initialize();
   }
 
   wp.domReady(function () {
