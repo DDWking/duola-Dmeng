@@ -39,8 +39,8 @@ if ($unclassified->have_posts()) {
 }
 ?>
 <section class="page-intro">
-    <span class="eyebrow">Pocket memories</span>
-    <h1>照片，按主题收好。</h1>
+    <span class="eyebrow">illusion</span>
+    <h1>那些曾经</h1>
     <p>旅行、日常或偶然遇见的风景，每一个主题都是一只独立的小口袋。</p>
 </section>
 

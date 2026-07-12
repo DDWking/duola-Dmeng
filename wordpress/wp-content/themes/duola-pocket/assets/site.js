@@ -45,6 +45,125 @@
     });
   }
 
+  if (collage) {
+    const carouselNotes = Array.from(collage.querySelectorAll('[data-collage-note]'));
+    const carouselRoot = collage.closest('.memory-board');
+    const previousButton = carouselRoot?.querySelector('[data-carousel-previous]');
+    const nextButton = carouselRoot?.querySelector('[data-carousel-next]');
+
+    if (carouselNotes.length > 4 && previousButton && nextButton) {
+      const slotClasses = ['photo-note-1', 'photo-note-2', 'photo-note-3', 'photo-note-4'];
+      const stackCount = collage.querySelector('.photo-stack-count');
+      let startIndex = 0;
+      let autoPlayTimer = 0;
+      let transitionTimer = 0;
+      let isInteracting = false;
+      let isTransitioning = false;
+
+      const visibleNotes = () => carouselNotes.filter((note) => !note.hidden);
+
+      const renderCarousel = (direction = 0) => {
+        const visibleIndexes = Array.from({ length: 4 }, (_, slot) => (
+          (startIndex + slot) % carouselNotes.length
+        ));
+
+        carouselNotes.forEach((note) => {
+          note.hidden = true;
+          note.tabIndex = -1;
+          note.setAttribute('aria-hidden', 'true');
+          note.classList.remove(...slotClasses, 'has-photo-stack', 'is-carousel-entering-next', 'is-carousel-entering-previous');
+        });
+
+        visibleIndexes.forEach((noteIndex, slot) => {
+          const note = carouselNotes[noteIndex];
+          note.hidden = false;
+          note.tabIndex = 0;
+          note.removeAttribute('aria-hidden');
+          note.classList.add(slotClasses[slot], 'is-visible');
+          if (direction) note.classList.add(direction > 0 ? 'is-carousel-entering-next' : 'is-carousel-entering-previous');
+        });
+
+        const lastVisibleNote = carouselNotes[visibleIndexes[3]];
+        lastVisibleNote.classList.add('has-photo-stack');
+        if (stackCount) {
+          stackCount.querySelector('strong').textContent = `+${carouselNotes.length - 4}`;
+          lastVisibleNote.appendChild(stackCount);
+        }
+
+        if (direction) {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+              visibleNotes().forEach((note) => note.classList.remove('is-carousel-entering-next', 'is-carousel-entering-previous'));
+            });
+          });
+        }
+      };
+
+      const scheduleAutoPlay = () => {
+        window.clearTimeout(autoPlayTimer);
+        if (reducedMotion || isInteracting || document.hidden || document.body.classList.contains('is-lightbox-open')) return;
+        autoPlayTimer = window.setTimeout(() => {
+          if (isInteracting || document.hidden || document.body.classList.contains('is-lightbox-open')) return;
+          moveCarousel(1);
+        }, 5600);
+      };
+
+      const moveCarousel = (direction) => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        window.clearTimeout(autoPlayTimer);
+
+        if (reducedMotion) {
+          startIndex = (startIndex + direction + carouselNotes.length) % carouselNotes.length;
+          renderCarousel();
+          isTransitioning = false;
+          return;
+        }
+
+        const exitingClass = direction > 0 ? 'is-carousel-exiting-next' : 'is-carousel-exiting-previous';
+        visibleNotes().forEach((note) => note.classList.add(exitingClass));
+        transitionTimer = window.setTimeout(() => {
+          visibleNotes().forEach((note) => note.classList.remove(exitingClass));
+          startIndex = (startIndex + direction + carouselNotes.length) % carouselNotes.length;
+          renderCarousel(direction);
+          isTransitioning = false;
+          scheduleAutoPlay();
+        }, 280);
+      };
+
+      previousButton.addEventListener('click', () => moveCarousel(-1));
+      nextButton.addEventListener('click', () => moveCarousel(1));
+      carouselRoot.addEventListener('pointerenter', () => {
+        isInteracting = true;
+        window.clearTimeout(autoPlayTimer);
+      });
+      carouselRoot.addEventListener('pointerleave', () => {
+        isInteracting = false;
+        scheduleAutoPlay();
+      });
+      carouselRoot.addEventListener('focusin', () => {
+        isInteracting = true;
+        window.clearTimeout(autoPlayTimer);
+      });
+      carouselRoot.addEventListener('focusout', () => {
+        window.setTimeout(() => {
+          isInteracting = carouselRoot.contains(document.activeElement);
+          scheduleAutoPlay();
+        });
+      });
+      document.addEventListener('visibilitychange', scheduleAutoPlay);
+      document.addEventListener('duola:lightbox-open', () => window.clearTimeout(autoPlayTimer));
+      document.addEventListener('duola:lightbox-close', scheduleAutoPlay);
+      window.addEventListener('pagehide', () => {
+        window.clearTimeout(autoPlayTimer);
+        window.clearTimeout(transitionTimer);
+      });
+
+      renderCarousel();
+      scheduleAutoPlay();
+    }
+  }
+
   const triggers = Array.from(document.querySelectorAll('[data-lightbox-image]'));
   if (!triggers.length) return;
 
@@ -200,6 +319,7 @@
     lightbox.classList.add('is-open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-lightbox-open');
+    document.dispatchEvent(new CustomEvent('duola:lightbox-open'));
     loadImage(item, direction);
     preloadAdjacent();
     if (opening) window.requestAnimationFrame(() => closeButton.focus());
@@ -209,6 +329,7 @@
     lightbox.classList.remove('is-open');
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-lightbox-open');
+    document.dispatchEvent(new CustomEvent('duola:lightbox-close'));
     imageRequest += 1;
     resetZoom();
     previousFocus?.focus();

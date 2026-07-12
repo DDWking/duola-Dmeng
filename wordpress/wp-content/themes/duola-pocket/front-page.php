@@ -55,7 +55,11 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
 ?>
 <section class="scrapbook-home" aria-label="首页">
     <div class="paper-wash" aria-hidden="true"></div>
-    <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" alt="Stay alive!">
+    <div class="stay-alive-scene">
+        <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" alt="Stay alive!">
+        <span class="stay-alive-orbit stay-alive-orbit-one" aria-hidden="true"></span>
+        <span class="stay-alive-orbit stay-alive-orbit-two" aria-hidden="true"></span>
+    </div>
     <span class="sparkle sparkle-one" aria-hidden="true"></span>
     <span class="sparkle sparkle-two" aria-hidden="true"></span>
     <span class="brush-mark" aria-hidden="true"></span>
@@ -112,14 +116,22 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
 
     <section class="memory-board" aria-labelledby="latest-photos-title">
         <div class="memory-board-heading">
-            <span class="section-kicker">Pocket memories</span>
-            <h2 id="latest-photos-title">敌敌畏的宝库</h2>
+            <div>
+                <span class="section-kicker">Pocket memories</span>
+                <h2 id="latest-photos-title">敌敌畏的宝库</h2>
+            </div>
+            <?php if (count($home_photos) > 4) : ?>
+                <div class="memory-carousel-controls" role="group" aria-label="切换首页照片">
+                    <button type="button" data-carousel-previous aria-label="上一组照片">&larr;</button>
+                    <button type="button" data-carousel-next aria-label="下一组照片">&rarr;</button>
+                </div>
+            <?php endif; ?>
         </div>
         <div class="memory-collage" data-memory-collage data-lightbox-gallery data-gallery-title="照片">
             <span class="collage-dots" aria-hidden="true"></span>
             <?php if ($home_photos) : ?>
                 <?php foreach ($home_photos as $index => $photo) : ?>
-                    <button class="photo-note photo-note-<?php echo esc_attr($index + 1); ?><?php echo 3 === $index && $hidden_photo_count ? ' has-photo-stack' : ''; ?>" type="button"
+                    <button class="photo-note<?php echo $index < 4 ? ' photo-note-' . esc_attr($index + 1) : ''; ?><?php echo 3 === $index && $hidden_photo_count ? ' has-photo-stack' : ''; ?>" type="button"
                         <?php echo $index >= 4 ? 'hidden tabindex="-1" aria-hidden="true"' : ''; ?>
                         data-collage-note
                         data-depth="<?php echo esc_attr(number_format(0.35 + ($index % 3) * 0.2, 2)); ?>"
@@ -130,18 +142,16 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
                         data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
                         data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
                         aria-label="查看照片 <?php echo esc_attr($index + 1); ?>">
-                        <?php if ($index < 4) : ?>
-                            <span class="photo-note-tape" aria-hidden="true"></span>
-                            <?php echo wp_get_attachment_image($photo['id'], 'duola-home-note', false, [
-                                'loading' => $index < 2 ? 'eager' : 'lazy',
-                                'decoding' => 'async',
-                                'fetchpriority' => 0 === $index ? 'high' : 'auto',
-                                'sizes' => '(max-width: 620px) 40vw, (max-width: 900px) 38vw, 16vw',
-                                'alt' => '',
-                            ]); ?>
-                            <?php if (3 === $index && $hidden_photo_count) : ?>
-                                <span class="photo-stack-count" aria-hidden="true"><strong>+<?php echo esc_html($hidden_photo_count); ?></strong><small>继续看</small></span>
-                            <?php endif; ?>
+                        <span class="photo-note-tape" aria-hidden="true"></span>
+                        <?php echo wp_get_attachment_image($photo['id'], 'duola-home-note', false, [
+                            'loading' => $index < 2 ? 'eager' : 'lazy',
+                            'decoding' => 'async',
+                            'fetchpriority' => 0 === $index ? 'high' : 'auto',
+                            'sizes' => '(max-width: 620px) 40vw, (max-width: 900px) 38vw, 16vw',
+                            'alt' => '',
+                        ]); ?>
+                        <?php if (3 === $index && $hidden_photo_count) : ?>
+                            <span class="photo-stack-count" aria-hidden="true"><strong>+<?php echo esc_html($hidden_photo_count); ?></strong><small>继续看</small></span>
                         <?php endif; ?>
                     </button>
                 <?php endforeach; ?>
