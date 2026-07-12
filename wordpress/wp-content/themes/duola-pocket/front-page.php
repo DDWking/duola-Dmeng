@@ -57,6 +57,9 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
     <div class="paper-wash" aria-hidden="true"></div>
     <div class="stay-alive-scene">
         <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" alt="Stay alive!">
+        <span class="stay-alive-petal stay-alive-petal-one" aria-hidden="true"></span>
+        <span class="stay-alive-petal stay-alive-petal-two" aria-hidden="true"></span>
+        <span class="stay-alive-petal stay-alive-petal-three" aria-hidden="true"></span>
     </div>
     <span class="sparkle sparkle-one" aria-hidden="true"></span>
     <span class="sparkle sparkle-two" aria-hidden="true"></span>
@@ -152,6 +155,14 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
         </div>
     </section>
 
-    <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="" aria-hidden="true">
+    <div class="home-character-scene" aria-hidden="true">
+        <div class="meteor-field">
+            <span class="meteor meteor-one"></span>
+            <span class="meteor meteor-two"></span>
+            <span class="meteor meteor-three"></span>
+            <span class="meteor meteor-four"></span>
+        </div>
+        <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="">
+    </div>
 </section>
 <?php get_footer(); ?>

@@ -19,8 +19,16 @@ while (have_posts()) : the_post();
 <?php if ($photos) : ?>
     <section class="photo-grid <?php echo 1 === count($photos) ? 'photo-grid-single' : 'photo-grid-masonry'; ?>" data-lightbox-gallery data-gallery-title="<?php echo esc_attr(get_the_title()); ?>">
         <?php foreach ($photos as $index => $photo) : ?>
-            <?php $full = wp_get_attachment_image_url($photo['id'], 'duola-lightbox') ?: wp_get_attachment_image_url($photo['id'], 'full'); $settings = $photo['settings'] ?? []; ?>
-            <button class="photo-button" type="button"
+            <?php
+            $full = wp_get_attachment_image_url($photo['id'], 'duola-lightbox') ?: wp_get_attachment_image_url($photo['id'], 'full');
+            $settings = $photo['settings'] ?? [];
+            $metadata = wp_get_attachment_metadata((int) $photo['id']);
+            $photo_width = max(1, (int) ($metadata['width'] ?? 4));
+            $photo_height = max(1, (int) ($metadata['height'] ?? 3));
+            $photo_ratio = $photo_width / $photo_height;
+            $photo_basis = round($photo_ratio * 310, 2);
+            ?>
+            <button class="photo-button" type="button" style="--photo-ratio: <?php echo esc_attr(number_format($photo_ratio, 4, '.', '')); ?>; --photo-basis: <?php echo esc_attr($photo_basis); ?>px;"
                 data-lightbox-image="<?php echo esc_url($full); ?>"
                 data-lightbox-srcset="<?php echo esc_attr(wp_get_attachment_image_srcset($photo['id'], 'duola-lightbox') ?: ''); ?>"
                 data-lightbox-sizes="(max-width: 620px) 82vw, 82vw"
@@ -40,7 +48,7 @@ while (have_posts()) : the_post();
                     'loading' => 0 === $index ? 'eager' : 'lazy',
                     'decoding' => 'async',
                     'fetchpriority' => 0 === $index ? 'high' : 'auto',
-                    'sizes' => '(max-width: 620px) 94vw, (max-width: 900px) 46vw, 55vw',
+                    'sizes' => '(max-width: 620px) 94vw, (max-width: 900px) 46vw, 42vw',
                 ]); ?>
             </button>
         <?php endforeach; ?>
