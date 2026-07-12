@@ -3,17 +3,19 @@ get_header();
 
 $home_photos = [];
 $seen_photo_ids = [];
+$album_photo_groups = [];
 
 if (function_exists('duola_albums_get_cover_id') && function_exists('duola_albums_get_photos')) {
     $albums = get_posts([
         'post_type' => 'album',
         'post_status' => 'publish',
-        'numberposts' => 8,
+        'numberposts' => -1,
         'orderby' => 'date',
         'order' => 'DESC',
     ]);
 
     foreach ($albums as $album) {
+        $album_photos = [];
         $photo_ids = [duola_albums_get_cover_id((int) $album->ID)];
         foreach (duola_albums_get_photos((int) $album->ID) as $photo) {
             $photo_ids[] = (int) $photo['id'];
@@ -30,17 +32,34 @@ if (function_exists('duola_albums_get_cover_id') && function_exists('duola_album
             }
 
             $seen_photo_ids[$photo_id] = true;
-            $home_photos[] = [
+            $album_photos[] = [
                 'id' => $photo_id,
                 'url' => $full_url,
                 'title' => get_the_title($album),
                 'caption' => wp_get_attachment_caption($photo_id),
             ];
+        }
 
+        if ($album_photos) {
+            shuffle($album_photos);
+            $album_photo_groups[] = $album_photos;
+        }
+    }
+
+    shuffle($album_photo_groups);
+    while ($album_photo_groups && count($home_photos) < 12) {
+        $remaining_groups = [];
+        foreach ($album_photo_groups as $album_photos) {
+            $home_photos[] = array_pop($album_photos);
+            if ($album_photos) {
+                $remaining_groups[] = $album_photos;
+            }
             if (count($home_photos) >= 12) {
-                break 2;
+                break;
             }
         }
+        $album_photo_groups = $remaining_groups;
+        shuffle($album_photo_groups);
     }
 }
 
