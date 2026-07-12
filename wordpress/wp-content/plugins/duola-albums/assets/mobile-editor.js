@@ -130,16 +130,27 @@
   }
 
   function ensureWritingBlock() {
-    var unsubscribe = wp.data.subscribe(function () {
+    function initialize() {
       var selector = wp.data.select('core/block-editor');
       var editor = wp.data.select('core/editor');
       if (!selector || !editor || !editor.getCurrentPostId()) {
-        return;
+        return false;
       }
 
-      unsubscribe();
       if (!selector.getBlocks().length) {
         wp.data.dispatch('core/block-editor').insertDefaultBlock();
+      }
+
+      return true;
+    }
+
+    if (initialize()) {
+      return;
+    }
+
+    var unsubscribe = wp.data.subscribe(function () {
+      if (initialize()) {
+        unsubscribe();
       }
     });
   }
