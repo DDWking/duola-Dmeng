@@ -360,6 +360,90 @@ body.login {
   .duola-dashboard-stats a { border-right: 0; border-bottom: 1px solid var(--duola-admin-border); }
   .duola-dashboard-stats a:last-child { border-bottom: 0; }
   .duola-dashboard-columns { grid-template-columns: 1fr; }
+
+  .edit-php.post-type-post #wpcontent { padding-left: 0; }
+  .edit-php.post-type-post .wrap { margin: 16px 12px 72px; }
+  .edit-php.post-type-post .wrap > h1,
+  .edit-php.post-type-post .wrap > .wp-heading-inline { font-size: 25px; }
+  .edit-php.post-type-post .page-title-action {
+    float: right;
+    min-height: 40px;
+    margin: -3px 0 0;
+    padding: 5px 14px;
+  }
+  .edit-php.post-type-post .search-box { margin: 14px 0 10px; }
+  .edit-php.post-type-post .search-box input[type="search"] { min-height: 40px; }
+  .edit-php.post-type-post .wp-list-table {
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(57, 68, 112, 0.08);
+  }
+  .edit-php.post-type-post .wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column) { padding: 12px 14px; }
+  .edit-php.post-type-post .wp-list-table .row-title { font-size: 16px; line-height: 1.45; }
+  .edit-php.post-type-post .column-duola_thumbnail img { width: 64px; height: 48px; }
+
+  body.block-editor-page.post-type-post #wpcontent { padding-left: 0; }
+  body.block-editor-page.post-type-post #wpbody-content { padding-bottom: 0; }
+  body.block-editor-page.post-type-post .interface-interface-skeleton__content { padding-top: 54px; }
+  body.block-editor-page.post-type-post .interface-interface-skeleton__header .components-button { min-width: 40px; min-height: 40px; }
+  body.block-editor-page.post-type-post .editor-post-publish-button,
+  body.block-editor-page.post-type-post .editor-post-publish-panel__toggle { min-width: 58px; }
+  body.block-editor-page.post-type-post .components-modal__frame { width: calc(100% - 28px); max-height: calc(100% - 28px); }
+  body.block-editor-page.post-type-post .media-modal { inset: 0; }
+  body.block-editor-page.post-type-post .media-modal-content { border: 0; }
+
+  .duola-mobile-editor-bar {
+    position: fixed;
+    z-index: 91;
+    top: 106px;
+    right: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    height: 54px;
+    padding: 5px max(8px, env(safe-area-inset-right)) 5px max(8px, env(safe-area-inset-left));
+    border-top: 1px solid #e5e7ef;
+    border-bottom: 1px solid var(--duola-admin-border);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 6px 18px rgba(29, 39, 70, 0.08);
+    backdrop-filter: blur(12px);
+  }
+  .duola-mobile-editor-bar button {
+    display: flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--duola-admin-text);
+    background: transparent;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .duola-mobile-editor-bar button:hover,
+  .duola-mobile-editor-bar button:focus-visible { color: var(--duola-admin-accent-dark); background: var(--duola-admin-accent-soft); }
+  .duola-mobile-editor-bar button:disabled { color: var(--duola-admin-muted); opacity: 0.65; }
+  .duola-mobile-editor-bar .dashicons { width: 20px; height: 20px; font-size: 20px; }
+  .duola-mobile-editor-status {
+    position: fixed;
+    z-index: 160001;
+    right: 12px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    padding: 8px 12px;
+    border-radius: 7px;
+    color: #fff;
+    background: var(--duola-admin-navy);
+    box-shadow: 0 8px 24px rgba(29, 39, 70, 0.2);
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 160ms ease, transform 160ms ease;
+    pointer-events: none;
+  }
+  .duola-mobile-editor-status.is-visible { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 520px) {

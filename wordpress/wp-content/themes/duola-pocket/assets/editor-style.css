@@ -44,3 +44,27 @@
 .editor-styles-wrapper img {
   border-radius: 10px;
 }
+
+@media (max-width: 782px) {
+  .editor-styles-wrapper {
+    min-height: calc(100vh - 164px);
+    padding: 22px 18px 140px;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  .editor-styles-wrapper .wp-block {
+    max-width: none;
+  }
+
+  .editor-styles-wrapper .editor-post-title__input {
+    min-height: 52px;
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  .editor-styles-wrapper p {
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
+  }
+}

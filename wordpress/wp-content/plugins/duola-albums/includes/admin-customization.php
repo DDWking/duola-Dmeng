@@ -112,6 +112,25 @@ function duola_admin_editor_settings(array $settings, $editor_context): array
 }
 add_filter('block_editor_settings_all', 'duola_admin_editor_settings', 10, 2);
 
+function duola_admin_mobile_login_redirect(string $redirect_to, string $requested_redirect_to, $user): string
+{
+    if (!wp_is_mobile() || $requested_redirect_to || !($user instanceof WP_User) || !user_can($user, 'edit_posts')) {
+        return $redirect_to;
+    }
+
+    return admin_url('edit.php');
+}
+add_filter('login_redirect', 'duola_admin_mobile_login_redirect', 10, 3);
+
+function duola_admin_mobile_dashboard_redirect(): void
+{
+    if (wp_is_mobile() && current_user_can('edit_posts')) {
+        wp_safe_redirect(admin_url('edit.php'));
+        exit;
+    }
+}
+add_action('load-index.php', 'duola_admin_mobile_dashboard_redirect');
+
 function duola_admin_post_columns(array $columns): array
 {
     return [
@@ -341,3 +360,42 @@ function duola_admin_enqueue_theme(): void
 }
 add_action('admin_enqueue_scripts', 'duola_admin_enqueue_theme', 100);
 add_action('login_enqueue_scripts', 'duola_admin_enqueue_theme');
+
+function duola_admin_enqueue_mobile_editor(string $hook): void
+{
+    if (!wp_is_mobile() || !in_array($hook, ['post-new.php', 'post.php'], true)) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if (!$screen || 'post' !== $screen->post_type) {
+        return;
+    }
+
+    $script_path = DUOLA_ALBUMS_PATH . 'assets/mobile-editor.js';
+    wp_enqueue_media();
+    wp_enqueue_script(
+        'duola-mobile-editor',
+        DUOLA_ALBUMS_URL . 'assets/mobile-editor.js',
+        ['wp-blocks', 'wp-data', 'wp-dom-ready', 'wp-edit-post'],
+        (string) filemtime($script_path),
+        true
+    );
+    wp_localize_script('duola-mobile-editor', 'duolaMobileEditor', [
+        'insertImage' => __('图片', 'duola-albums'),
+        'insertImageLabel' => __('拍照或插入图片', 'duola-albums'),
+        'imagePickerTitle' => __('选择要插入文章的图片', 'duola-albums'),
+        'imagePickerButton' => __('插入文章', 'duola-albums'),
+        'featuredImage' => __('封面', 'duola-albums'),
+        'featuredImageLabel' => __('设置文章封面', 'duola-albums'),
+        'featuredPickerTitle' => __('选择文章封面', 'duola-albums'),
+        'featuredPickerButton' => __('设为封面', 'duola-albums'),
+        'settings' => __('设置', 'duola-albums'),
+        'settingsLabel' => __('打开标签和发布设置', 'duola-albums'),
+        'save' => __('保存', 'duola-albums'),
+        'saving' => __('保存中…', 'duola-albums'),
+        'saved' => __('已保存', 'duola-albums'),
+        'saveFailed' => __('保存失败，请重试', 'duola-albums'),
+    ]);
+}
+add_action('admin_enqueue_scripts', 'duola_admin_enqueue_mobile_editor', 120);
