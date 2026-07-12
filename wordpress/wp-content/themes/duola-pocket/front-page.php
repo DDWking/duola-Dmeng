@@ -64,7 +64,7 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
         <div class="home-notes-heading">
             <div>
                 <span class="section-kicker">Daily notes</span>
-                <h1 id="latest-notes-title">最近写下的</h1>
+                <h1 id="latest-notes-title">胡思乱想</h1>
             </div>
             <a href="<?php echo esc_url(duola_pocket_articles_url()); ?>">查看全部</a>
         </div>
@@ -113,7 +113,7 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
     <section class="memory-board" aria-labelledby="latest-photos-title">
         <div class="memory-board-heading">
             <span class="section-kicker">Pocket memories</span>
-            <h2 id="latest-photos-title">最近珍藏的画面</h2>
+            <h2 id="latest-photos-title">敌敌畏的宝库</h2>
         </div>
         <div class="memory-collage" data-memory-collage data-lightbox-gallery data-gallery-title="照片">
             <span class="collage-dots" aria-hidden="true"></span>
