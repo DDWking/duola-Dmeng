@@ -102,19 +102,15 @@ $has_more_home_photos = count($home_photos) > 4;
                     if (!$summary) {
                         $summary = wp_trim_words(wp_strip_all_tags(get_the_content()), 24);
                     }
-                    $fallback_photo = $home_photos ? $home_photos[($post_index - 1) % count($home_photos)] : null;
+                    $has_thumbnail = has_post_thumbnail();
                     ?>
                     <article class="home-note-card">
-                        <a href="<?php the_permalink(); ?>">
-                            <div class="home-note-thumb">
-                                <?php if (has_post_thumbnail()) : ?>
+                        <a class="<?php echo $has_thumbnail ? 'has-thumbnail' : 'without-thumbnail'; ?>" href="<?php the_permalink(); ?>">
+                            <?php if ($has_thumbnail) : ?>
+                                <div class="home-note-thumb">
                                     <?php the_post_thumbnail('thumbnail', ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'decoding' => 'async', 'sizes' => '(max-width: 620px) 86px, 105px', 'alt' => '']); ?>
-                                <?php elseif ($fallback_photo) : ?>
-                                    <?php echo wp_get_attachment_image($fallback_photo['id'], 'thumbnail', false, ['loading' => 1 === $post_index ? 'eager' : 'lazy', 'decoding' => 'async', 'sizes' => '(max-width: 620px) 86px, 105px', 'alt' => '']); ?>
-                                <?php else : ?>
-                                    <span aria-hidden="true"></span>
-                                <?php endif; ?>
-                            </div>
+                                </div>
+                            <?php endif; ?>
                             <div class="home-note-copy">
                                 <span class="home-note-tag"><?php echo esc_html($label); ?></span>
                                 <h2><?php the_title(); ?></h2>

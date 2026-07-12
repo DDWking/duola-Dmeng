@@ -300,16 +300,20 @@ button { color: inherit; }
 .home-note-list { display: grid; gap: 0.62rem; }
 .home-note-card > a {
   display: grid;
-  grid-template-columns: 126px minmax(0, 1fr) 58px;
+  grid-template-columns: minmax(0, 1fr) 58px;
   align-items: center;
   min-height: 82px;
-  padding: 0.44rem 0.7rem 0.44rem 0.44rem;
+  padding: 0.62rem 0.7rem;
   border: 1px solid rgba(121, 135, 183, 0.09);
   border-radius: 11px;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: 0 6px 20px rgba(58, 67, 98, 0.055);
   backdrop-filter: blur(12px);
   transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 280ms ease, background 280ms ease;
+}
+.home-note-card > a.has-thumbnail {
+  grid-template-columns: 126px minmax(0, 1fr) 58px;
+  padding: 0.44rem 0.7rem 0.44rem 0.44rem;
 }
 .home-note-card > a:hover {
   background: rgba(255, 255, 255, 0.94);
@@ -326,6 +330,7 @@ button { color: inherit; }
 .home-note-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
 .home-note-card > a:hover .home-note-thumb img { transform: scale(1.055); }
 .home-note-copy { min-width: 0; padding: 0 1rem; }
+.home-note-card > a.without-thumbnail .home-note-copy { padding-left: 0.35rem; }
 .home-note-tag {
   display: block;
   margin-bottom: 0.08rem;
@@ -909,7 +914,8 @@ body.is-lightbox-open { overflow: hidden; }
 @media (max-width: 1180px) {
   .site-header { width: min(100% - 2.5rem, 1100px); }
   .scrapbook-home { grid-template-columns: minmax(370px, 0.84fr) minmax(500px, 1.16fr); width: calc(100vw - 1.5rem); padding-right: 0; }
-  .home-note-card > a { grid-template-columns: 105px minmax(0, 1fr) 52px; }
+  .home-note-card > a { grid-template-columns: minmax(0, 1fr) 52px; }
+  .home-note-card > a.has-thumbnail { grid-template-columns: 105px minmax(0, 1fr) 52px; }
   .home-note-thumb { height: 66px; }
   .memory-board { padding-left: 0; }
   .memory-collage { width: 64%; }
@@ -977,7 +983,8 @@ body.is-lightbox-open { overflow: hidden; }
   .stay-alive-scene { width: 100%; margin: -1.2rem 0 -0.4rem -1.2rem; }
   .home-notes-heading { padding: 0 0.25rem; }
   .home-note-list { gap: 0.55rem; }
-  .home-note-card > a { grid-template-columns: 86px minmax(0, 1fr) 43px; min-height: 75px; padding: 0.38rem; }
+  .home-note-card > a { grid-template-columns: minmax(0, 1fr) 43px; min-height: 75px; padding: 0.5rem 0.38rem; }
+  .home-note-card > a.has-thumbnail { grid-template-columns: 86px minmax(0, 1fr) 43px; padding: 0.38rem; }
   .home-note-thumb { height: 63px; }
   .home-note-copy { padding: 0 0.65rem; }
   .home-note-copy h2 { font-size: 0.88rem; }
