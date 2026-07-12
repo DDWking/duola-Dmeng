@@ -96,8 +96,6 @@ $has_more_home_photos = count($home_photos) > 4;
             <div class="home-note-list">
                 <?php $post_index = 0; while ($latest_posts->have_posts()) : $latest_posts->the_post(); $post_index++; ?>
                     <?php
-                    $tags = get_the_tags();
-                    $label = $tags ? $tags[0]->name : '随笔';
                     $summary = get_the_excerpt();
                     if (!$summary) {
                         $summary = wp_trim_words(wp_strip_all_tags(get_the_content()), 24);
@@ -112,7 +110,6 @@ $has_more_home_photos = count($home_photos) > 4;
                                 </div>
                             <?php endif; ?>
                             <div class="home-note-copy">
-                                <span class="home-note-tag"><?php echo esc_html($label); ?></span>
                                 <h2><?php the_title(); ?></h2>
                                 <?php if ($summary) : ?><p><?php echo esc_html($summary); ?></p><?php endif; ?>
                             </div>

@@ -331,13 +331,6 @@ button { color: inherit; }
 .home-note-card > a:hover .home-note-thumb img { transform: scale(1.055); }
 .home-note-copy { min-width: 0; padding: 0 1rem; }
 .home-note-card > a.without-thumbnail .home-note-copy { padding-left: 0.35rem; }
-.home-note-tag {
-  display: block;
-  margin-bottom: 0.08rem;
-  color: var(--lavender-deep);
-  font-size: 0.68rem;
-  font-weight: 800;
-}
 .home-note-copy h2 {
   margin: 0;
   overflow: hidden;
