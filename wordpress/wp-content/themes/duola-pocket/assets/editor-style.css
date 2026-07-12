@@ -47,7 +47,6 @@
 
 @media (max-width: 782px) {
   .editor-styles-wrapper {
-    min-height: calc(100vh - 164px);
     padding: 22px 18px 140px;
     font-size: 18px;
     line-height: 1.8;
