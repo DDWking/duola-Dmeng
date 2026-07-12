@@ -27,7 +27,7 @@
   };
 
   const appendPhoto = (attachment) => {
-    if (list.children(`[data-id="${attachment.id}"]`).length) return;
+    if (list.children(`[data-id="${attachment.id}"]`).length) return false;
     const source = attachment.sizes?.thumbnail?.url
       || attachment.media_details?.sizes?.thumbnail?.source_url
       || attachment.source_url
@@ -40,6 +40,7 @@
     actions.append($('<button>').attr('type', 'button').addClass('button-link-delete duola-remove-photo').text('移除'));
     item.append(actions);
     list.append(item);
+    return true;
   };
 
   list.sortable({ items: '> li', tolerance: 'pointer', update: updateIds });
@@ -52,15 +53,43 @@
   });
 
   $('#duola-add-photos').on('click', () => {
+    const selection = new wp.media.model.Selection([], { multiple: true });
     const frame = wp.media({
       title: duolaAlbums.title,
       button: { text: duolaAlbums.add },
-      multiple: 'add',
+      multiple: true,
+      selection,
       library: { type: 'image' },
     });
+
+    const updateMediaButton = () => {
+      const count = selection.length;
+      frame.$el.find('.media-button-select').text(count
+        ? duolaAlbums.addSelected.replace('%d', count)
+        : duolaAlbums.add);
+    };
+
+    selection.on('add remove reset', updateMediaButton);
+    frame.on('open', updateMediaButton);
     frame.on('select', () => {
-      frame.state().get('selection').each((attachment) => appendPhoto(attachment.toJSON()));
+      const selected = new Map();
+      selection.each((attachment) => selected.set(Number(attachment.id), attachment));
+      frame.$el.find('.attachment[aria-checked="true"]').each((_, element) => {
+        const attachmentId = Number(element.dataset.id);
+        if (attachmentId) selected.set(attachmentId, wp.media.attachment(attachmentId));
+      });
+
+      if (!selected.size) {
+        uploadStatus.text(duolaAlbums.libraryEmpty);
+        return;
+      }
+
+      let added = 0;
+      selected.forEach((attachment) => {
+        if (appendPhoto(attachment.toJSON())) added += 1;
+      });
       updateIds();
+      uploadStatus.text(formatUploadText(duolaAlbums.libraryAdded, [added, selected.size - added]));
     });
     frame.open();
   });

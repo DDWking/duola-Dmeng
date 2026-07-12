@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 哆啦D梦相册
  * Description: 提供按年份管理、批量上传、封面选择和拖拽排序的相册内容类型。
- * Version: 1.7.0
+ * Version: 1.7.1
  * Author: DDWking
  * Text Domain: duola-albums
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DUOLA_ALBUMS_VERSION', '1.7.0');
+define('DUOLA_ALBUMS_VERSION', '1.7.1');
 define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
 
@@ -414,6 +414,7 @@ function duola_albums_admin_assets(string $hook): void
     wp_localize_script('duola-albums-admin', 'duolaAlbums', [
         'title' => __('选择照片', 'duola-albums'),
         'add' => __('添加到相册', 'duola-albums'),
+        'addSelected' => __('添加 %d 张到相册', 'duola-albums'),
         'count' => __('%d 张照片', 'duola-albums'),
         'restUrl' => esc_url_raw(rest_url('wp/v2/media')),
         'restNonce' => wp_create_nonce('wp_rest'),
@@ -421,6 +422,8 @@ function duola_albums_admin_assets(string $hook): void
         'uploadComplete' => __('已添加 %d 张照片，请点击“发布”或“更新”保存相册。', 'duola-albums'),
         'uploadPartial' => __('成功添加 %1$d 张，%2$d 张上传失败。可以重新选择失败的照片。', 'duola-albums'),
         'uploadFailed' => __('上传失败，请重试。', 'duola-albums'),
+        'libraryAdded' => __('从照片库添加了 %1$d 张，跳过 %2$d 张已在相册中的照片。请点击“发布”或“更新”保存。', 'duola-albums'),
+        'libraryEmpty' => __('请至少勾选一张照片。', 'duola-albums'),
     ]);
 }
 add_action('admin_enqueue_scripts', 'duola_albums_admin_assets');
