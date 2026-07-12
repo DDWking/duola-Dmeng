@@ -195,10 +195,14 @@ function duola_migration_export_album(WP_Post $album, array $id_to_uuid): array
 {
     $photos = function_exists('duola_albums_get_photos') ? duola_albums_get_photos((int) $album->ID) : [];
     $photo_uuids = [];
+    $photo_settings = [];
     foreach ($photos as $photo) {
-        if (isset($id_to_uuid[(int) $photo['id']])) {
-            $photo_uuids[] = $id_to_uuid[(int) $photo['id']];
+        $photo_uuid = $id_to_uuid[(int) $photo['id']] ?? '';
+        if (!$photo_uuid) {
+            continue;
         }
+        $photo_uuids[] = $photo_uuid;
+        $photo_settings[$photo_uuid] = (array) ($photo['settings'] ?? []);
     }
     $cover_id = function_exists('duola_albums_get_cover_id') ? duola_albums_get_cover_id((int) $album->ID) : (int) get_post_thumbnail_id($album->ID);
 
@@ -214,6 +218,7 @@ function duola_migration_export_album(WP_Post $album, array $id_to_uuid): array
         'description' => (string) get_post_meta($album->ID, '_duola_album_description', true),
         'cover_media_uuid' => $id_to_uuid[$cover_id] ?? '',
         'photo_media_uuids' => $photo_uuids,
+        'photo_settings' => $photo_settings,
     ];
 }
 
@@ -289,7 +294,7 @@ add_action('admin_post_duola_export_content', 'duola_migration_export_content');
 function duola_migration_fail(string $message): void
 {
     set_transient('duola_migration_error_' . get_current_user_id(), $message, MINUTE_IN_SECONDS * 5);
-    wp_safe_redirect(admin_url('edit.php?post_type=album&page=duola-migration'));
+    wp_safe_redirect(admin_url('admin.php?page=duola-migration'));
     exit;
 }
 
@@ -513,6 +518,17 @@ function duola_migration_import_albums(array $entries, array $media_ids): int
             }
         }
         update_post_meta($album_id, '_duola_album_photos', array_values(array_unique($photo_ids)));
+        $photo_settings = [];
+        foreach ((array) ($entry['photo_settings'] ?? []) as $photo_uuid => $settings) {
+            if (isset($media_ids[$photo_uuid]) && is_array($settings)) {
+                $photo_settings[(string) $media_ids[$photo_uuid]] = $settings;
+            }
+        }
+        update_post_meta(
+            $album_id,
+            '_duola_album_photo_settings',
+            function_exists('duola_albums_sanitize_photo_settings') ? duola_albums_sanitize_photo_settings($photo_settings) : $photo_settings
+        );
         $cover_uuid = sanitize_text_field($entry['cover_media_uuid'] ?? '');
         $cover_id = $media_ids[$cover_uuid] ?? ($photo_ids[0] ?? 0);
         update_post_meta($album_id, '_duola_album_cover_id', $cover_id);
