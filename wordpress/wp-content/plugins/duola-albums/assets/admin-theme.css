@@ -380,6 +380,7 @@ body.login {
   }
   .edit-php.post-type-post .wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column) { padding: 12px 14px; }
   .edit-php.post-type-post .wp-list-table .row-title { font-size: 16px; line-height: 1.45; }
+  .edit-php.post-type-post .wp-list-table td.column-duola_thumbnail::before { display: none; }
   .edit-php.post-type-post .column-duola_thumbnail img { width: 64px; height: 48px; }
 
   body.block-editor-page.post-type-post #wpcontent { padding-left: 0; }
