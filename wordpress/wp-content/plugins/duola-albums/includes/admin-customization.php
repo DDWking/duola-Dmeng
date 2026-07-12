@@ -292,8 +292,6 @@ function duola_admin_render_dashboard(): void
 {
     $avatar_id = (int) get_option('duola_site_avatar_id');
     $avatar = $avatar_id ? wp_get_attachment_image($avatar_id, 'thumbnail', false, ['alt' => '']) : '';
-    $theme_count = wp_count_terms(['taxonomy' => 'album_theme', 'hide_empty' => false]);
-    $theme_count = is_wp_error($theme_count) ? 0 : (int) $theme_count;
     ?>
     <div class="duola-dashboard-shell">
         <div class="duola-dashboard-overview">
@@ -315,7 +313,6 @@ function duola_admin_render_dashboard(): void
                 <a href="<?php echo esc_url(admin_url('edit.php')); ?>"><i class="dashicons dashicons-text-page" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('post')); ?></strong><span><?php esc_html_e('篇文章', 'duola-albums'); ?></span></a>
                 <a href="<?php echo esc_url(admin_url('edit.php?post_type=album')); ?>"><i class="dashicons dashicons-format-gallery" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('album')); ?></strong><span><?php esc_html_e('本相册', 'duola-albums'); ?></span></a>
                 <a href="<?php echo esc_url(admin_url('upload.php')); ?>"><i class="dashicons dashicons-images-alt2" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_image_count()); ?></strong><span><?php esc_html_e('张照片', 'duola-albums'); ?></span></a>
-                <a href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=album_theme&post_type=album')); ?>"><i class="dashicons dashicons-category" aria-hidden="true"></i><strong><?php echo esc_html($theme_count); ?></strong><span><?php esc_html_e('个主题', 'duola-albums'); ?></span></a>
             </section>
         </div>
 

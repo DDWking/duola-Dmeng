@@ -51,7 +51,7 @@ $latest_posts = new WP_Query([
 ]);
 $asset_url = get_template_directory_uri() . '/assets/images/';
 $months = ['', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-$hidden_photo_count = max(0, count($home_photos) - 4);
+$has_more_home_photos = count($home_photos) > 4;
 ?>
 <section class="scrapbook-home" aria-label="首页">
     <div class="paper-wash" aria-hidden="true"></div>
@@ -124,7 +124,7 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
             <span class="collage-dots" aria-hidden="true"></span>
             <?php if ($home_photos) : ?>
                 <?php foreach ($home_photos as $index => $photo) : ?>
-                    <button class="photo-note<?php echo $index < 4 ? ' photo-note-' . esc_attr($index + 1) : ''; ?><?php echo 3 === $index && $hidden_photo_count ? ' has-photo-stack' : ''; ?>" type="button"
+                    <button class="photo-note<?php echo $index < 4 ? ' photo-note-' . esc_attr($index + 1) : ''; ?><?php echo 3 === $index && $has_more_home_photos ? ' has-photo-stack' : ''; ?>" type="button"
                         <?php echo $index >= 4 ? 'hidden tabindex="-1" aria-hidden="true"' : ''; ?>
                         data-collage-note
                         data-depth="<?php echo esc_attr(number_format(0.35 + ($index % 3) * 0.2, 2)); ?>"
@@ -143,9 +143,6 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
                             'sizes' => '(max-width: 620px) 40vw, (max-width: 900px) 38vw, 16vw',
                             'alt' => '',
                         ]); ?>
-                        <?php if (3 === $index && $hidden_photo_count) : ?>
-                            <span class="photo-stack-count" aria-hidden="true"><strong>+<?php echo esc_html($hidden_photo_count); ?></strong><small>继续看</small></span>
-                        <?php endif; ?>
                     </button>
                 <?php endforeach; ?>
             <?php else : ?>

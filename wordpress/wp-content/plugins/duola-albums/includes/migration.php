@@ -32,7 +32,7 @@ function duola_migration_render_admin_page(): void
     ?>
     <div class="wrap duola-migration-page">
         <h1><?php esc_html_e('备份迁移', 'duola-albums'); ?></h1>
-        <p><?php esc_html_e('迁移包包含文章、标签、相册、相册主题、全部图片原图、封面、说明、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
+        <p><?php esc_html_e('迁移包包含文章、标签、相册、全部图片原图、封面、说明、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
 
         <?php if ($error) : ?>
             <div class="notice notice-error"><p><?php echo esc_html($error); ?></p></div>
@@ -201,7 +201,6 @@ function duola_migration_export_album(WP_Post $album, array $id_to_uuid): array
         }
     }
     $cover_id = function_exists('duola_albums_get_cover_id') ? duola_albums_get_cover_id((int) $album->ID) : (int) get_post_thumbnail_id($album->ID);
-    $theme = function_exists('duola_albums_get_theme') ? duola_albums_get_theme((int) $album->ID) : null;
 
     return [
         'uuid' => duola_migration_get_uuid((int) $album->ID),
@@ -213,7 +212,6 @@ function duola_migration_export_album(WP_Post $album, array $id_to_uuid): array
         'year' => (string) get_post_meta($album->ID, '_duola_album_year', true),
         'location' => (string) get_post_meta($album->ID, '_duola_album_location', true),
         'description' => (string) get_post_meta($album->ID, '_duola_album_description', true),
-        'theme' => $theme ? $theme->slug : '',
         'cover_media_uuid' => $id_to_uuid[$cover_id] ?? '',
         'photo_media_uuids' => $photo_uuids,
     ];
@@ -239,7 +237,6 @@ function duola_migration_export_content(): void
     $posts = get_posts(['post_type' => 'post', 'post_status' => $statuses, 'numberposts' => -1, 'orderby' => 'ID', 'order' => 'ASC']);
     $albums = get_posts(['post_type' => 'album', 'post_status' => $statuses, 'numberposts' => -1, 'orderby' => 'ID', 'order' => 'ASC']);
     $tag_terms = get_terms(['taxonomy' => 'post_tag', 'hide_empty' => false]);
-    $theme_terms = get_terms(['taxonomy' => 'album_theme', 'hide_empty' => false]);
     $avatar_id = (int) get_option('duola_site_avatar_id');
 
     $manifest_media = array_map(static function (array $item): array {
@@ -257,7 +254,6 @@ function duola_migration_export_content(): void
             'avatar_media_uuid' => $id_to_uuid[$avatar_id] ?? '',
         ],
         'tags' => is_wp_error($tag_terms) ? [] : array_map(static fn(WP_Term $term): array => ['name' => $term->name, 'slug' => $term->slug, 'description' => $term->description], $tag_terms),
-        'album_themes' => is_wp_error($theme_terms) ? [] : array_map(static fn(WP_Term $term): array => ['name' => $term->name, 'slug' => $term->slug, 'description' => $term->description], $theme_terms),
         'media' => $manifest_media,
         'posts' => array_map(static fn(WP_Post $post): array => duola_migration_export_post($post, $id_to_uuid), $posts),
         'albums' => array_map(static fn(WP_Post $album): array => duola_migration_export_album($album, $id_to_uuid), $albums),
@@ -525,8 +521,6 @@ function duola_migration_import_albums(array $entries, array $media_ids): int
         } else {
             delete_post_thumbnail($album_id);
         }
-        $theme = get_term_by('slug', sanitize_title($entry['theme'] ?? ''), 'album_theme');
-        wp_set_object_terms($album_id, $theme ? [$theme->term_id] : [], 'album_theme', false);
         $count++;
     }
     return $count;
@@ -573,7 +567,6 @@ function duola_migration_import_content(): void
     }
 
     duola_migration_import_terms((array) ($manifest['tags'] ?? []), 'post_tag');
-    duola_migration_import_terms((array) ($manifest['album_themes'] ?? []), 'album_theme');
     [$media_ids, $url_map] = duola_migration_import_media((array) ($manifest['media'] ?? []), $directory);
     $post_count = duola_migration_import_posts((array) ($manifest['posts'] ?? []), $media_ids, $url_map);
     $album_count = duola_migration_import_albums((array) ($manifest['albums'] ?? []), $media_ids);

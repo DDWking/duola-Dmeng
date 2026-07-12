@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: 哆啦D梦相册
- * Description: 提供按年份管理、批量上传、封面选择和拖拽排序的相册内容类型。
- * Version: 1.7.1
+ * Description: 提供批量上传、封面选择和拖拽排序的相册内容类型。
+ * Version: 1.8.0
  * Author: DDWking
  * Text Domain: duola-albums
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DUOLA_ALBUMS_VERSION', '1.7.1');
+define('DUOLA_ALBUMS_VERSION', '1.8.0');
 define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
 
@@ -42,65 +42,6 @@ function duola_albums_register_content_type(): void
     ]);
 }
 add_action('init', 'duola_albums_register_content_type');
-
-function duola_albums_register_theme_taxonomy(): void
-{
-    register_taxonomy('album_theme', ['album'], [
-        'labels' => [
-            'name' => __('相册主题', 'duola-albums'),
-            'singular_name' => __('相册主题', 'duola-albums'),
-            'menu_name' => __('相册主题', 'duola-albums'),
-            'all_items' => __('管理相册主题', 'duola-albums'),
-            'edit_item' => __('编辑主题', 'duola-albums'),
-            'add_new_item' => __('新建主题', 'duola-albums'),
-            'search_items' => __('搜索主题', 'duola-albums'),
-        ],
-        'public' => true,
-        'hierarchical' => true,
-        'show_ui' => true,
-        'show_admin_column' => false,
-        'show_in_rest' => true,
-        'show_in_nav_menus' => false,
-        'meta_box_cb' => false,
-        'rewrite' => ['slug' => 'photo-theme'],
-    ]);
-}
-add_action('init', 'duola_albums_register_theme_taxonomy');
-
-function duola_albums_get_default_theme_id(): int
-{
-    $existing = term_exists('uncategorized', 'album_theme');
-    if (is_array($existing)) {
-        return (int) $existing['term_id'];
-    }
-    if (is_int($existing)) {
-        return $existing;
-    }
-    $created = wp_insert_term(__('未分类', 'duola-albums'), 'album_theme', ['slug' => 'uncategorized']);
-    return is_wp_error($created) ? 0 : (int) $created['term_id'];
-}
-
-function duola_albums_ensure_single_theme(): void
-{
-    $default_theme_id = duola_albums_get_default_theme_id();
-    if (!$default_theme_id || '1' === get_option('duola_album_theme_schema_version')) {
-        return;
-    }
-    $album_ids = get_posts([
-        'post_type' => 'album',
-        'post_status' => 'any',
-        'numberposts' => -1,
-        'fields' => 'ids',
-    ]);
-    foreach ($album_ids as $album_id) {
-        $themes = wp_get_object_terms($album_id, 'album_theme', ['fields' => 'ids']);
-        if (!is_wp_error($themes) && !$themes) {
-            wp_set_object_terms($album_id, [$default_theme_id], 'album_theme', false);
-        }
-    }
-    update_option('duola_album_theme_schema_version', '1');
-}
-add_action('init', 'duola_albums_ensure_single_theme', 20);
 
 function duola_albums_use_classic_editor(bool $use_block_editor, string $post_type): bool
 {
@@ -272,10 +213,6 @@ function duola_albums_render_meta_box(WP_Post $post): void
     $description = duola_albums_get_description($post->ID);
     $cover_id = duola_albums_get_cover_id($post->ID);
     $photos = duola_albums_get_photos($post->ID);
-    $selected_themes = wp_get_object_terms($post->ID, 'album_theme', ['fields' => 'ids']);
-    $selected_theme_id = !is_wp_error($selected_themes) && $selected_themes ? (int) $selected_themes[0] : duola_albums_get_default_theme_id();
-    $themes = get_terms(['taxonomy' => 'album_theme', 'hide_empty' => false]);
-    $themes = is_wp_error($themes) ? [] : $themes;
     wp_nonce_field('duola_albums_save_album', 'duola_albums_nonce');
     ?>
     <div class="duola-album-workspace">
@@ -321,16 +258,6 @@ function duola_albums_render_meta_box(WP_Post $post): void
             <summary><?php esc_html_e('补充相册信息（可选）', 'duola-albums'); ?></summary>
             <div class="duola-fields-grid">
                 <p>
-                    <label for="duola_album_theme"><strong><?php esc_html_e('相册主题', 'duola-albums'); ?></strong></label>
-                    <select id="duola_album_theme" name="duola_album_theme">
-                        <option value="0"><?php esc_html_e('暂不分类', 'duola-albums'); ?></option>
-                        <?php foreach ($themes as $theme) : ?>
-                            <option value="<?php echo esc_attr($theme->term_id); ?>" <?php selected($selected_theme_id, $theme->term_id); ?>><?php echo esc_html($theme->name); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <span class="description"><a href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=album_theme&post_type=album')); ?>"><?php esc_html_e('管理相册主题', 'duola-albums'); ?></a></span>
-                </p>
-                <p>
                     <label for="duola_album_year"><strong><?php esc_html_e('年份', 'duola-albums'); ?></strong></label>
                     <input id="duola_album_year" name="duola_album_year" type="number" min="1900" max="2100" value="<?php echo esc_attr($year ?: wp_date('Y')); ?>">
                     <span class="description"><?php esc_html_e('只作为时间信息，不再用于相册分组。', 'duola-albums'); ?></span>
@@ -364,7 +291,6 @@ function duola_albums_save_album(int $post_id): void
     $year = isset($_POST['duola_album_year']) ? absint($_POST['duola_album_year']) : 0;
     $location = isset($_POST['duola_album_location']) ? sanitize_text_field(wp_unslash($_POST['duola_album_location'])) : '';
     $description = isset($_POST['duola_album_description']) ? wp_kses_post(wp_unslash($_POST['duola_album_description'])) : '';
-    $theme_id = isset($_POST['duola_album_theme']) ? absint($_POST['duola_album_theme']) : 0;
     $cover_id = isset($_POST['duola_album_cover_id']) ? absint($_POST['duola_album_cover_id']) : 0;
     $photo_ids = [];
 
@@ -377,7 +303,6 @@ function duola_albums_save_album(int $post_id): void
     update_post_meta($post_id, '_duola_album_location', $location);
     update_post_meta($post_id, '_duola_album_description', $description);
     update_post_meta($post_id, '_duola_album_photos', $photo_ids);
-    wp_set_object_terms($post_id, [$theme_id ?: duola_albums_get_default_theme_id()], 'album_theme', false);
     $valid_photo_keys = array_flip(array_map('strval', $photo_ids));
     $existing_settings = duola_albums_get_all_photo_settings($post_id);
     update_post_meta($post_id, '_duola_album_photo_settings', array_intersect_key($existing_settings, $valid_photo_keys));
@@ -455,7 +380,6 @@ function duola_albums_admin_columns(array $columns): array
         'cb' => $columns['cb'],
         'duola_cover' => __('封面', 'duola-albums'),
         'title' => __('相册', 'duola-albums'),
-        'duola_theme' => __('主题', 'duola-albums'),
         'duola_photos' => __('照片', 'duola-albums'),
         'date' => __('状态与日期', 'duola-albums'),
     ];
@@ -469,11 +393,6 @@ function duola_albums_render_admin_column(string $column, int $post_id): void
         echo $cover_id ? wp_get_attachment_image($cover_id, 'thumbnail') : '<span class="duola-no-cover">' . esc_html__('暂无封面', 'duola-albums') . '</span>';
     }
 
-    if ('duola_theme' === $column) {
-        $theme = duola_albums_get_theme($post_id);
-        echo $theme ? esc_html($theme->name) : '<span class="duola-no-cover">' . esc_html__('未分类', 'duola-albums') . '</span>';
-    }
-
     if ('duola_photos' === $column) {
         echo esc_html(sprintf(__('%d 张', 'duola-albums'), count(duola_albums_get_photos($post_id))));
     }
@@ -483,12 +402,6 @@ add_action('manage_album_posts_custom_column', 'duola_albums_render_admin_column
 function duola_albums_get_year(int $album_id): string
 {
     return (string) get_post_meta($album_id, '_duola_album_year', true);
-}
-
-function duola_albums_get_theme(int $album_id): ?WP_Term
-{
-    $themes = wp_get_object_terms($album_id, 'album_theme');
-    return !is_wp_error($themes) && $themes ? $themes[0] : null;
 }
 
 function duola_albums_get_description(int $album_id): string

@@ -1,9 +1,5 @@
 <?php get_header(); ?>
-<section class="page-intro">
-    <span class="eyebrow">文章</span>
-    <h1><?php single_post_title(); ?></h1>
-</section>
-<section class="section">
+<section class="section archive-content-list">
     <?php if (have_posts()) : ?>
         <div class="post-list">
             <?php while (have_posts()) : the_post(); ?>

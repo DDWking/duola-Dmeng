@@ -51,7 +51,6 @@
 
     if (carouselNotes.length > 4 && carouselRoot) {
       const slotClasses = ['photo-note-1', 'photo-note-2', 'photo-note-3', 'photo-note-4'];
-      const stackCount = collage.querySelector('.photo-stack-count');
       let startIndex = 0;
       let autoPlayTimer = 0;
       let transitionTimer = 0;
@@ -83,10 +82,6 @@
 
         const lastVisibleNote = carouselNotes[visibleIndexes[3]];
         lastVisibleNote.classList.add('has-photo-stack');
-        if (stackCount) {
-          stackCount.querySelector('strong').textContent = `+${carouselNotes.length - 4}`;
-          lastVisibleNote.appendChild(stackCount);
-        }
 
         if (direction) {
           window.requestAnimationFrame(() => {
@@ -103,7 +98,7 @@
         autoPlayTimer = window.setTimeout(() => {
           if (isInteracting || document.hidden || document.body.classList.contains('is-lightbox-open')) return;
           moveCarousel(1);
-        }, 5600);
+        }, 3800);
       };
 
       const moveCarousel = (direction) => {
