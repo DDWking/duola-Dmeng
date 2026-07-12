@@ -48,10 +48,8 @@
   if (collage) {
     const carouselNotes = Array.from(collage.querySelectorAll('[data-collage-note]'));
     const carouselRoot = collage.closest('.memory-board');
-    const previousButton = carouselRoot?.querySelector('[data-carousel-previous]');
-    const nextButton = carouselRoot?.querySelector('[data-carousel-next]');
 
-    if (carouselNotes.length > 4 && previousButton && nextButton) {
+    if (carouselNotes.length > 4 && carouselRoot) {
       const slotClasses = ['photo-note-1', 'photo-note-2', 'photo-note-3', 'photo-note-4'];
       const stackCount = collage.querySelector('.photo-stack-count');
       let startIndex = 0;
@@ -131,8 +129,6 @@
         }, 280);
       };
 
-      previousButton.addEventListener('click', () => moveCarousel(-1));
-      nextButton.addEventListener('click', () => moveCarousel(1));
       carouselRoot.addEventListener('pointerenter', () => {
         isInteracting = true;
         window.clearTimeout(autoPlayTimer);

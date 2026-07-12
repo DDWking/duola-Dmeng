@@ -57,8 +57,6 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
     <div class="paper-wash" aria-hidden="true"></div>
     <div class="stay-alive-scene">
         <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" alt="Stay alive!">
-        <span class="stay-alive-orbit stay-alive-orbit-one" aria-hidden="true"></span>
-        <span class="stay-alive-orbit stay-alive-orbit-two" aria-hidden="true"></span>
     </div>
     <span class="sparkle sparkle-one" aria-hidden="true"></span>
     <span class="sparkle sparkle-two" aria-hidden="true"></span>
@@ -116,16 +114,8 @@ $hidden_photo_count = max(0, count($home_photos) - 4);
 
     <section class="memory-board" aria-labelledby="latest-photos-title">
         <div class="memory-board-heading">
-            <div>
-                <span class="section-kicker">Pocket memories</span>
-                <h2 id="latest-photos-title">敌敌畏的宝库</h2>
-            </div>
-            <?php if (count($home_photos) > 4) : ?>
-                <div class="memory-carousel-controls" role="group" aria-label="切换首页照片">
-                    <button type="button" data-carousel-previous aria-label="上一组照片">&larr;</button>
-                    <button type="button" data-carousel-next aria-label="下一组照片">&rarr;</button>
-                </div>
-            <?php endif; ?>
+            <span class="section-kicker">Pocket memories</span>
+            <h2 id="latest-photos-title">敌敌畏的宝库</h2>
         </div>
         <div class="memory-collage" data-memory-collage data-lightbox-gallery data-gallery-title="照片">
             <span class="collage-dots" aria-hidden="true"></span>

@@ -196,27 +196,6 @@ button { color: inherit; }
     ink-arrive 900ms 120ms both cubic-bezier(0.22, 1, 0.36, 1),
     stay-alive-breathe 7s 1.1s infinite ease-in-out;
 }
-.stay-alive-orbit {
-  position: absolute;
-  z-index: 1;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  pointer-events: none;
-}
-.stay-alive-orbit-one {
-  inset: 9% -2% 13% -3%;
-  border-top-color: rgba(109, 132, 227, 0.62);
-  border-right-color: rgba(109, 132, 227, 0.18);
-  transform: rotate(-8deg);
-  animation: stay-alive-orbit 9s linear infinite;
-}
-.stay-alive-orbit-two {
-  inset: 18% 5% 4% 2%;
-  border-bottom-color: rgba(139, 113, 210, 0.52);
-  border-left-color: rgba(139, 113, 210, 0.14);
-  transform: rotate(17deg);
-  animation: stay-alive-orbit-reverse 13s linear infinite;
-}
 .sparkle {
   position: absolute;
   z-index: 1;
@@ -364,42 +343,11 @@ button { color: inherit; }
   z-index: 7;
   top: 1.1rem;
   left: 7.5%;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  width: 58%;
+  display: block;
   margin: 0;
   opacity: 0.72;
 }
 .memory-board-heading h2 { font-size: 0.9rem; font-weight: 700; }
-.memory-carousel-controls {
-  display: flex;
-  gap: 0.35rem;
-}
-.memory-carousel-controls button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid rgba(109, 126, 192, 0.28);
-  border-radius: 50%;
-  color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.7);
-  font: inherit;
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  place-items: center;
-  transition: color 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease;
-}
-.memory-carousel-controls button:hover,
-.memory-carousel-controls button:focus-visible {
-  border-color: rgba(109, 126, 192, 0.58);
-  color: var(--lavender-deep);
-  background: #fff;
-  outline: none;
-  transform: translateY(-2px);
-}
 .memory-collage {
   position: relative;
   width: 64%;
@@ -898,12 +846,6 @@ body.is-lightbox-open { overflow: hidden; }
   0%, 100% { transform: rotate(-2deg) translate3d(0, 0, 0) scale(1); }
   45% { transform: rotate(-0.8deg) translate3d(4px, -5px, 0) scale(1.012); }
   70% { transform: rotate(-2.8deg) translate3d(-2px, -2px, 0) scale(1.005); }
-}
-@keyframes stay-alive-orbit {
-  to { transform: rotate(352deg); }
-}
-@keyframes stay-alive-orbit-reverse {
-  to { transform: rotate(-343deg); }
 }
 @keyframes collage-exit-next {
   to { opacity: 0; filter: blur(5px); transform: translate3d(calc(var(--parallax-x) - 54px), var(--parallax-y), 0) rotate(calc(var(--note-rotate) - 2deg)) scale(0.97); }
