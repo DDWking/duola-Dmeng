@@ -1,4 +1,4 @@
-{$SITE_DOMAIN}, www.{$SITE_DOMAIN} {
+{$SITE_DOMAIN} {
 	encode zstd gzip
 
 	header {
@@ -11,10 +11,5 @@
 	@images path_regexp images \.(?:avif|webp|jpe?g|png|gif)$
 	header @images Cache-Control "public, max-age=31536000, immutable"
 
-	reverse_proxy wordpress:80
-}
-
-http://159.75.236.90 {
-	encode zstd gzip
 	reverse_proxy wordpress:80
 }
