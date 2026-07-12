@@ -129,12 +129,28 @@
     document.body.appendChild(toolbar);
   }
 
+  function ensureWritingBlock() {
+    var unsubscribe = wp.data.subscribe(function () {
+      var selector = wp.data.select('core/block-editor');
+      var editor = wp.data.select('core/editor');
+      if (!selector || !editor || !editor.getCurrentPostId()) {
+        return;
+      }
+
+      unsubscribe();
+      if (!selector.getBlocks().length) {
+        wp.data.dispatch('core/block-editor').insertDefaultBlock();
+      }
+    });
+  }
+
   wp.domReady(function () {
     var preferences = wp.data.dispatch('core/preferences');
     if (preferences && preferences.set) {
       preferences.set('core/edit-post', 'welcomeGuide', false);
     }
 
+    ensureWritingBlock();
     mountToolbar();
   });
 })(window.wp, document);
