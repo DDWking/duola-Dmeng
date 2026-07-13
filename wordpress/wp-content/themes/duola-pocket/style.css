@@ -1035,14 +1035,17 @@ body.is-lightbox-open { overflow: hidden; }
   .lightbox-media figcaption { bottom: 1rem; width: 80%; text-align: center; }
 }
 
-/* Wall terminal */
-html:has(body.wall-terminal-page) { margin-top: 0 !important; background: #000; }
+/* Wall */
+html:has(body.wall-terminal-page) { margin-top: 0 !important; background: var(--paper); }
 body.wall-terminal-page {
   min-height: 100dvh;
   margin: 0;
-  color: #d8d8d8;
-  background: #000;
-  font-family: Consolas, "Liberation Mono", "Courier New", monospace;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 78% 16%, rgba(213, 222, 247, 0.28), transparent 30rem),
+    radial-gradient(circle at 14% 78%, rgba(238, 218, 211, 0.16), transparent 28rem),
+    var(--paper);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   letter-spacing: 0;
@@ -1059,7 +1062,7 @@ body.wall-terminal-page {
   grid-template-columns: 1fr auto 1fr;
   gap: 1rem;
   margin-bottom: 2.4rem;
-  color: #fff;
+  color: var(--ink);
   font-weight: 700;
 }
 .wall-page-header span:nth-child(2) { text-align: center; }
@@ -1067,7 +1070,7 @@ body.wall-terminal-page {
 .wall-compose,
 .wall-log { margin-top: 2.5rem; }
 .wall-compose h1,
-.wall-log h2 { margin: 0 0 1rem; color: #fff; font: inherit; font-weight: 700; }
+.wall-log h2 { margin: 0 0 1rem; color: var(--ink); font: inherit; font-weight: 700; }
 .wall-compose form { display: grid; gap: 0.75rem; }
 .wall-compose label {
   display: grid;
@@ -1075,16 +1078,16 @@ body.wall-terminal-page {
   gap: 1ch;
   align-items: start;
 }
-.wall-compose label > span { color: #a7a7a7; }
+.wall-compose label > span { color: var(--ink-soft); }
 .wall-compose input,
 .wall-compose textarea {
   width: 100%;
   min-height: 30px;
   padding: 0 0 0.25rem;
   border: 0;
-  border-bottom: 1px solid #4a4a4a;
+  border-bottom: 1px solid rgba(94, 111, 162, 0.28);
   border-radius: 0;
-  color: #fff;
+  color: var(--ink);
   background: transparent;
   font: inherit;
   line-height: inherit;
@@ -1092,7 +1095,9 @@ body.wall-terminal-page {
   outline: 0;
 }
 .wall-compose input:focus,
-.wall-compose textarea:focus { border-bottom-color: #fff; box-shadow: none; }
+.wall-compose textarea:focus { border-bottom-color: var(--lavender-deep); box-shadow: none; }
+.wall-compose input::placeholder,
+.wall-compose textarea::placeholder { color: rgba(83, 96, 121, 0.58); }
 .wall-compose textarea { min-height: 104px; }
 .wall-honeypot { position: absolute !important; left: -10000px !important; }
 .wall-compose-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding-left: 10ch; }
@@ -1100,7 +1105,7 @@ body.wall-terminal-page {
 .wall-message header button {
   padding: 0;
   border: 0;
-  color: #d8d8d8;
+  color: var(--lavender-deep);
   background: transparent;
   font: inherit;
   cursor: pointer;
@@ -1108,50 +1113,51 @@ body.wall-terminal-page {
 .wall-compose-actions button:hover,
 .wall-compose-actions button:focus-visible,
 .wall-message header button:hover,
-.wall-message header button:focus-visible { color: #fff; text-decoration: underline; outline: 0; }
+.wall-message header button:focus-visible { color: var(--ink); text-decoration: underline; outline: 0; }
 .wall-compose-actions button:disabled,
-.wall-message header button:disabled { color: #666; cursor: wait; }
-.wall-compose-actions > span { color: #777; font-size: 0.8rem; }
-.wall-compose-actions output { color: #8bf5a5; }
+.wall-message header button:disabled { color: rgba(83, 96, 121, 0.5); cursor: wait; }
+.wall-compose-actions > span { color: var(--ink-soft); font-size: 0.8rem; }
+.wall-compose-actions output { color: var(--lavender-deep); }
 .wall-message {
   padding: 1rem 0;
-  border-top: 1px solid #343434;
+  border-top: 1px solid var(--line);
 }
-.wall-message:first-child { border-top-color: #777; }
+.wall-message:first-child { border-top-color: rgba(94, 111, 162, 0.28); }
 .wall-message header {
   display: grid;
   grid-template-columns: 7ch 17ch minmax(0, 1fr) auto auto;
   gap: 1ch;
   align-items: baseline;
-  color: #9b9b9b;
+  color: var(--ink-soft);
 }
-.wall-message header strong { overflow: hidden; color: #fff; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
-.wall-message header i { color: #8bf5a5; font-style: normal; }
-.wall-message header button.is-liked { color: #8bf5a5; }
+.wall-message header strong { overflow: hidden; color: var(--ink); font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.wall-message header i { color: var(--lavender-deep); font-style: normal; }
+.wall-message header button.is-liked { color: var(--lavender-deep); }
 .wall-message > pre {
   margin: 0.55rem 0 0 25ch;
-  color: #d8d8d8;
+  color: var(--ink);
   background: transparent;
   font: inherit;
   white-space: pre-wrap;
   word-break: break-word;
 }
-.wall-replies { margin: 0.8rem 0 0 25ch; padding-left: 1rem; border-left: 1px solid #555; }
-.wall-message.is-reply { padding: 0.65rem 0; border-top-color: #262626; }
+.wall-replies { margin: 0.8rem 0 0 25ch; padding-left: 1rem; border-left: 1px solid var(--lavender-pale); }
+.wall-message.is-reply { padding: 0.65rem 0; border-top-color: rgba(94, 111, 162, 0.1); }
 .wall-message.is-reply header { grid-template-columns: 7ch 17ch minmax(0, 1fr); }
 .wall-message.is-reply > pre { margin-left: 25ch; }
-.wall-empty { padding: 1rem 0; border-top: 1px solid #777; color: #777; }
+.wall-empty { padding: 1rem 0; border-top: 1px solid rgba(94, 111, 162, 0.28); color: var(--ink-soft); }
 .wall-quit {
   position: fixed;
   right: 1rem;
   bottom: max(0.75rem, env(safe-area-inset-bottom));
-  color: #d8d8d8;
-  background: #000;
+  padding: 0.2rem 0.45rem;
+  color: var(--ink-soft);
+  background: rgba(251, 250, 247, 0.88);
   font: inherit;
 }
 .wall-quit:hover,
-.wall-quit:focus-visible { color: #fff; text-decoration: underline; }
-.wall-terminal-page ::selection { color: #000; background: #d8d8d8; }
+.wall-quit:focus-visible { color: var(--lavender-deep); text-decoration: underline; }
+.wall-terminal-page ::selection { color: #fff; background: var(--lavender); }
 @media (max-width: 700px) {
   body.wall-terminal-page { font-size: 13px; }
   .wall-page { width: calc(100% - 1.5rem); padding-top: 1rem; }
