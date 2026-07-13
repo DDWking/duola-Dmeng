@@ -8,7 +8,13 @@
   const count = form.querySelector('[data-wall-count]');
   const status = form.querySelector('[data-wall-status]');
   const submit = form.querySelector('button[type="submit"]');
+  const search = document.querySelector('[data-wall-search]');
+  const searchInput = document.querySelector('[data-wall-search-input]');
+  const searchStatus = document.querySelector('[data-wall-search-status]');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let nonce = config.nonce;
+  let lastQuery = '';
+  let searchIndex = -1;
 
   const setText = (element, value) => {
     element.textContent = value;
@@ -64,14 +70,14 @@
 
     if (message.pinned) {
       const pinned = document.createElement('i');
-      setText(pinned, '置顶');
+      setText(pinned, 'PINNED');
       header.appendChild(pinned);
     }
     if (!isReply) {
       const like = document.createElement('button');
       like.type = 'button';
       like.dataset.wallLike = '';
-      like.setAttribute('aria-label', '给这条留言 +1');
+      like.setAttribute('aria-label', 'Give this message +1');
       like.append('+1 ');
       const likes = document.createElement('span');
       setText(likes, message.likes);
@@ -91,12 +97,65 @@
     return article;
   };
 
+  const clearSearchHit = () => {
+    messages.querySelector('.is-search-hit')?.classList.remove('is-search-hit');
+  };
+
+  const closeSearch = () => {
+    if (!search) return;
+    search.hidden = true;
+    setText(searchStatus, '');
+    clearSearchHit();
+  };
+
+  const openSearch = () => {
+    if (!search || !searchInput) return;
+    search.hidden = false;
+    searchInput.focus();
+    searchInput.select();
+  };
+
+  const findNext = () => {
+    const query = searchInput?.value.trim().toLocaleLowerCase() || '';
+    if (!query) {
+      setText(searchStatus, 'empty pattern');
+      return;
+    }
+
+    const matches = Array.from(messages.querySelectorAll('[data-wall-message]'))
+      .filter((message) => message.textContent.toLocaleLowerCase().includes(query));
+    if (!matches.length) {
+      clearSearchHit();
+      setText(searchStatus, 'pattern not found');
+      return;
+    }
+
+    if (query !== lastQuery) searchIndex = -1;
+    searchIndex = (searchIndex + 1) % matches.length;
+    lastQuery = query;
+    clearSearchHit();
+    matches[searchIndex].classList.add('is-search-hit');
+    matches[searchIndex].scrollIntoView({ block: 'center', behavior: reducedMotion ? 'auto' : 'smooth' });
+    setText(searchStatus, `${searchIndex + 1}/${matches.length}`);
+  };
+
+  const runCommand = (command) => {
+    const distance = Math.max(72, window.innerHeight * 0.22);
+    if ('down' === command) window.scrollBy({ top: distance, behavior: reducedMotion ? 'auto' : 'smooth' });
+    if ('up' === command) window.scrollBy({ top: -distance, behavior: reducedMotion ? 'auto' : 'smooth' });
+    if ('search' === command) openSearch();
+    if ('quit' === command) window.location.href = config.homeUrl;
+  };
+
+  const isTyping = (target) => target instanceof HTMLElement
+    && (target.matches('input, textarea, select') || target.isContentEditable);
+
   textarea.addEventListener('input', () => setText(count, textarea.value.length));
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     submit.disabled = true;
-    setText(status, '正在发送...');
+    setText(status, 'transmitting...');
     const data = new FormData(form);
     try {
       const { response, result } = await requestWithNonce(config.messagesUrl, {
@@ -137,5 +196,35 @@
     } finally {
       button.disabled = false;
     }
+  });
+
+  document.querySelectorAll('[data-wall-command]').forEach((button) => {
+    button.addEventListener('click', () => runCommand(button.dataset.wallCommand));
+  });
+  document.querySelector('[data-wall-search-close]')?.addEventListener('click', closeSearch);
+  search?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    findNext();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.target === searchInput) {
+      if ('Escape' === event.key) {
+        event.preventDefault();
+        closeSearch();
+      }
+      return;
+    }
+    if (isTyping(event.target)) return;
+
+    if ('j' === event.key) runCommand('down');
+    if ('k' === event.key) runCommand('up');
+    if ('q' === event.key) runCommand('quit');
+    if ('/' === event.key) {
+      event.preventDefault();
+      runCommand('search');
+    }
+    if ('g' === event.key) window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+    if ('G' === event.key) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: reducedMotion ? 'auto' : 'smooth' });
   });
 })();

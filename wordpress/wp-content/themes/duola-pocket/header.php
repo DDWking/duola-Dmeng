@@ -21,7 +21,7 @@ $site_avatar_id = (int) get_option('duola_site_avatar_id');
             <a class="<?php echo (is_post_type_archive('album') || is_singular('album')) ? 'is-current' : ''; ?>" href="<?php echo esc_url($photos_url); ?>"<?php echo (is_post_type_archive('album') || is_singular('album')) ? ' aria-current="page"' : ''; ?>>相册</a>
         </nav>
         <div class="site-identity">
-            <a class="site-avatar-link" href="<?php echo esc_url(duola_pocket_wall_url()); ?>" aria-label="<?php esc_attr_e('打开留言板', 'duola-pocket'); ?>" title="留言板">
+            <a class="site-avatar-link" href="<?php echo esc_url(duola_pocket_wall_url()); ?>" aria-label="<?php esc_attr_e('Open guestbook', 'duola-pocket'); ?>" title="wall ddw">
                 <span class="site-avatar">
                 <?php if ($site_avatar_id) : ?>
                     <?php echo wp_get_attachment_image($site_avatar_id, 'thumbnail', false, ['alt' => '']); ?>

@@ -129,10 +129,10 @@ function duola_guestbook_rate_limit(string $ip_hash)
     $hourly = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE ip_hash = %s AND created_at >= %s", $ip_hash, $hour_ago));
 
     if ($recent >= 1) {
-        return new WP_Error('duola_wall_slow_down', __('请稍等一分钟再留言。', 'duola-albums'), ['status' => 429]);
+        return new WP_Error('duola_wall_slow_down', __('Wait one minute before posting again.', 'duola-albums'), ['status' => 429]);
     }
     if ($hourly >= 5) {
-        return new WP_Error('duola_wall_hour_limit', __('留言有点频繁，请稍后再来。', 'duola-albums'), ['status' => 429]);
+        return new WP_Error('duola_wall_hour_limit', __('Too many messages. Try again later.', 'duola-albums'), ['status' => 429]);
     }
     return true;
 }
@@ -142,7 +142,7 @@ function duola_guestbook_format_row(object $row, array $replies = []): array
     return [
         'id' => (int) $row->id,
         'number' => str_pad((string) $row->id, 4, '0', STR_PAD_LEFT),
-        'nickname' => $row->nickname ?: '匿名朋友',
+        'nickname' => $row->nickname ?: 'anonymous',
         'message' => (string) $row->message,
         'date' => get_date_from_gmt((string) $row->created_at, 'Y-m-d H:i'),
         'pinned' => (bool) $row->pinned,
@@ -197,7 +197,7 @@ function duola_guestbook_verify_request(WP_REST_Request $request)
 {
     $nonce = sanitize_text_field($request->get_header('X-Duola-Wall-Nonce'));
     if (!wp_verify_nonce($nonce, 'duola_wall_submit')) {
-        return new WP_Error('duola_wall_invalid_request', __('页面已过期，请刷新后重试。', 'duola-albums'), ['status' => 403]);
+        return new WP_Error('duola_wall_invalid_request', __('Session expired. Retrying...', 'duola-albums'), ['status' => 403]);
     }
     return true;
 }
@@ -210,13 +210,13 @@ function duola_guestbook_rest_create_message(WP_REST_Request $request)
     }
 
     if ('' !== trim((string) $request->get_param('website'))) {
-        return new WP_Error('duola_wall_rejected', __('留言未能提交。', 'duola-albums'), ['status' => 400]);
+        return new WP_Error('duola_wall_rejected', __('Message rejected.', 'duola-albums'), ['status' => 400]);
     }
 
     $started_at = absint($request->get_param('started_at'));
     $elapsed = time() - $started_at;
     if ($started_at <= 0 || $elapsed < 1 || $elapsed > 7200) {
-        return new WP_Error('duola_wall_timing', __('请稍等一下再发送。', 'duola-albums'), ['status' => 400]);
+        return new WP_Error('duola_wall_timing', __('Wait a moment before transmitting.', 'duola-albums'), ['status' => 400]);
     }
 
     $nickname = sanitize_text_field((string) $request->get_param('nickname'));
@@ -224,12 +224,12 @@ function duola_guestbook_rest_create_message(WP_REST_Request $request)
     $nickname = mb_substr(trim($nickname), 0, 32);
     $message = mb_substr(trim($message), 0, 300);
     if ('' === $message) {
-        return new WP_Error('duola_wall_empty', __('请写点什么再提交。', 'duola-albums'), ['status' => 400]);
+        return new WP_Error('duola_wall_empty', __('Write something before transmitting.', 'duola-albums'), ['status' => 400]);
     }
 
     $ip_hash = duola_guestbook_ip_hash();
     if (duola_guestbook_is_blocked($ip_hash)) {
-        return new WP_Error('duola_wall_blocked', __('暂时无法提交留言。', 'duola-albums'), ['status' => 403]);
+        return new WP_Error('duola_wall_blocked', __('Transmission denied.', 'duola-albums'), ['status' => 403]);
     }
     $rate_limit = duola_guestbook_rate_limit($ip_hash);
     if (is_wp_error($rate_limit)) {
@@ -251,14 +251,14 @@ function duola_guestbook_rest_create_message(WP_REST_Request $request)
     ], ['%s', '%d', '%s', '%s', '%s', '%d', '%d', '%s', '%s']);
 
     if (!$inserted) {
-        return new WP_Error('duola_wall_database', __('留言保存失败，请稍后重试。', 'duola-albums'), ['status' => 500]);
+        return new WP_Error('duola_wall_database', __('Could not save the message. Try again.', 'duola-albums'), ['status' => 500]);
     }
 
     $row = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . duola_guestbook_messages_table() . ' WHERE id = %d', $wpdb->insert_id));
     return new WP_REST_Response([
         'status' => $status,
         'message' => 'publish' === $status ? duola_guestbook_format_row($row) : null,
-        'notice' => 'publish' === $status ? __('留言已发布。', 'duola-albums') : __('留言中包含网址，已进入待审核。', 'duola-albums'),
+        'notice' => 'publish' === $status ? __('Message transmitted.', 'duola-albums') : __('Links detected. Message queued for review.', 'duola-albums'),
     ], 201);
 }
 
@@ -275,7 +275,7 @@ function duola_guestbook_rest_toggle_like(WP_REST_Request $request)
     $likes = duola_guestbook_likes_table();
     $message = $wpdb->get_row($wpdb->prepare("SELECT id, like_count FROM {$messages} WHERE id = %d AND parent_id = 0 AND status = 'publish'", $message_id));
     if (!$message) {
-        return new WP_Error('duola_wall_not_found', __('留言不存在。', 'duola-albums'), ['status' => 404]);
+        return new WP_Error('duola_wall_not_found', __('Message not found.', 'duola-albums'), ['status' => 404]);
     }
 
     $visitor_hash = duola_guestbook_visitor_hash();
@@ -373,7 +373,7 @@ function duola_guestbook_render_admin_page(): void
                 <?php $replies = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE parent_id = %d ORDER BY created_at ASC", $message->id)); ?>
                 <article class="duola-wall-admin-item">
                     <header>
-                        <strong>#<?php echo esc_html(str_pad((string) $message->id, 4, '0', STR_PAD_LEFT)); ?> · <?php echo esc_html($message->nickname ?: '匿名朋友'); ?></strong>
+                        <strong>#<?php echo esc_html(str_pad((string) $message->id, 4, '0', STR_PAD_LEFT)); ?> · <?php echo esc_html($message->nickname ?: 'anonymous'); ?></strong>
                         <span><?php echo esc_html(get_date_from_gmt($message->created_at, 'Y-m-d H:i')); ?> · <?php echo esc_html($message->status); ?> · +<?php echo esc_html($message->like_count); ?></span>
                     </header>
                     <p><?php echo nl2br(esc_html($message->message)); ?></p>
