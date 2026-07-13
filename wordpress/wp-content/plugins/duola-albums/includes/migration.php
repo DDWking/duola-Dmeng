@@ -32,7 +32,7 @@ function duola_migration_render_admin_page(): void
     ?>
     <div class="wrap duola-migration-page">
         <h1><?php esc_html_e('备份迁移', 'duola-albums'); ?></h1>
-        <p><?php esc_html_e('迁移包包含文章、标签、相册、全部图片原图、封面、说明、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
+        <p><?php esc_html_e('迁移包包含文章、标签、相册、全部图片原图、留言与点赞数、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
 
         <?php if ($error) : ?>
             <div class="notice notice-error"><p><?php echo esc_html($error); ?></p></div>
@@ -41,10 +41,11 @@ function duola_migration_render_admin_page(): void
             <div class="notice notice-success is-dismissible"><p>
                 <?php
                 echo esc_html(sprintf(
-                    __('导入完成：%1$d 篇文章、%2$d 本相册、%3$d 张图片。', 'duola-albums'),
+                    __('导入完成：%1$d 篇文章、%2$d 本相册、%3$d 张图片、%4$d 条留言与回复。', 'duola-albums'),
                     absint($_GET['posts'] ?? 0),
                     absint($_GET['albums'] ?? 0),
-                    absint($_GET['media'] ?? 0)
+                    absint($_GET['media'] ?? 0),
+                    absint($_GET['guestbook'] ?? 0)
                 ));
                 ?>
             </p></div>
@@ -257,12 +258,12 @@ function duola_migration_export_content(): void
             'name' => get_option('blogname'),
             'description' => get_option('blogdescription'),
             'avatar_media_uuid' => $id_to_uuid[$avatar_id] ?? '',
-            'about_content' => get_option('duola_about_content', ''),
         ],
         'tags' => is_wp_error($tag_terms) ? [] : array_map(static fn(WP_Term $term): array => ['name' => $term->name, 'slug' => $term->slug, 'description' => $term->description], $tag_terms),
         'media' => $manifest_media,
         'posts' => array_map(static fn(WP_Post $post): array => duola_migration_export_post($post, $id_to_uuid), $posts),
         'albums' => array_map(static fn(WP_Post $album): array => duola_migration_export_album($album, $id_to_uuid), $albums),
+        'guestbook' => function_exists('duola_guestbook_export') ? duola_guestbook_export() : [],
     ];
 
     $json = wp_json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
@@ -587,15 +588,13 @@ function duola_migration_import_content(): void
     [$media_ids, $url_map] = duola_migration_import_media((array) ($manifest['media'] ?? []), $directory);
     $post_count = duola_migration_import_posts((array) ($manifest['posts'] ?? []), $media_ids, $url_map);
     $album_count = duola_migration_import_albums((array) ($manifest['albums'] ?? []), $media_ids);
+    $guestbook_count = function_exists('duola_guestbook_import') ? duola_guestbook_import((array) ($manifest['guestbook'] ?? [])) : 0;
 
     $site = (array) ($manifest['site'] ?? []);
     if (!empty($site['name'])) {
         update_option('blogname', sanitize_text_field($site['name']));
     }
     update_option('blogdescription', sanitize_text_field($site['description'] ?? ''));
-    if (array_key_exists('about_content', $site)) {
-        update_option('duola_about_content', sanitize_textarea_field($site['about_content']));
-    }
     $avatar_uuid = sanitize_text_field($site['avatar_media_uuid'] ?? '');
     update_option('duola_site_avatar_id', $media_ids[$avatar_uuid] ?? 0);
 
@@ -607,6 +606,7 @@ function duola_migration_import_content(): void
         'posts' => $post_count,
         'albums' => $album_count,
         'media' => count($media_ids),
+        'guestbook' => $guestbook_count,
     ], admin_url('admin.php?page=duola-migration')));
     exit;
 }

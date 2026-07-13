@@ -23,22 +23,6 @@
   object-fit: cover;
 }
 .duola-avatar-setting .description { margin-bottom: 0; }
-.duola-about-setting { grid-column: 1 / -1; }
-.duola-about-setting > p { margin: -12px 0 18px; color: #747b91; }
-.duola-about-setting textarea {
-  width: 100%;
-  min-height: 430px;
-  padding: 18px;
-  border-color: #cfd4e2;
-  border-radius: 8px;
-  color: #d7d7d7;
-  background: #0a0a0a;
-  font-family: Consolas, "Courier New", monospace;
-  font-size: 14px;
-  line-height: 1.65;
-  tab-size: 4;
-}
 @media (max-width: 600px) {
   .duola-avatar-setting { align-items: flex-start; flex-direction: column; }
-  .duola-about-setting textarea { min-height: 520px; font-size: 13px; }
 }

@@ -84,6 +84,96 @@ foreach (get_posts(['post_type' => 'post', 'post_status' => 'any', 'numberposts'
 echo "WordPress test site installed.\n";
 PHP
 
+docker exec -i "$test_name" php <<'PHP'
+<?php
+$_SERVER['HTTP_HOST'] = 'migration-test.invalid';
+$_SERVER['REQUEST_URI'] = '/wp-json/duola/v1/messages';
+require '/var/www/html/wp-load.php';
+
+function assert_guestbook(bool $condition, string $message): void
+{
+    if (!$condition) {
+        fwrite(STDERR, $message . PHP_EOL);
+        exit(8);
+    }
+}
+
+duola_guestbook_install();
+$nonce = wp_create_nonce('duola_wall_submit');
+$_SERVER['REMOTE_ADDR'] = '172.18.0.3';
+$_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1';
+assert_guestbook('1.1.1.1' === duola_guestbook_client_ip(), 'Trusted proxy IP resolution failed.');
+$_SERVER['REMOTE_ADDR'] = '8.8.8.8';
+$_SERVER['HTTP_X_FORWARDED_FOR'] = '9.9.9.9';
+assert_guestbook('8.8.8.8' === duola_guestbook_client_ip(), 'Untrusted forwarded IP was accepted.');
+
+$_SERVER['REMOTE_ADDR'] = '172.18.0.3';
+$_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1';
+$request = new WP_REST_Request('POST', '/duola/v1/messages');
+$request->set_header('X-Duola-Wall-Nonce', $nonce);
+$request->set_body_params(['nickname' => '', 'message' => 'guestbook smoke test', 'website' => '', 'started_at' => time() - 3]);
+$created = duola_guestbook_rest_create_message($request);
+assert_guestbook($created instanceof WP_REST_Response, 'Clean message was not accepted.');
+$created_data = $created->get_data();
+assert_guestbook('publish' === $created_data['status'], 'Clean message was not published.');
+assert_guestbook('anonymous' === $created_data['message']['nickname'], 'Blank nickname did not become anonymous.');
+
+$limited = duola_guestbook_rest_create_message($request);
+assert_guestbook(is_wp_error($limited) && 429 === $limited->get_error_data()['status'], 'One-minute rate limit failed.');
+
+$_SERVER['HTTP_X_FORWARDED_FOR'] = '9.9.9.9';
+$url_request = new WP_REST_Request('POST', '/duola/v1/messages');
+$url_request->set_header('X-Duola-Wall-Nonce', $nonce);
+$url_request->set_body_params(['nickname' => 'link', 'message' => 'visit example.dev/path', 'website' => '', 'started_at' => time() - 3]);
+$pending = duola_guestbook_rest_create_message($url_request);
+assert_guestbook($pending instanceof WP_REST_Response && 'pending' === $pending->get_data()['status'], 'URL message did not enter review.');
+
+$_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1';
+unset($_COOKIE['duola_wall_visitor']);
+$message_id = (int) $created_data['message']['id'];
+$like_request = new WP_REST_Request('POST', '/duola/v1/messages/' . $message_id . '/like');
+$like_request->set_header('X-Duola-Wall-Nonce', $nonce);
+$like_request->set_url_params(['id' => $message_id]);
+$liked = duola_guestbook_rest_toggle_like($like_request);
+$unliked = duola_guestbook_rest_toggle_like($like_request);
+assert_guestbook(true === $liked['liked'] && 1 === $liked['likes'], 'First +1 did not increment.');
+assert_guestbook(false === $unliked['liked'] && 0 === $unliked['likes'], 'Second +1 did not reverse.');
+
+global $wpdb;
+$wpdb->query('TRUNCATE TABLE ' . duola_guestbook_likes_table());
+$wpdb->query('TRUNCATE TABLE ' . duola_guestbook_messages_table());
+
+$zip = new ZipArchive();
+assert_guestbook(true === $zip->open('/tmp/import.zip'), 'Could not open migration package for guestbook fixture.');
+$manifest = json_decode($zip->getFromName('manifest.json'), true);
+$manifest['guestbook'] = [
+    [
+        'uuid' => '10000000-0000-4000-8000-000000000001',
+        'parent_uuid' => '',
+        'nickname' => 'alice',
+        'message' => 'hello from migration',
+        'status' => 'publish',
+        'pinned' => true,
+        'likes' => 7,
+        'created_at' => '2026-07-13 10:00:00',
+    ],
+    [
+        'uuid' => '10000000-0000-4000-8000-000000000002',
+        'parent_uuid' => '10000000-0000-4000-8000-000000000001',
+        'nickname' => 'ddw',
+        'message' => 'welcome',
+        'status' => 'publish',
+        'pinned' => false,
+        'likes' => 0,
+        'created_at' => '2026-07-13 10:01:00',
+    ],
+];
+$zip->deleteName('manifest.json');
+$zip->addFromString('manifest.json', wp_json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+$zip->close();
+echo "Guestbook behavior smoke test passed.\n";
+PHP
+
 run_import() {
   docker exec -i "$test_name" php <<'PHP'
 <?php
@@ -130,6 +220,8 @@ $statuses = ['publish', 'draft', 'pending', 'private', 'future'];
 $media = get_posts(['post_type' => 'attachment', 'post_status' => 'inherit', 'post_mime_type' => 'image', 'numberposts' => -1]);
 $posts = get_posts(['post_type' => 'post', 'post_status' => $statuses, 'numberposts' => -1]);
 $albums = get_posts(['post_type' => 'album', 'post_status' => $statuses, 'numberposts' => -1]);
+$guestbook_table = duola_guestbook_messages_table();
+$guestbook_rows = $wpdb->get_results("SELECT * FROM {$guestbook_table} ORDER BY id ASC");
 $media_by_uuid = [];
 $missing_files = [];
 
@@ -185,17 +277,32 @@ $result = [
     'expected_media' => count((array) ($manifest['media'] ?? [])),
     'expected_posts' => count((array) ($manifest['posts'] ?? [])),
     'expected_albums' => count((array) ($manifest['albums'] ?? [])),
+    'guestbook' => count($guestbook_rows),
+    'expected_guestbook' => count((array) ($manifest['guestbook'] ?? [])),
     'missing_files' => $missing_files,
     'photo_order_mismatches' => $order_mismatches,
     'photo_settings_mismatches' => $settings_mismatches,
     'old_urls_in_posts' => $old_urls,
     'site_name' => get_option('blogname'),
 ];
+
+$guestbook_by_uuid = [];
+foreach ($guestbook_rows as $row) {
+    $guestbook_by_uuid[$row->migration_uuid] = $row;
+}
+$guestbook_parent = $guestbook_by_uuid['10000000-0000-4000-8000-000000000001'] ?? null;
+$guestbook_reply = $guestbook_by_uuid['10000000-0000-4000-8000-000000000002'] ?? null;
+$result['guestbook_relationship_valid'] = $guestbook_parent
+    && $guestbook_reply
+    && (int) $guestbook_reply->parent_id === (int) $guestbook_parent->id
+    && 7 === (int) $guestbook_parent->like_count;
 echo wp_json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL;
 
 $valid = $result['media'] === $result['expected_media']
     && $result['posts'] === $result['expected_posts']
     && $result['albums'] === $result['expected_albums']
+    && $result['guestbook'] === $result['expected_guestbook']
+    && $result['guestbook_relationship_valid']
     && !$missing_files
     && !$order_mismatches
     && !$settings_mismatches

@@ -1,0 +1,21 @@
+.duola-wall-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+.duola-wall-filters a { padding: 7px 11px; border: 1px solid #cfd4e2; border-radius: 7px; text-decoration: none; }
+.duola-wall-filters a.is-current { color: #fff; border-color: #5367bb; background: #7183d1; }
+.duola-wall-admin-list { display: grid; gap: 14px; max-width: 980px; }
+.duola-wall-admin-item { padding: 20px; border: 1px solid #dfe2ec; border-radius: 10px; background: #fffefa; box-shadow: 0 10px 28px rgba(57, 68, 112, 0.07); }
+.duola-wall-admin-item header { display: flex; justify-content: space-between; gap: 16px; }
+.duola-wall-admin-item header span, .duola-wall-admin-item small { color: #747b91; }
+.duola-wall-admin-item > p { font-size: 15px; line-height: 1.7; }
+.duola-wall-admin-actions { display: flex; flex-wrap: wrap; gap: 7px; margin: 14px 0; }
+.duola-wall-inline-form { display: inline-flex; margin: 0; }
+.duola-wall-admin-replies { margin: 14px 0; padding: 10px 14px; border-left: 3px solid #7183d1; background: #f4f5fb; }
+.duola-wall-reply-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.duola-wall-reply-form input { width: 100%; min-height: 38px; }
+.duola-wall-admin-empty { padding: 28px; border: 1px dashed #cfd4e2; text-align: center; }
+.duola-wall-blocked-list { max-width: 980px; margin-top: 28px; }
+.duola-wall-blocked-list form { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(150px, auto) auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid #dfe2ec; }
+@media (max-width: 782px) {
+  .duola-wall-admin-item header { align-items: flex-start; flex-direction: column; }
+  .duola-wall-reply-form { grid-template-columns: 1fr; }
+  .duola-wall-blocked-list form { grid-template-columns: 1fr; }
+}

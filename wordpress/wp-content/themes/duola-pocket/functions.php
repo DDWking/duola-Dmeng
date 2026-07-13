@@ -47,9 +47,15 @@ function duola_pocket_enqueue_assets(): void
     $style_path = get_stylesheet_directory() . '/style.css';
     wp_enqueue_style('duola-pocket-style', get_stylesheet_uri(), [], (string) filemtime($style_path));
 
-    if (duola_pocket_is_about_page()) {
-        $about_script_path = get_template_directory() . '/assets/about.js';
-        wp_enqueue_script('duola-pocket-about', get_template_directory_uri() . '/assets/about.js', [], (string) filemtime($about_script_path), true);
+    if (duola_pocket_is_wall_page()) {
+        $wall_script_path = get_template_directory() . '/assets/wall.js';
+        wp_enqueue_script('duola-pocket-wall', get_template_directory_uri() . '/assets/wall.js', [], (string) filemtime($wall_script_path), true);
+        wp_localize_script('duola-pocket-wall', 'duolaWall', [
+            'messagesUrl' => esc_url_raw(rest_url('duola/v1/messages')),
+            'nonce' => wp_create_nonce('duola_wall_submit'),
+            'anonymous' => __('anonymous', 'duola-pocket'),
+            'networkError' => __('连接失败，请稍后重试。', 'duola-pocket'),
+        ]);
         return;
     }
 
@@ -57,42 +63,6 @@ function duola_pocket_enqueue_assets(): void
     wp_enqueue_script('duola-pocket-site', get_template_directory_uri() . '/assets/site.js', [], (string) filemtime($script_path), true);
 }
 add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_assets');
-
-function duola_pocket_default_about_content(): string
-{
-    return <<<'TEXT'
-NAME
-    ddw - 哆啦D梦的口袋的主人
-
-SYNOPSIS
-    ddw [--photo] [--write] [--volleyball]
-
-DESCRIPTION
-    喜欢拍照、写下一些胡思乱想，也喜欢在球场上接一传。
-    这里是我保存照片、文章和偶然遇见的风景的小口袋。
-
-INTERESTS
-    photography
-        记录日常、旅行，以及一些没有预告的瞬间。
-
-    writing
-        写技术、生活，也写暂时没有答案的问题。
-
-    volleyball
-        喜欢排球，尤其享受把一个快要落地的球重新垫起来。
-
-PROJECTS
-    哆啦D梦的口袋
-        一个由 WordPress、PHP、MariaDB、Docker 和 Caddy 组成的
-        个人摄影与文章网站。代码被 Git 管理，内容可以打包迁移。
-
-SEE ALSO
-    articles(1), photos(1)
-
-AUTHOR
-    ddw
-TEXT;
-}
 
 function duola_pocket_register_site_settings(): void
 {
@@ -108,11 +78,6 @@ function duola_pocket_register_site_settings(): void
     register_setting('duola_site_settings', 'blogdescription', [
         'type' => 'string',
         'sanitize_callback' => 'sanitize_text_field',
-    ]);
-    register_setting('duola_site_settings', 'duola_about_content', [
-        'type' => 'string',
-        'sanitize_callback' => 'sanitize_textarea_field',
-        'default' => duola_pocket_default_about_content(),
     ]);
 }
 add_action('admin_init', 'duola_pocket_register_site_settings');
@@ -142,7 +107,7 @@ function duola_pocket_render_site_settings_page(): void
         <div class="duola-settings-heading">
             <span><?php esc_html_e('Pocket settings', 'duola-pocket'); ?></span>
             <h1><?php esc_html_e('网站设置', 'duola-pocket'); ?></h1>
-            <p><?php esc_html_e('这里管理网站名称、说明、头像和 About 介绍。', 'duola-pocket'); ?></p>
+            <p><?php esc_html_e('这里管理网站名称、说明和头像。', 'duola-pocket'); ?></p>
         </div>
         <form action="options.php" method="post">
             <?php settings_fields('duola_site_settings'); ?>
@@ -172,11 +137,6 @@ function duola_pocket_render_site_settings_page(): void
                             <button id="duola-remove-avatar" class="button" type="button"<?php echo $avatar_id ? '' : ' hidden'; ?>><?php esc_html_e('恢复默认', 'duola-pocket'); ?></button>
                         </div>
                     </div>
-                </section>
-                <section class="duola-settings-card duola-about-setting">
-                    <h2><?php esc_html_e('About / man ddw', 'duola-pocket'); ?></h2>
-                    <p><?php esc_html_e('用于头像入口的命令行风格个人介绍。行首空格和换行会原样保留。', 'duola-pocket'); ?></p>
-                    <textarea id="duola-about-content" class="large-text code" name="duola_about_content" rows="22" spellcheck="false"><?php echo esc_textarea(get_option('duola_about_content', duola_pocket_default_about_content())); ?></textarea>
                 </section>
                 <div class="duola-settings-submit">
                     <?php submit_button(__('保存网站设置', 'duola-pocket'), 'primary', 'submit', false); ?>
@@ -212,67 +172,75 @@ function duola_pocket_articles_url(): string
     return $posts_page_id ? (string) get_permalink($posts_page_id) : home_url('/articles/');
 }
 
-function duola_pocket_about_url(): string
+function duola_pocket_wall_url(): string
 {
-    return home_url('/about/');
+    return home_url('/wall/');
 }
 
-function duola_pocket_register_about_route(): void
+function duola_pocket_register_wall_route(): void
 {
-    add_rewrite_rule('^about/?$', 'index.php?duola_about=1', 'top');
+    add_rewrite_rule('^wall/?$', 'index.php?duola_wall=1', 'top');
+    add_rewrite_rule('^about/?$', 'index.php?duola_wall_redirect=1', 'top');
 }
-add_action('init', 'duola_pocket_register_about_route');
+add_action('init', 'duola_pocket_register_wall_route');
 
-function duola_pocket_about_query_vars(array $query_vars): array
+function duola_pocket_wall_query_vars(array $query_vars): array
 {
-    $query_vars[] = 'duola_about';
+    $query_vars[] = 'duola_wall';
+    $query_vars[] = 'duola_wall_redirect';
     return $query_vars;
 }
-add_filter('query_vars', 'duola_pocket_about_query_vars');
+add_filter('query_vars', 'duola_pocket_wall_query_vars');
 
-function duola_pocket_is_about_page(): bool
+function duola_pocket_is_wall_page(): bool
 {
-    return '1' === (string) get_query_var('duola_about');
+    return '1' === (string) get_query_var('duola_wall');
 }
 
-function duola_pocket_prepare_about_page(): void
+function duola_pocket_prepare_wall_page(): void
 {
-    if (!duola_pocket_is_about_page()) {
-        return;
+    if ('1' === (string) get_query_var('duola_wall_redirect')) {
+        wp_safe_redirect(duola_pocket_wall_url(), 301);
+        exit;
     }
 
+    if (!duola_pocket_is_wall_page()) {
+        return;
+    }
     global $wp_query;
     $wp_query->is_404 = false;
     status_header(200);
 }
-add_action('template_redirect', 'duola_pocket_prepare_about_page');
+add_action('template_redirect', 'duola_pocket_prepare_wall_page');
 
-function duola_pocket_about_template(string $template): string
+function duola_pocket_wall_template(string $template): string
 {
-    return duola_pocket_is_about_page() ? get_template_directory() . '/about.php' : $template;
+    return duola_pocket_is_wall_page() ? get_template_directory() . '/wall.php' : $template;
 }
-add_filter('template_include', 'duola_pocket_about_template');
+add_filter('template_include', 'duola_pocket_wall_template');
 
-function duola_pocket_about_document_title(array $title): array
+function duola_pocket_wall_document_title(array $title): array
 {
-    if (duola_pocket_is_about_page()) {
-        $title['title'] = 'man ddw';
+    if (duola_pocket_is_wall_page()) {
+        $title['title'] = 'wall ddw';
     }
     return $title;
 }
-add_filter('document_title_parts', 'duola_pocket_about_document_title');
+add_filter('document_title_parts', 'duola_pocket_wall_document_title');
 
-function duola_pocket_maybe_flush_about_route(): void
+function duola_pocket_maybe_flush_wall_route(): void
 {
-    $route_version = '1';
-    if ($route_version === get_option('duola_about_route_version')) {
+    $route_version = '2';
+    if ($route_version === get_option('duola_wall_route_version')) {
         return;
     }
 
     flush_rewrite_rules(false);
-    update_option('duola_about_route_version', $route_version, false);
+    delete_option('duola_about_content');
+    delete_option('duola_about_route_version');
+    update_option('duola_wall_route_version', $route_version, false);
 }
-add_action('init', 'duola_pocket_maybe_flush_about_route', 99);
+add_action('init', 'duola_pocket_maybe_flush_wall_route', 99);
 
 function duola_pocket_format_date(int $post_id): string
 {
