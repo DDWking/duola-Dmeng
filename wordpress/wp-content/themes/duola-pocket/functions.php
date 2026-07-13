@@ -52,9 +52,10 @@ function duola_pocket_enqueue_assets(): void
         wp_enqueue_script('duola-pocket-wall', get_template_directory_uri() . '/assets/wall.js', [], (string) filemtime($wall_script_path), true);
         wp_localize_script('duola-pocket-wall', 'duolaWall', [
             'messagesUrl' => esc_url_raw(rest_url('duola/v1/messages')),
+            'tokenUrl' => esc_url_raw(rest_url('duola/v1/wall-token')),
             'nonce' => wp_create_nonce('duola_wall_submit'),
-            'anonymous' => __('anonymous', 'duola-pocket'),
-            'networkError' => __('连接失败，请稍后重试。', 'duola-pocket'),
+            'anonymous' => __('匿名朋友', 'duola-pocket'),
+            'networkError' => __('连接失败了，请再试一次。', 'duola-pocket'),
         ]);
         return;
     }
@@ -222,7 +223,7 @@ add_filter('template_include', 'duola_pocket_wall_template');
 function duola_pocket_wall_document_title(array $title): array
 {
     if (duola_pocket_is_wall_page()) {
-        $title['title'] = 'wall ddw';
+        $title['title'] = '留言板';
     }
     return $title;
 }

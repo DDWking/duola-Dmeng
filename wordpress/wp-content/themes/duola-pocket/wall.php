@@ -7,7 +7,7 @@ $render_message = static function (array $message, bool $is_reply = false) use (
             <span>[<?php echo esc_html($message['number']); ?>]</span>
             <time datetime="<?php echo esc_attr(str_replace(' ', 'T', $message['date'])); ?>"><?php echo esc_html($message['date']); ?></time>
             <strong><?php echo esc_html($message['nickname']); ?></strong>
-            <?php if ($message['pinned']) : ?><i>PINNED</i><?php endif; ?>
+            <?php if ($message['pinned']) : ?><i>置顶</i><?php endif; ?>
             <?php if (!$is_reply) : ?>
                 <button type="button" data-wall-like aria-label="<?php esc_attr_e('给这条留言 +1', 'duola-pocket'); ?>">+1 <span><?php echo esc_html($message['likes']); ?></span></button>
             <?php endif; ?>
@@ -33,20 +33,20 @@ $render_message = static function (array $message, bool $is_reply = false) use (
 <?php wp_body_open(); ?>
 <main class="wall-page">
     <header class="wall-page-header">
-        <span>WALL DDW(1)</span>
+        <span>留言板</span>
         <span><?php bloginfo('name'); ?></span>
-        <span>WALL DDW(1)</span>
+        <span>WALL DDW</span>
     </header>
 
     <section class="wall-compose" aria-labelledby="wall-compose-title">
-        <h1 id="wall-compose-title">LEAVE A MESSAGE</h1>
+        <h1 id="wall-compose-title">留下一句话</h1>
         <form data-wall-form>
-            <label><span>nickname:</span><input name="nickname" type="text" maxlength="32" autocomplete="nickname" placeholder="anonymous"></label>
-            <label><span>message:</span><textarea name="message" maxlength="300" rows="4" required></textarea></label>
+            <label><span>昵称：</span><input name="nickname" type="text" maxlength="32" autocomplete="nickname" placeholder="可不填，默认匿名"></label>
+            <label><span>留言：</span><textarea name="message" maxlength="300" rows="4" placeholder="想说什么都可以" required></textarea></label>
             <label class="wall-honeypot" aria-hidden="true"><span>website:</span><input name="website" type="text" tabindex="-1" autocomplete="off"></label>
             <input name="started_at" type="hidden" value="<?php echo esc_attr(time()); ?>">
             <div class="wall-compose-actions">
-                <button type="submit">[ POST MESSAGE ]</button>
+                <button type="submit">[ 发送留言 ]</button>
                 <span><b data-wall-count>0</b>/300</span>
                 <output data-wall-status aria-live="polite"></output>
             </div>
@@ -54,14 +54,14 @@ $render_message = static function (array $message, bool $is_reply = false) use (
     </section>
 
     <section class="wall-log" aria-labelledby="wall-log-title">
-        <h2 id="wall-log-title">MESSAGES</h2>
+        <h2 id="wall-log-title">大家的留言</h2>
         <div data-wall-messages>
-            <?php if (!$messages) : ?><p class="wall-empty" data-wall-empty>no messages yet.</p><?php endif; ?>
+            <?php if (!$messages) : ?><p class="wall-empty" data-wall-empty>还没有留言，来写第一条吧。</p><?php endif; ?>
             <?php foreach ($messages as $message) $render_message($message); ?>
         </div>
     </section>
 </main>
-<a class="wall-quit" href="<?php echo esc_url(home_url('/')); ?>">[ q ] quit</a>
+<a class="wall-quit" href="<?php echo esc_url(home_url('/')); ?>">[ 返回首页 ]</a>
 <?php wp_footer(); ?>
 </body>
 </html>

@@ -8,9 +8,43 @@
   const count = form.querySelector('[data-wall-count]');
   const status = form.querySelector('[data-wall-status]');
   const submit = form.querySelector('button[type="submit"]');
+  let nonce = config.nonce;
 
   const setText = (element, value) => {
     element.textContent = value;
+  };
+
+  const refreshNonce = async () => {
+    const response = await fetch(config.tokenUrl, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    const result = await response.json();
+    if (!response.ok || !result.nonce) throw new Error(config.networkError);
+    nonce = result.nonce;
+  };
+
+  const requestWithNonce = async (url, options = {}) => {
+    try {
+      await refreshNonce();
+    } catch (error) {
+      // The nonce embedded in the page remains a valid fallback.
+    }
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const response = await fetch(url, {
+        ...options,
+        credentials: 'same-origin',
+        headers: { ...options.headers, 'X-Duola-Wall-Nonce': nonce },
+      });
+      const result = await response.json();
+      if (403 !== response.status || 'duola_wall_invalid_request' !== result.code || 1 === attempt) {
+        return { response, result };
+      }
+      await refreshNonce();
+    }
+
+    throw new Error(config.networkError);
   };
 
   const messageElement = (message, isReply = false) => {
@@ -30,14 +64,14 @@
 
     if (message.pinned) {
       const pinned = document.createElement('i');
-      setText(pinned, 'PINNED');
+      setText(pinned, '置顶');
       header.appendChild(pinned);
     }
     if (!isReply) {
       const like = document.createElement('button');
       like.type = 'button';
       like.dataset.wallLike = '';
-      like.setAttribute('aria-label', 'Give this message +1');
+      like.setAttribute('aria-label', '给这条留言 +1');
       like.append('+1 ');
       const likes = document.createElement('span');
       setText(likes, message.likes);
@@ -62,16 +96,14 @@
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     submit.disabled = true;
-    setText(status, 'sending...');
+    setText(status, '正在发送...');
     const data = new FormData(form);
     try {
-      const response = await fetch(config.messagesUrl, {
+      const { response, result } = await requestWithNonce(config.messagesUrl, {
         method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-Duola-Wall-Nonce': config.nonce },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(Object.fromEntries(data.entries())),
       });
-      const result = await response.json();
       if (!response.ok) throw new Error(result.message || config.networkError);
       setText(status, result.notice);
       if (result.message) {
@@ -94,12 +126,9 @@
     const message = button.closest('[data-wall-message]');
     button.disabled = true;
     try {
-      const response = await fetch(`${config.messagesUrl}/${message.dataset.wallMessage}/like`, {
+      const { response, result } = await requestWithNonce(`${config.messagesUrl}/${message.dataset.wallMessage}/like`, {
         method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'X-Duola-Wall-Nonce': config.nonce },
       });
-      const result = await response.json();
       if (!response.ok) throw new Error(result.message || config.networkError);
       setText(button.querySelector('span'), result.likes);
       button.classList.toggle('is-liked', result.liked);

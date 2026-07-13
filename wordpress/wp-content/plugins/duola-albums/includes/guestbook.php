@@ -142,7 +142,7 @@ function duola_guestbook_format_row(object $row, array $replies = []): array
     return [
         'id' => (int) $row->id,
         'number' => str_pad((string) $row->id, 4, '0', STR_PAD_LEFT),
-        'nickname' => $row->nickname ?: 'anonymous',
+        'nickname' => $row->nickname ?: '匿名朋友',
         'message' => (string) $row->message,
         'date' => get_date_from_gmt((string) $row->created_at, 'Y-m-d H:i'),
         'pinned' => (bool) $row->pinned,
@@ -174,6 +174,11 @@ function duola_guestbook_public_messages(int $limit = 50): array
 
 function duola_guestbook_register_rest_routes(): void
 {
+    register_rest_route('duola/v1', '/wall-token', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => static fn(): array => ['nonce' => wp_create_nonce('duola_wall_submit')],
+        'permission_callback' => '__return_true',
+    ]);
     register_rest_route('duola/v1', '/messages', [
         'methods' => WP_REST_Server::CREATABLE,
         'callback' => 'duola_guestbook_rest_create_message',
@@ -210,8 +215,8 @@ function duola_guestbook_rest_create_message(WP_REST_Request $request)
 
     $started_at = absint($request->get_param('started_at'));
     $elapsed = time() - $started_at;
-    if ($started_at <= 0 || $elapsed < 2 || $elapsed > 7200) {
-        return new WP_Error('duola_wall_timing', __('请刷新页面后重新填写。', 'duola-albums'), ['status' => 400]);
+    if ($started_at <= 0 || $elapsed < 1 || $elapsed > 7200) {
+        return new WP_Error('duola_wall_timing', __('请稍等一下再发送。', 'duola-albums'), ['status' => 400]);
     }
 
     $nickname = sanitize_text_field((string) $request->get_param('nickname'));
@@ -253,7 +258,7 @@ function duola_guestbook_rest_create_message(WP_REST_Request $request)
     return new WP_REST_Response([
         'status' => $status,
         'message' => 'publish' === $status ? duola_guestbook_format_row($row) : null,
-        'notice' => 'publish' === $status ? __('留言已经公开。', 'duola-albums') : __('留言中包含网址，已进入待审核。', 'duola-albums'),
+        'notice' => 'publish' === $status ? __('留言已发布。', 'duola-albums') : __('留言中包含网址，已进入待审核。', 'duola-albums'),
     ], 201);
 }
 
@@ -368,7 +373,7 @@ function duola_guestbook_render_admin_page(): void
                 <?php $replies = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE parent_id = %d ORDER BY created_at ASC", $message->id)); ?>
                 <article class="duola-wall-admin-item">
                     <header>
-                        <strong>#<?php echo esc_html(str_pad((string) $message->id, 4, '0', STR_PAD_LEFT)); ?> · <?php echo esc_html($message->nickname ?: 'anonymous'); ?></strong>
+                        <strong>#<?php echo esc_html(str_pad((string) $message->id, 4, '0', STR_PAD_LEFT)); ?> · <?php echo esc_html($message->nickname ?: '匿名朋友'); ?></strong>
                         <span><?php echo esc_html(get_date_from_gmt($message->created_at, 'Y-m-d H:i')); ?> · <?php echo esc_html($message->status); ?> · +<?php echo esc_html($message->like_count); ?></span>
                     </header>
                     <p><?php echo nl2br(esc_html($message->message)); ?></p>
