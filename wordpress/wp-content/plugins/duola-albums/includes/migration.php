@@ -257,6 +257,7 @@ function duola_migration_export_content(): void
             'name' => get_option('blogname'),
             'description' => get_option('blogdescription'),
             'avatar_media_uuid' => $id_to_uuid[$avatar_id] ?? '',
+            'about_content' => get_option('duola_about_content', ''),
         ],
         'tags' => is_wp_error($tag_terms) ? [] : array_map(static fn(WP_Term $term): array => ['name' => $term->name, 'slug' => $term->slug, 'description' => $term->description], $tag_terms),
         'media' => $manifest_media,
@@ -592,6 +593,9 @@ function duola_migration_import_content(): void
         update_option('blogname', sanitize_text_field($site['name']));
     }
     update_option('blogdescription', sanitize_text_field($site['description'] ?? ''));
+    if (array_key_exists('about_content', $site)) {
+        update_option('duola_about_content', sanitize_textarea_field($site['about_content']));
+    }
     $avatar_uuid = sanitize_text_field($site['avatar_media_uuid'] ?? '');
     update_option('duola_site_avatar_id', $media_ids[$avatar_uuid] ?? 0);
 
