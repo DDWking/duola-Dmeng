@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 哆啦D梦相册
  * Description: 提供批量上传、封面选择和拖拽排序的相册内容类型。
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: DDWking
  * Text Domain: duola-albums
  */
@@ -11,12 +11,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DUOLA_ALBUMS_VERSION', '2.0.0');
+define('DUOLA_ALBUMS_VERSION', '2.1.0');
 define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
 
 require_once DUOLA_ALBUMS_PATH . 'includes/guestbook.php';
 require_once DUOLA_ALBUMS_PATH . 'includes/migration.php';
+require_once DUOLA_ALBUMS_PATH . 'includes/markdown-import.php';
 require_once DUOLA_ALBUMS_PATH . 'includes/admin-customization.php';
 
 function duola_albums_register_content_type(): void

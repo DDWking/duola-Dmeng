@@ -1,6 +1,11 @@
 ﻿# Dependencies
 node_modules/
 vendor/
+!wordpress/wp-content/plugins/duola-albums/vendor/
+!wordpress/wp-content/plugins/duola-albums/vendor/parsedown/
+!wordpress/wp-content/plugins/duola-albums/vendor/parsedown/Parsedown.php
+!wordpress/wp-content/plugins/duola-albums/vendor/parsedown/LICENSE.txt
+!wordpress/wp-content/plugins/duola-albums/vendor/parsedown/README.md
 
 # Environment and secrets
 .env

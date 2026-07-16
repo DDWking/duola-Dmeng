@@ -87,6 +87,7 @@ function duola_admin_allowed_blocks($allowed_blocks, $editor_context)
         'core/list-item',
         'core/quote',
         'core/code',
+        'core/table',
         'core/preformatted',
         'core/separator',
         'core/spacer',
@@ -339,6 +340,7 @@ function duola_admin_render_dashboard(): void
             <h3><?php esc_html_e('快捷开始', 'duola-albums'); ?></h3>
             <div>
                 <a class="duola-action-primary" href="<?php echo esc_url(admin_url('post-new.php')); ?>"><span class="dashicons dashicons-edit" aria-hidden="true"></span><b><?php esc_html_e('写文章', 'duola-albums'); ?></b><small><?php esc_html_e('打开简洁编辑器', 'duola-albums'); ?></small></a>
+                <a href="<?php echo esc_url(admin_url('edit.php?page=duola-markdown-import')); ?>"><span class="dashicons dashicons-media-code" aria-hidden="true"></span><b><?php esc_html_e('导入 Markdown', 'duola-albums'); ?></b><small><?php esc_html_e('上传文件生成草稿', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('post-new.php?post_type=album')); ?>"><span class="dashicons dashicons-format-gallery" aria-hidden="true"></span><b><?php esc_html_e('建相册', 'duola-albums'); ?></b><small><?php esc_html_e('一次上传多张照片', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('upload.php')); ?>"><span class="dashicons dashicons-images-alt2" aria-hidden="true"></span><b><?php esc_html_e('照片库', 'duola-albums'); ?></b><small><?php esc_html_e('查找和编辑原图', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('admin.php?page=duola-migration')); ?>"><span class="dashicons dashicons-migrate" aria-hidden="true"></span><b><?php esc_html_e('备份迁移', 'duola-albums'); ?></b><small><?php esc_html_e('导出或导入 ZIP', 'duola-albums'); ?></small></a>
