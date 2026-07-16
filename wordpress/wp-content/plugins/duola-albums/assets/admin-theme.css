@@ -418,7 +418,7 @@ body.login {
 
   body.block-editor-page.post-type-post #wpcontent { padding-left: 0; }
   body.block-editor-page.post-type-post #wpbody-content { padding-bottom: 0; }
-  body.block-editor-page.post-type-post .interface-interface-skeleton__content { padding-top: 54px; }
+  body.duola-mobile-editor-ready.block-editor-page.post-type-post .interface-interface-skeleton__content { padding-top: 54px; }
   body.block-editor-page.post-type-post .interface-interface-skeleton__header .components-button { min-width: 40px; min-height: 40px; }
   body.block-editor-page.post-type-post .editor-post-publish-button,
   body.block-editor-page.post-type-post .editor-post-publish-panel__toggle { min-width: 58px; }
@@ -429,7 +429,7 @@ body.login {
   .duola-mobile-editor-bar {
     position: fixed;
     z-index: 91;
-    top: 106px;
+    top: 110px;
     right: 0;
     left: 0;
     display: grid;

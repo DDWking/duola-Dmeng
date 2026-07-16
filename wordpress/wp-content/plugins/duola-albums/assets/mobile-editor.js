@@ -1,11 +1,12 @@
 (function (wp, document) {
   'use strict';
 
-  if (!wp || !wp.data || !wp.domReady || !wp.blocks || !wp.media) {
+  if (!wp || !wp.data || !wp.domReady || !wp.blocks) {
     return;
   }
 
   var labels = window.duolaMobileEditor || {};
+  var mobileViewport = window.matchMedia('(max-width: 782px)');
   var statusTimer;
 
   function button(icon, text, ariaLabel, action) {
@@ -49,6 +50,11 @@
   }
 
   function openImagePicker() {
+    if (!wp.media) {
+      showStatus(labels.mediaUnavailable);
+      return;
+    }
+
     var point = insertionPoint();
     var frame = wp.media({
       title: labels.imagePickerTitle,
@@ -76,6 +82,11 @@
   }
 
   function openFeaturedImagePicker() {
+    if (!wp.media) {
+      showStatus(labels.mediaUnavailable);
+      return;
+    }
+
     var frame = wp.media({
       title: labels.featuredPickerTitle,
       button: { text: labels.featuredPickerButton },
@@ -127,6 +138,7 @@
     toolbar.appendChild(button('admin-generic', labels.settings, labels.settingsLabel, openSettings));
     toolbar.appendChild(button('saved', labels.save, labels.save, savePost));
     document.body.appendChild(toolbar);
+    document.body.classList.add('duola-mobile-editor-ready');
   }
 
   function ensureWritingBlock() {
@@ -160,6 +172,10 @@
     var preferences = wp.data.dispatch('core/preferences');
     if (preferences && preferences.set) {
       preferences.set('core/edit-post', 'welcomeGuide', false);
+    }
+
+    if (!mobileViewport.matches) {
+      return;
     }
 
     ensureWritingBlock();

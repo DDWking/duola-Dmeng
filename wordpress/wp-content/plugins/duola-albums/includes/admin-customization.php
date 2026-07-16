@@ -365,7 +365,7 @@ add_action('login_enqueue_scripts', 'duola_admin_enqueue_theme');
 
 function duola_admin_enqueue_mobile_editor(string $hook): void
 {
-    if (!wp_is_mobile() || !in_array($hook, ['post-new.php', 'post.php'], true)) {
+    if (!in_array($hook, ['post-new.php', 'post.php'], true)) {
         return;
     }
 
@@ -379,7 +379,7 @@ function duola_admin_enqueue_mobile_editor(string $hook): void
     wp_enqueue_script(
         'duola-mobile-editor',
         DUOLA_ALBUMS_URL . 'assets/mobile-editor.js',
-        ['wp-blocks', 'wp-data', 'wp-dom-ready', 'wp-edit-post'],
+        ['wp-blocks', 'wp-data', 'wp-dom-ready', 'wp-edit-post', 'media-editor'],
         (string) filemtime($script_path),
         true
     );
@@ -398,6 +398,7 @@ function duola_admin_enqueue_mobile_editor(string $hook): void
         'saving' => __('保存中…', 'duola-albums'),
         'saved' => __('已保存', 'duola-albums'),
         'saveFailed' => __('保存失败，请重试', 'duola-albums'),
+        'mediaUnavailable' => __('图片工具仍在加载，请稍后重试', 'duola-albums'),
     ]);
 }
 add_action('admin_enqueue_scripts', 'duola_admin_enqueue_mobile_editor', 120);
