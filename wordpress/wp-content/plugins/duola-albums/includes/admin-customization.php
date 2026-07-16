@@ -55,6 +55,12 @@ function duola_admin_simplify_post_types(): void
 }
 add_action('init', 'duola_admin_simplify_post_types', 30);
 
+function duola_admin_use_block_editor(bool $use_block_editor, string $post_type): bool
+{
+    return 'post' === $post_type ? false : $use_block_editor;
+}
+add_filter('use_block_editor_for_post_type', 'duola_admin_use_block_editor', 100, 2);
+
 function duola_admin_remove_meta_boxes(): void
 {
     foreach (['post', 'album'] as $post_type) {
@@ -365,7 +371,7 @@ add_action('login_enqueue_scripts', 'duola_admin_enqueue_theme');
 
 function duola_admin_enqueue_mobile_editor(string $hook): void
 {
-    if (!in_array($hook, ['post-new.php', 'post.php'], true)) {
+    if (!use_block_editor_for_post_type('post') || !in_array($hook, ['post-new.php', 'post.php'], true)) {
         return;
     }
 
