@@ -13,7 +13,7 @@ const SESSION_PATH := "user://online_session.json"
 const DEFAULT_SERVER_URL := "ws://127.0.0.1:9001"
 const PUBLIC_SERVER_PATH := "/volleyball-ws"
 const RECONNECT_WINDOW_MS := 30000
-const SNAPSHOT_INTERVAL := 0.05
+const SNAPSHOT_INTERVAL := 1.0 / 30.0
 const VALID_ACTIONS := ["jump", "hit", "spike", "dive", "block"]
 
 var is_dedicated_server := false

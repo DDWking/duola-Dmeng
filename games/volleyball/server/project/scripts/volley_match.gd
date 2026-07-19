@@ -24,6 +24,9 @@ const BACKCOURT_SPIKE_DISTANCE := 150.0
 const BACKCOURT_BLOCK_CHANCE := 0.15
 const BLOCK_COOLDOWN := 0.85
 const PERFECT_TIMING_QUALITY := 0.62
+const NETWORK_INPUT_INTERVAL := 1.0 / 30.0
+const NETWORK_CORRECTION_RATE := 12.0
+const NETWORK_SNAP_DISTANCE := 150.0
 const CPU_HUD_RIGHT := 875.0
 const PAUSE_BUTTON_RECT := Rect2(894, 16, 46, 42)
 const POSE_POINTS := [
@@ -33,9 +36,9 @@ const POSE_POINTS := [
 ]
 
 const COLORS := {
-	"ink": Color("091320"), "paper": Color("f5f0df"), "court": Color("d97942"),
-	"court_dark": Color("a84b39"), "cyan": Color("3fd9e6"), "yellow": Color("ffd447"),
-	"red": Color("ff4f72"), "green": Color("57e49f"), "muted": Color("8292a8")
+	"ink": Color("1b2741"), "paper": Color("fbfaf7"), "court": Color("d97942"),
+	"court_dark": Color("a84b39"), "cyan": Color("8293e6"), "yellow": Color("dfe3fb"),
+	"red": Color("ff6b7d"), "green": Color("7cc7b8"), "muted": Color("aeb8cf")
 }
 
 class Actor:
@@ -156,6 +159,10 @@ var network_inputs := {
 var network_input_sequence := 0
 var network_send_accumulator := 0.0
 var network_snapshot_ready := false
+var network_ball_target_position := Vector2.ZERO
+var network_ball_target_velocity := Vector2.ZERO
+var network_ball_target_rotation := 0.0
+var network_actor_target_positions := {-1: Vector2.ZERO, 1: Vector2.ZERO}
 
 
 func setup(chosen_player: Dictionary, chosen_cpu: Dictionary, chosen_difficulty: String, chosen_bindings: Dictionary = {}) -> void:
@@ -242,11 +249,7 @@ func _process(delta: float) -> void:
 		cpu_score = 0
 		_prepare_serve(-serve_side)
 
-	for particle in particles:
-		particle.life -= dt
-		particle.position += particle.velocity * dt
-		particle.velocity.y += float(particle.get("gravity", 620.0)) * dt
-	particles = particles.filter(func(item: Dictionary) -> bool: return item.life > 0.0)
+	_update_particles(dt)
 	queue_redraw()
 
 
@@ -305,22 +308,53 @@ func _process_network_client(delta: float) -> void:
 	local_actor.fast_fall_held = down and not game_paused
 	if not game_paused and state != MatchState.MATCH_OVER:
 		_update_actor(local_actor, dt)
+		var remote_actor := cpu if local_network_side < 0 else player
+		_update_actor(remote_actor, dt)
+		_correct_remote_actor(remote_actor, dt)
 		if state == MatchState.PLAY:
+			previous_ball_position = ball_position
 			ball_velocity.y += GRAVITY * dt
 			ball_position += ball_velocity * dt
+			ball_rotation += ball_velocity.x * dt * 0.015
+			_correct_network_ball(dt)
 	network_send_accumulator += dt
-	if network_send_accumulator >= 0.05:
-		network_send_accumulator = fmod(network_send_accumulator, 0.05)
+	if network_send_accumulator >= NETWORK_INPUT_INTERVAL:
+		network_send_accumulator = fmod(network_send_accumulator, NETWORK_INPUT_INTERVAL)
 		network_input_sequence += 1
 		var bridge := get_node_or_null("/root/NetworkBridge")
 		if bridge:
 			bridge.send_input_state(network_input_sequence, move_direction, down and not game_paused)
-	for particle in particles:
-		particle.life -= dt
-		particle.position += particle.velocity * dt
-		particle.velocity.y += float(particle.get("gravity", 620.0)) * dt
-	particles = particles.filter(func(item: Dictionary) -> bool: return item.life > 0.0)
+	_update_particles(dt)
 	queue_redraw()
+
+
+func _update_particles(delta: float) -> void:
+	for index in range(particles.size() - 1, -1, -1):
+		var particle: Dictionary = particles[index]
+		particle.life -= delta
+		particle.position += particle.velocity * delta
+		particle.velocity.y += float(particle.get("gravity", 620.0)) * delta
+		if float(particle.life) <= 0.0:
+			particles.remove_at(index)
+
+
+func _correct_network_ball(delta: float) -> void:
+	if not network_snapshot_ready:
+		return
+	var distance := ball_position.distance_to(network_ball_target_position)
+	var weight := 1.0 if distance >= NETWORK_SNAP_DISTANCE else 1.0 - exp(-NETWORK_CORRECTION_RATE * delta)
+	ball_position = ball_position.lerp(network_ball_target_position, weight)
+	ball_velocity = ball_velocity.lerp(network_ball_target_velocity, minf(1.0, weight * 1.35))
+	ball_rotation = lerp_angle(ball_rotation, network_ball_target_rotation, weight)
+
+
+func _correct_remote_actor(actor: Actor, delta: float) -> void:
+	if not network_snapshot_ready:
+		return
+	var target: Vector2 = network_actor_target_positions[actor.side]
+	var distance := actor.position.distance_to(target)
+	var weight := 1.0 if distance >= NETWORK_SNAP_DISTANCE else 1.0 - exp(-NETWORK_CORRECTION_RATE * delta)
+	actor.position = actor.position.lerp(target, weight)
 
 
 func _update_actor(actor: Actor, delta: float) -> void:
@@ -594,14 +628,19 @@ func _contact_geometry(actor: Actor, phase: int) -> Dictionary:
 	if phase < 0:
 		return {"valid": false, "quality": 0.0}
 	var ideal := _ideal_contact_position(actor, phase)
+	var contact_position := ball_position
+	var path := ball_position - previous_ball_position
+	if path.length_squared() > 0.001 and path.length_squared() <= 120.0 * 120.0:
+		var path_ratio := clampf((ideal - previous_ball_position).dot(path) / path.length_squared(), 0.0, 1.0)
+		contact_position = previous_ball_position + path * path_ratio
 	var max_distance := (88.0 if phase == TouchPhase.RECEIVE else (84.0 if phase == TouchPhase.SET else 96.0)) * float(actor.data.reach)
-	var distance_score := clampf(1.0 - ideal.distance_to(ball_position) / max_distance, 0.0, 1.0)
+	var distance_score := clampf(1.0 - ideal.distance_to(contact_position) / max_distance, 0.0, 1.0)
 	var ideal_vector := (ideal - actor.position).normalized()
-	var actual_vector := (ball_position - actor.position).normalized()
+	var actual_vector := (contact_position - actor.position).normalized()
 	var angle := acos(clampf(ideal_vector.dot(actual_vector), -1.0, 1.0))
 	var max_angle := deg_to_rad(52.0 if phase == TouchPhase.RECEIVE else (50.0 if phase == TouchPhase.SET else 54.0))
 	var angle_score := clampf(1.0 - angle / max_angle, 0.0, 1.0)
-	return {"valid": distance_score > 0.0 and angle_score > 0.0, "quality": sqrt(distance_score * angle_score)}
+	return {"valid": distance_score > 0.0 and angle_score > 0.0, "quality": sqrt(distance_score * angle_score), "position": contact_position}
 
 
 func _k_attack_name(attack: int, shot_route: int = ShotRoute.STRAIGHT) -> String:
@@ -725,6 +764,7 @@ func _perform_hit(actor: Actor, charge: float, ai_mode: String = "", contact_qua
 			actor.action_lock_time = maxf(actor.action_lock_time, 0.18)
 			return false
 		contact_quality = float(contact.quality)
+	ball_position = Vector2(contact.get("position", ball_position))
 	_register_touch(actor.side)
 	if state != MatchState.PLAY:
 		return false
@@ -1418,9 +1458,19 @@ func apply_network_snapshot(snapshot: Dictionary) -> void:
 	cpu_score = int(snapshot.get("cpu_score", cpu_score))
 	player_sets = int(snapshot.get("player_sets", player_sets))
 	cpu_sets = int(snapshot.get("cpu_sets", cpu_sets))
-	ball_position = Vector2(snapshot.get("ball_position", ball_position))
-	ball_velocity = Vector2(snapshot.get("ball_velocity", ball_velocity))
-	ball_rotation = float(snapshot.get("ball_rotation", ball_rotation))
+	var authoritative_ball_position := Vector2(snapshot.get("ball_position", ball_position))
+	var authoritative_ball_velocity := Vector2(snapshot.get("ball_velocity", ball_velocity))
+	var snapshot_lead := NETWORK_INPUT_INTERVAL
+	network_ball_target_position = authoritative_ball_position + authoritative_ball_velocity * snapshot_lead
+	if state == MatchState.PLAY:
+		network_ball_target_position.y += 0.5 * GRAVITY * snapshot_lead * snapshot_lead
+	network_ball_target_velocity = authoritative_ball_velocity + Vector2(0.0, GRAVITY * snapshot_lead if state == MatchState.PLAY else 0.0)
+	network_ball_target_rotation = float(snapshot.get("ball_rotation", ball_rotation))
+	if not network_snapshot_ready or state != MatchState.PLAY:
+		ball_position = network_ball_target_position
+		ball_velocity = network_ball_target_velocity
+		ball_rotation = network_ball_target_rotation
+		previous_ball_position = ball_position
 	last_touch_side = int(snapshot.get("last_touch_side", last_touch_side))
 	side_touches = int(snapshot.get("side_touches", side_touches))
 	point_message = String(snapshot.get("point_message", point_message))
@@ -1469,9 +1519,10 @@ func _apply_actor_network_state(actor: Actor, data: Dictionary, locally_predicte
 	if data.is_empty():
 		return
 	var authoritative_position := Vector2(data.get("position", actor.position))
+	network_actor_target_positions[actor.side] = authoritative_position
 	if locally_predicted and network_snapshot_ready and actor.position.distance_to(authoritative_position) < 90.0:
 		actor.position = actor.position.lerp(authoritative_position, 0.38)
-	else:
+	elif locally_predicted or not network_snapshot_ready:
 		actor.position = authoritative_position
 	actor.velocity = Vector2(data.get("velocity", actor.velocity))
 	actor.move_direction = float(data.get("move_direction", actor.move_direction))

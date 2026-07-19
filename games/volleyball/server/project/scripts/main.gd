@@ -7,9 +7,9 @@ const SAVE_PATH := "user://arcade_volley_save.json"
 const SAVE_VERSION := 3
 
 const COLORS := {
-	"ink": Color("08111f"), "panel": Color("17263b"), "panel_alt": Color("20344d"), "paper": Color("f5f0df"),
-	"cyan": Color("3fd9e6"), "yellow": Color("ffd447"), "red": Color("ff4f72"),
-	"green": Color("57e49f"), "muted": Color("8292a8")
+	"ink": Color("1b2741"), "panel": Color("273657"), "panel_alt": Color("33456c"), "paper": Color("fbfaf7"),
+	"cyan": Color("8293e6"), "yellow": Color("dfe3fb"), "red": Color("ff6b7d"),
+	"green": Color("7cc7b8"), "muted": Color("aeb8cf")
 }
 
 const CHARACTERS := CharacterCatalog.CHARACTERS
