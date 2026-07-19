@@ -50,8 +50,23 @@ function duola_volleyball_install(): void
 
 function duola_volleyball_maybe_install(): void
 {
-    if (DUOLA_VOLLEYBALL_DB_VERSION !== get_option('duola_volleyball_db_version')) {
-        duola_volleyball_install();
+    if (DUOLA_VOLLEYBALL_DB_VERSION === get_option('duola_volleyball_db_version')) {
+        return;
+    }
+
+    global $wpdb;
+    $lock_name = substr($wpdb->prefix . 'duola_volleyball_install', 0, 64);
+    $lock_acquired = 1 === (int) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 5)', $lock_name));
+    if (!$lock_acquired) {
+        return;
+    }
+
+    try {
+        if (DUOLA_VOLLEYBALL_DB_VERSION !== get_option('duola_volleyball_db_version')) {
+            duola_volleyball_install();
+        }
+    } finally {
+        $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
     }
 }
 add_action('init', 'duola_volleyball_maybe_install', 6);
