@@ -56,6 +56,31 @@ Get-ChildItem -LiteralPath $webSource -File |
     Where-Object { $_.Extension -ne '.import' } |
     Copy-Item -Destination $runtimeTarget -Force
 
+$runtimeHtml = Join-Path $runtimeTarget 'index.html'
+$featureCheck = @'
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+'@
+$httpFallback = @'
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	}).filter((feature) => !(
+		window.location.protocol === 'http:'
+		&& !GODOT_THREADS_ENABLED
+		&& feature.startsWith('Secure Context')
+	));
+'@
+$runtimeHtmlContent = [System.IO.File]::ReadAllText($runtimeHtml)
+if (-not $runtimeHtmlContent.Contains($featureCheck)) {
+    throw 'Could not add the single-threaded HTTP fallback to the Godot Web shell.'
+}
+[System.IO.File]::WriteAllText(
+    $runtimeHtml,
+    $runtimeHtmlContent.Replace($featureCheck, $httpFallback),
+    [System.Text.UTF8Encoding]::new($false)
+)
+
 Copy-Item -LiteralPath (Join-Path $gameRoot 'project.godot') -Destination $serverTarget
 Copy-Item -LiteralPath (Join-Path $gameRoot 'main.tscn') -Destination $serverTarget
 Copy-Item -LiteralPath (Join-Path $gameRoot 'scripts') -Destination $serverTarget -Recurse

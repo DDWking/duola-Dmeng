@@ -164,7 +164,11 @@ const engine = new Engine(GODOT_CONFIG);
 
 	const missing = Engine.getMissingFeatures({
 		threads: GODOT_THREADS_ENABLED,
-	});
+	}).filter((feature) => !(
+		window.location.protocol === 'http:'
+		&& !GODOT_THREADS_ENABLED
+		&& feature.startsWith('Secure Context')
+	));
 
 	if (missing.length !== 0) {
 		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
