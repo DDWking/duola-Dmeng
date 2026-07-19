@@ -18,9 +18,12 @@ RUN set -eux; \
     rm -rf /tmp/godot /tmp/godot.zip
 
 WORKDIR /app
+RUN chown godot:godot /app
 COPY --chown=godot:godot project/ /app/
 
 USER godot
+RUN godot --headless --editor --path /app --quit
+
 EXPOSE 9001
 STOPSIGNAL SIGINT
 
