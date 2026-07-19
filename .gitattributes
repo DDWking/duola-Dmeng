@@ -3,3 +3,10 @@
 *.js text eol=lf
 *.css text eol=lf
 *.sh text eol=lf
+
+games/volleyball/web/runtime/*.pck binary
+games/volleyball/web/runtime/*.wasm binary
+games/volleyball/web/runtime/*.png binary
+games/volleyball/web/runtime/** -whitespace
+games/volleyball/server/project/assets/fonts/*.ttf binary
+games/volleyball/server/project/assets/fonts/OFL.txt -whitespace

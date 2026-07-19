@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08111f">
+  <title>瓦力波 | 哆啦D梦的口袋</title>
+  <link rel="stylesheet" href="./game-page.css">
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="/" aria-label="返回哆啦D梦的口袋">
+      <span aria-hidden="true">←</span>
+      <span>哆啦D梦的口袋</span>
+    </a>
+    <strong>瓦力波</strong>
+    <button class="fullscreen-button" type="button" aria-label="全屏游玩" title="全屏游玩" data-fullscreen>
+      <span aria-hidden="true">⛶</span>
+    </button>
+  </header>
+
+  <main class="game-page">
+    <section class="game-stage" aria-label="瓦力波游戏区域" data-game-stage>
+      <iframe
+        src="./runtime/index.html"
+        title="瓦力波"
+        allow="autoplay; fullscreen"
+        tabindex="0"
+        data-game-frame></iframe>
+    </section>
+
+    <section class="desktop-notice" aria-labelledby="desktop-notice-title">
+      <h1 id="desktop-notice-title">瓦力波需要电脑键盘</h1>
+      <p>请使用电脑浏览器打开，推荐 1280 × 720 或更大的窗口。</p>
+      <a href="/">返回网站</a>
+    </section>
+
+    <section class="game-guide" aria-labelledby="game-guide-title">
+      <div>
+        <h1 id="game-guide-title">瓦力波</h1>
+        <p>单人对战电脑，或者用六位房间码和朋友在线 1v1。</p>
+      </div>
+      <dl>
+        <div><dt>移动</dt><dd>A / D</dd></div>
+        <div><dt>跳跃</dt><dd>W</dd></div>
+        <div><dt>垫球 / 二传 / 吊球</dt><dd>J</dd></div>
+        <div><dt>扣球</dt><dd>K</dd></div>
+        <div><dt>飞扑</dt><dd>L</dd></div>
+        <div><dt>拦网</dt><dd>U</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <script src="./game-page.js"></script>
+</body>
+</html>

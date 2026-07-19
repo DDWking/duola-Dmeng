@@ -529,6 +529,91 @@ button { color: inherit; }
   mask-image: radial-gradient(ellipse 58% 64% at 58% 53%, #000 46%, rgba(0, 0, 0, 0.86) 58%, transparent 78%);
   animation: character-arrive 1100ms 240ms both cubic-bezier(0.22, 1, 0.36, 1);
 }
+.home-game-feature {
+  width: min(1240px, calc(100vw - 3rem));
+  padding: 6.5rem 0 8rem;
+  margin: 0 auto;
+}
+.home-game-feature > a {
+  display: grid;
+  grid-template-columns: minmax(0, 1.38fr) minmax(300px, 0.62fr);
+  gap: clamp(3rem, 7vw, 7rem);
+  align-items: center;
+  padding: 2.4rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.home-game-preview {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 8px solid #fff;
+  border-radius: 6px;
+  background: #08111f;
+  box-shadow: 0 24px 64px rgba(36, 48, 82, 0.16);
+  transform: rotate(-0.6deg);
+  transition: box-shadow 380ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.home-game-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.home-game-play {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  display: grid;
+  width: 54px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  background: rgba(8, 17, 31, 0.76);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  transition: background 220ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.home-game-play i {
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid #fff;
+}
+.home-game-copy h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 3.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.home-game-copy p {
+  max-width: 26rem;
+  margin: 1.1rem 0 2rem;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+.home-game-copy > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(91, 108, 163, 0.36);
+  color: var(--lavender-deep);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.home-game-copy > span i { font-style: normal; transition: transform 220ms ease; }
+.home-game-feature > a:hover .home-game-preview {
+  box-shadow: 0 34px 84px rgba(36, 48, 82, 0.23);
+  transform: translateY(-7px) rotate(0deg);
+}
+.home-game-feature > a:hover .home-game-preview img { transform: scale(1.025); }
+.home-game-feature > a:hover .home-game-play { background: var(--lavender-deep); transform: scale(1.08); }
+.home-game-feature > a:hover .home-game-copy > span i { transform: translateX(5px); }
 /* Archive and article pages */
 .page-intro {
   position: relative;
@@ -970,6 +1055,9 @@ body.is-lightbox-open { overflow: hidden; }
     margin: -3.5rem 0 0 auto;
   }
   .home-character { object-position: right bottom; }
+  .home-game-feature { width: min(100% - 2.4rem, 760px); padding: 2rem 0 6rem; }
+  .home-game-feature > a { grid-template-columns: 1fr; gap: 2rem; }
+  .home-game-copy { max-width: 520px; }
   .site-main:not(.is-home) { width: min(100% - 2rem, 760px); padding-top: 2.5rem; }
   .album-grid,
   .album-grid-archive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -979,7 +1067,7 @@ body.is-lightbox-open { overflow: hidden; }
 @media (max-width: 620px) {
   body { font-size: 15px; }
   .site-header { min-height: 72px; }
-  .site-nav { gap: 1.15rem; }
+  .site-nav { gap: 0.85rem; }
   .site-nav a { font-size: 0.8rem; }
   .site-avatar { width: 38px; border-width: 2px; }
   .scrapbook-home { padding-right: 0.85rem; padding-left: 0.85rem; }
@@ -1013,6 +1101,12 @@ body.is-lightbox-open { overflow: hidden; }
     margin: -4.5rem 0 0 auto;
   }
   .home-character { opacity: 0.9; }
+  .home-game-feature { width: calc(100% - 1.7rem); padding-top: 1rem; }
+  .home-game-feature > a { gap: 1.6rem; padding: 1.6rem 0 2rem; }
+  .home-game-preview { border-width: 5px; }
+  .home-game-play { right: 14px; bottom: 13px; width: 44px; }
+  .home-game-copy h2 { font-size: 2.3rem; }
+  .home-game-copy p { margin: 0.8rem 0 1.4rem; }
   .page-intro h1,
   .album-header h1,
   .article-header h1,

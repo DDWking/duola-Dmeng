@@ -15,3 +15,4 @@ if (-not (Test-Path '.env.local')) {
 docker compose --env-file .env.local -f compose.local.yaml up -d --build
 Write-Host 'Local preview is starting: http://localhost:8080'
 Write-Host 'WordPress setup/admin: http://localhost:8080/wp-admin'
+Write-Host 'Volleyball game: http://localhost:8080/volleyball/'

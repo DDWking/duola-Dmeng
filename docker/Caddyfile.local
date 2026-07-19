@@ -8,5 +8,19 @@
         X-Frame-Options "SAMEORIGIN"
     }
 
-    reverse_proxy wordpress:80
+    @volleyball_root path /volleyball
+    redir @volleyball_root /volleyball/ 308
+
+    handle /volleyball-ws* {
+        reverse_proxy volleyball-server:9001
+    }
+
+    handle_path /volleyball/* {
+        root * /srv/volleyball
+        file_server
+    }
+
+    handle {
+        reverse_proxy wordpress:80
+    }
 }

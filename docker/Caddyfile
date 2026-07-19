@@ -11,5 +11,19 @@
 	@images path_regexp images \.(?:avif|webp|jpe?g|png|gif)$
 	header @images Cache-Control "public, max-age=31536000, immutable"
 
-	reverse_proxy wordpress:80
+	@volleyball_root path /volleyball
+	redir @volleyball_root /volleyball/ 308
+
+	handle /volleyball-ws* {
+		reverse_proxy volleyball-server:9001
+	}
+
+	handle_path /volleyball/* {
+		root * /srv/volleyball
+		file_server
+	}
+
+	handle {
+		reverse_proxy wordpress:80
+	}
 }

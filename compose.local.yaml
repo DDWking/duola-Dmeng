@@ -7,10 +7,23 @@ services:
     depends_on:
       wordpress:
         condition: service_started
+      volleyball-server:
+        condition: service_started
     ports:
       - "8080:80"
     volumes:
       - ./docker/Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - ./games/volleyball/web:/srv/volleyball:ro
+    networks:
+      - site
+
+  volleyball-server:
+    build:
+      context: ./games/volleyball/server
+      dockerfile: Dockerfile
+    image: duola-volleyball-server:local
+    container_name: duola-volleyball-server-local
+    restart: unless-stopped
     networks:
       - site
 

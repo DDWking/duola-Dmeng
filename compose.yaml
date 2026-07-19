@@ -6,6 +6,8 @@
     depends_on:
       wordpress:
         condition: service_started
+      volleyball-server:
+        condition: service_started
     environment:
       SITE_DOMAIN: ${SITE_DOMAIN}
     ports:
@@ -13,8 +15,19 @@
       - "443:443"
     volumes:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./games/volleyball/web:/srv/volleyball:ro
       - ./data/caddy/data:/data
       - ./data/caddy/config:/config
+    networks:
+      - site
+
+  volleyball-server:
+    build:
+      context: ./games/volleyball/server
+      dockerfile: Dockerfile
+    image: duola-volleyball-server:local
+    container_name: duola-volleyball-server
+    restart: unless-stopped
     networks:
       - site
 

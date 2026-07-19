@@ -1,6 +1,6 @@
 ﻿# 哆啦D梦的口袋
 
-自托管的个人摄影与文章网站。运行架构为 `Caddy + WordPress + MariaDB`，由 Docker Compose 管理。
+自托管的个人摄影、文章与小游戏网站。运行架构为 `Caddy + WordPress + MariaDB + Godot`，由 Docker Compose 管理。
 
 详细的产品与架构决策见 [PROJECT.md](PROJECT.md)。
 
@@ -11,12 +11,15 @@ docker/                         Caddy 与 WordPress 镜像配置
 wordpress/wp-content/themes/    自定义主题源代码
 wordpress/wp-content/plugins/   自定义相册管理插件
 scripts/                        服务器部署、备份与恢复脚本
+games/volleyball/              瓦力波 Web 导出与联机服务器部署包
 data/                           运行时数据（忽略，不提交 Git）
 ```
 
 `data/` 中的 MariaDB 数据、WordPress 上传图片和 Caddy 证书是持久数据；它们不在 Docker 镜像或 Git 仓库中。
 
 自定义主题和相册插件以只读方式从项目工作区挂载到 WordPress 容器。日后手动部署时，服务器拉取 GitHub 代码并重建服务即可更新它们；文章、数据库和上传照片不会受影响。
+
+更新瓦力波前先运行 `powershell -ExecutionPolicy Bypass -File .\\scripts\\sync-volleyball.ps1`。脚本会执行冒烟测试、重新导出 Web 版本，并同步联机服务器需要的最小 Godot 项目。
 
 ## 本地预览
 
