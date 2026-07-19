@@ -7,12 +7,17 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends ca-certificates curl libfontconfig1 libxkbcommon0 unzip; \
     rm -rf /var/lib/apt/lists/*; \
-    curl -fsSL "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" -o /tmp/godot.zip; \
+    useradd --create-home --uid 10001 godot
+
+RUN set -eux; \
+    curl --fail --location --show-error --silent \
+        --retry 8 --retry-delay 5 --retry-all-errors --continue-at - \
+        "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" \
+        -o /tmp/godot.zip; \
     echo "${GODOT_SHA256}  /tmp/godot.zip" | sha256sum -c -; \
     unzip /tmp/godot.zip -d /tmp/godot; \
     install -m 0755 "/tmp/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot; \
-    rm -rf /tmp/godot /tmp/godot.zip; \
-    useradd --create-home --uid 10001 godot
+    rm -rf /tmp/godot /tmp/godot.zip
 
 WORKDIR /app
 COPY --chown=godot:godot project/ /app/
