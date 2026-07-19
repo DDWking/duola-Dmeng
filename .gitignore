@@ -6,6 +6,8 @@ vendor/
 !wordpress/wp-content/plugins/duola-albums/vendor/parsedown/Parsedown.php
 !wordpress/wp-content/plugins/duola-albums/vendor/parsedown/LICENSE.txt
 !wordpress/wp-content/plugins/duola-albums/vendor/parsedown/README.md
+!games/volleyball/server/vendor/
+!games/volleyball/server/vendor/*.zip
 
 # Environment and secrets
 .env
