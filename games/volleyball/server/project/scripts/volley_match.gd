@@ -36,9 +36,11 @@ const POSE_POINTS := [
 ]
 
 const COLORS := {
-	"ink": Color("1b2741"), "paper": Color("fbfaf7"), "court": Color("d97942"),
-	"court_dark": Color("a84b39"), "cyan": Color("8293e6"), "yellow": Color("dfe3fb"),
-	"red": Color("ff6b7d"), "green": Color("7cc7b8"), "muted": Color("aeb8cf")
+	"ink": Color("1b2741"), "paper": Color("fbfaf7"), "panel": Color("ffffff"),
+	"court": Color("e8edf9"), "court_dark": Color("cfd8ee"), "cyan": Color("8293e6"),
+	"yellow": Color("6579d8"), "pale": Color("dfe3fb"), "wash": Color("edf2fb"),
+	"red": Color("ff6b7d"), "green": Color("6fb9ad"), "muted": Color("536079"),
+	"line": Color("cbd3ec")
 }
 
 class Actor:
@@ -134,6 +136,8 @@ var action_message_time := 0.0
 var screen_shake := 0.0
 var score_pulse_time := 0.0
 var timing_flash_time := 0.0
+var action_pop_scale := 1.0
+var action_tween: Tween
 var particles: Array[Dictionary] = []
 
 var ai_think := 0.0
@@ -146,6 +150,10 @@ var last_player_attack_from_backcourt := false
 var spikes := 0
 var saves := 0
 var blocks := 0
+var performance_score := 0
+var perfect_touches := 0
+var current_combo := 0
+var max_combo := 0
 var net_clash_cooldown := 0.0
 var pause_button: Button
 var pause_layer: Control
@@ -199,6 +207,8 @@ func _ready() -> void:
 	pause_button.tooltip_text = "暂停比赛"
 	pause_button.position = PAUSE_BUTTON_RECT.position
 	pause_button.size = PAUSE_BUTTON_RECT.size
+	pause_button.theme_type_variation = &"GhostButton"
+	pause_button.pivot_offset = pause_button.size * 0.5
 	pause_button.pressed.connect(_toggle_pause)
 	if runtime_mode != RuntimeMode.NETWORK_SERVER:
 		add_child(pause_button)
@@ -713,6 +723,7 @@ func _perform_k_attack(actor: Actor, contact_quality: float = 1.0) -> bool:
 	if actor.shot_route != ShotRoute.TIP:
 		spikes += 1 if actor.side < 0 else 0
 	var attack_name := _k_attack_name(actor.k_attack, actor.shot_route)
+	_register_quality_feedback(actor, contact_quality, 95 if actor.shot_route != ShotRoute.TIP else 70)
 	_show_action(_quality_label(contact_quality, "完美" + attack_name, attack_name, "勉强" + attack_name), COLORS.cyan if actor.shot_route == ShotRoute.TIP else COLORS.red)
 	screen_shake = (3.0 if actor.shot_route == ShotRoute.TIP else (5.0 if actor.shot_route == ShotRoute.CROSS else 7.0)) * lerpf(0.65, 1.0, contact_quality)
 	_spawn_impact(ball_position, actor.color(), actor.shot_route != ShotRoute.TIP and contact_quality >= 0.32)
@@ -797,6 +808,8 @@ func _perform_hit(actor: Actor, charge: float, ai_mode: String = "", contact_qua
 		actor.bump_time = 0.34
 		actor.block_fatigue = 0
 		_show_action(_quality_label(quality, "精准保命", "保命回球", "勉强回球"), actor.color())
+	var quality_points := 50 if phase == TouchPhase.RECEIVE else (60 if phase == TouchPhase.SET else 80)
+	_register_quality_feedback(actor, quality, quality_points)
 	_spawn_impact(ball_position, actor.color(), charge > 0.65)
 	_spawn_speed_lines(ball_position, across, actor.color(), 8 if actor.spike_time > 0.0 else 4)
 	return true
@@ -804,6 +817,22 @@ func _perform_hit(actor: Actor, charge: float, ai_mode: String = "", contact_qua
 
 func _quality_label(quality: float, perfect: String, good: String, poor: String) -> String:
 	return perfect if quality >= PERFECT_TIMING_QUALITY else (good if quality >= 0.32 else poor)
+
+
+func _register_quality_feedback(actor: Actor, quality: float, base_points: int) -> void:
+	if actor != player:
+		return
+	if quality >= PERFECT_TIMING_QUALITY:
+		current_combo += 1
+		perfect_touches += 1
+		max_combo = maxi(max_combo, current_combo)
+		performance_score += base_points + mini(current_combo, 8) * 12
+	elif quality >= 0.32:
+		current_combo = 0
+		performance_score += int(base_points / 2.0)
+	else:
+		current_combo = 0
+		performance_score += 10
 
 
 func _self_set_velocity(actor: Actor, quality: float) -> Vector2:
@@ -1001,6 +1030,8 @@ func _check_block_contact(actor: Actor) -> void:
 	ball_velocity.x = -actor.side * 430.0
 	ball_velocity.y = 100.0
 	blocks += 1 if actor.side < 0 else 0
+	if actor == player:
+		performance_score += 160
 	_show_action("拦网", actor.color())
 	_spawn_impact(ball_position, actor.color(), true)
 
@@ -1020,6 +1051,8 @@ func _check_dive_contact(actor: Actor) -> void:
 	actor.hit_cooldown = 0.28
 	ball_velocity = Vector2(-actor.side * 125.0, -625.0)
 	saves += 1 if actor.side < 0 else 0
+	if actor == player:
+		performance_score += 120
 	_show_action("救球成功", COLORS.cyan)
 	_spawn_impact(ball_position, actor.color(), true)
 
@@ -1090,8 +1123,10 @@ func _award_point(winner_side: int, reason: String) -> void:
 	loser.hurt_time = 0.78
 	if winner_side < 0:
 		player_score += 1
+		performance_score += 220 + mini(rally_hits, 20) * 5
 	else:
 		cpu_score += 1
+	current_combo = 0
 	score_pulse_time = 0.45
 	screen_shake = maxf(screen_shake, 3.5)
 	_spawn_impact(winner.position + Vector2(0.0, -52.0), winner.color(), true)
@@ -1370,9 +1405,16 @@ func _handle_key(event: InputEventKey) -> void:
 func _show_action(text: String, color: Color) -> void:
 	action_message = text
 	action_message_color = color
-	action_message_time = 0.55
+	action_message_time = 0.72
+	action_pop_scale = 1.2 if text.begins_with("完美") or text.begins_with("精准") else 1.08
+	if action_tween:
+		action_tween.kill()
+	if runtime_mode != RuntimeMode.NETWORK_SERVER:
+		action_tween = create_tween().bind_node(self)
+		action_tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		action_tween.tween_property(self, "action_pop_scale", 1.0, 0.3)
 	if text.begins_with("完美") or text.begins_with("精准"):
-		timing_flash_time = 0.24
+		timing_flash_time = 0.32
 
 
 func _spawn_impact(position: Vector2, color: Color, strong: bool) -> void:
@@ -1419,7 +1461,7 @@ func _finish_match() -> void:
 	if state == MatchState.MATCH_OVER:
 		return
 	state = MatchState.MATCH_OVER
-	finished.emit({"victory": player_sets > cpu_sets, "player_sets": player_sets, "cpu_sets": cpu_sets, "player_score": player_score, "cpu_score": cpu_score, "spikes": spikes, "saves": saves, "blocks": blocks})
+	finished.emit({"victory": player_sets > cpu_sets, "player_sets": player_sets, "cpu_sets": cpu_sets, "player_score": player_score, "cpu_score": cpu_score, "spikes": spikes, "saves": saves, "blocks": blocks, "perfect_touches": perfect_touches, "max_combo": max_combo, "performance_score": performance_score})
 
 
 func make_network_snapshot() -> Dictionary:
@@ -1442,6 +1484,10 @@ func make_network_snapshot() -> Dictionary:
 		"action_message": action_message,
 		"action_message_color": action_message_color,
 		"action_message_time": action_message_time,
+		"performance_score": performance_score,
+		"perfect_touches": perfect_touches,
+		"current_combo": current_combo,
+		"max_combo": max_combo,
 		"player": _actor_network_state(player),
 		"cpu": _actor_network_state(cpu)
 	}
@@ -1478,6 +1524,10 @@ func apply_network_snapshot(snapshot: Dictionary) -> void:
 	action_message = String(snapshot.get("action_message", action_message))
 	action_message_color = Color(snapshot.get("action_message_color", action_message_color))
 	action_message_time = float(snapshot.get("action_message_time", action_message_time))
+	performance_score = int(snapshot.get("performance_score", performance_score))
+	perfect_touches = int(snapshot.get("perfect_touches", perfect_touches))
+	current_combo = int(snapshot.get("current_combo", current_combo))
+	max_combo = int(snapshot.get("max_combo", max_combo))
 	_apply_actor_network_state(player, snapshot.get("player", {}), local_network_side < 0)
 	_apply_actor_network_state(cpu, snapshot.get("cpu", {}), local_network_side > 0)
 	network_snapshot_ready = true
@@ -1537,6 +1587,9 @@ func _apply_actor_network_state(actor: Actor, data: Dictionary, locally_predicte
 func _toggle_pause() -> void:
 	game_paused = not game_paused
 	if game_paused:
+		action_message_time = 0.0
+		point_message_time = 0.0
+		queue_redraw()
 		_show_pause_layer()
 	elif is_instance_valid(pause_layer):
 		pause_layer.queue_free()
@@ -1549,16 +1602,16 @@ func _show_pause_layer() -> void:
 	pause_layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(pause_layer)
 	var shade := ColorRect.new()
-	shade.color = Color(0.015, 0.025, 0.045, 0.88)
+	shade.color = Color(COLORS.ink, 0.48)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	pause_layer.add_child(shade)
 	var panel := ColorRect.new()
-	panel.color = Color("101f33")
+	panel.color = COLORS.paper
 	panel.position = Vector2(275, 92)
 	panel.size = Vector2(410, 356)
 	pause_layer.add_child(panel)
 	var accent := ColorRect.new()
-	accent.color = COLORS.yellow
+	accent.color = COLORS.cyan
 	accent.position = Vector2(275, 92)
 	accent.size = Vector2(410, 7)
 	pause_layer.add_child(accent)
@@ -1575,7 +1628,7 @@ func _show_pause_layer() -> void:
 	score.position = Vector2(280, 184)
 	score.size = Vector2(400, 38)
 	score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	score.add_theme_color_override("font_color", COLORS.paper)
+	score.add_theme_color_override("font_color", COLORS.ink)
 	score.add_theme_font_size_override("font_size", 25)
 	pause_layer.add_child(score)
 	var resume := Button.new()
@@ -1583,6 +1636,7 @@ func _show_pause_layer() -> void:
 	resume.position = Vector2(330, 260)
 	resume.size = Vector2(300, 58)
 	resume.pressed.connect(_toggle_pause)
+	resume.theme_type_variation = &"PrimaryButton"
 	pause_layer.add_child(resume)
 	var quit := Button.new()
 	quit.text = "退出比赛"
@@ -1595,7 +1649,15 @@ func _show_pause_layer() -> void:
 				bridge.leave_online_room()
 		quit_requested.emit()
 	)
+	quit.theme_type_variation = &"GhostButton"
 	pause_layer.add_child(quit)
+	pause_layer.modulate.a = 0.0
+	panel.position.y += 10.0
+	var entrance := create_tween().bind_node(pause_layer)
+	entrance.set_parallel(true)
+	entrance.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	entrance.tween_property(pause_layer, "modulate:a", 1.0, 0.22)
+	entrance.tween_property(panel, "position:y", 92.0, 0.3)
 
 
 func _draw() -> void:
@@ -1632,70 +1694,72 @@ func _draw_particles() -> void:
 
 
 func _draw_arena() -> void:
-	draw_rect(Rect2(0, 0, 960, 540), COLORS.ink)
-	draw_rect(Rect2(0, 82, 960, 138), Color("14273d"))
-	draw_rect(Rect2(0, 82, 960, 5), Color(COLORS.cyan, 0.22))
+	draw_rect(Rect2(0, 0, 960, 540), COLORS.paper)
+	draw_rect(Rect2(0, 82, 960, 138), COLORS.wash)
+	draw_rect(Rect2(0, 82, 960, 4), Color(COLORS.cyan, 0.34))
 	for row in 3:
 		for column in 32:
-			var color: Color = [COLORS.cyan, COLORS.yellow, COLORS.red, COLORS.paper][(row * 3 + column) % 4]
+			var color: Color = [COLORS.cyan, COLORS.yellow, COLORS.red, COLORS.green][(row * 3 + column) % 4]
 			var person_x := column * 31 - 8 + (row % 2) * 9
 			var person_y := 106 + row * 34
-			draw_circle(Vector2(person_x + 6, person_y), 5, Color(color, 0.16))
-			draw_rect(Rect2(person_x, person_y + 7, 12, 14), Color(color, 0.13))
+			draw_circle(Vector2(person_x + 6, person_y), 5, Color(color, 0.22))
+			draw_rect(Rect2(person_x, person_y + 7, 12, 14), Color(color, 0.16))
 	for light_x in [82.0, 878.0]:
-		draw_line(Vector2(light_x, 88), Vector2(light_x, 207), Color(COLORS.paper, 0.12), 3)
+		draw_line(Vector2(light_x, 88), Vector2(light_x, 207), Color(COLORS.ink, 0.1), 3)
 		for lamp in 4:
-			draw_circle(Vector2(light_x - 18 + lamp * 12, 96), 3.5, Color(COLORS.yellow, 0.45))
-	draw_rect(Rect2(32, 220, 896, 185), Color("df7741"))
+			draw_circle(Vector2(light_x - 18 + lamp * 12, 96), 3.5, Color(COLORS.yellow, 0.34))
+	draw_rect(Rect2(32, 220, 896, 185), COLORS.court)
 	draw_rect(Rect2(32, 374, 896, 31), COLORS.court_dark)
-	draw_rect(Rect2(32, 220, 896, 185), Color(COLORS.paper, 0.18), false, 2)
-	draw_line(Vector2(32, FLOOR_Y), Vector2(928, FLOOR_Y), COLORS.paper, 5)
-	draw_line(Vector2(240, 220), Vector2(240, FLOOR_Y), Color(COLORS.paper, 0.35), 2)
-	draw_line(Vector2(720, 220), Vector2(720, FLOOR_Y), Color(COLORS.paper, 0.35), 2)
-	draw_line(Vector2(32, 286), Vector2(928, 286), Color(COLORS.paper, 0.12), 2)
-	draw_rect(Rect2(0, 405, 960, 135), Color("07101d"))
+	draw_rect(Rect2(32, 220, 896, 185), Color(COLORS.ink, 0.18), false, 2)
+	draw_line(Vector2(32, FLOOR_Y), Vector2(928, FLOOR_Y), COLORS.ink, 4)
+	draw_line(Vector2(240, 220), Vector2(240, FLOOR_Y), Color(COLORS.cyan, 0.42), 2)
+	draw_line(Vector2(720, 220), Vector2(720, FLOOR_Y), Color(COLORS.cyan, 0.42), 2)
+	draw_line(Vector2(32, 286), Vector2(928, 286), Color(COLORS.ink, 0.1), 2)
+	draw_rect(Rect2(0, 405, 960, 135), Color("f3f1ef"))
 	for x in range(0, 960, 48):
-		draw_line(Vector2(x, 405), Vector2(x + 74, 540), Color(COLORS.cyan, 0.025), 1)
+		draw_line(Vector2(x, 405), Vector2(x + 74, 540), Color(COLORS.cyan, 0.07), 1)
 
 
 func _draw_hud() -> void:
-	draw_rect(Rect2(0, 0, 960, 82), Color(COLORS.ink, 0.97))
-	draw_rect(Rect2(0, 78, 960, 4), Color(COLORS.paper, 0.08))
-	draw_rect(Rect2(0, 0, 10, 82), player.color())
-	draw_rect(Rect2(884, 0, 10, 82), cpu.color())
+	draw_rect(Rect2(0, 0, 960, 82), Color(COLORS.panel, 0.96))
+	draw_rect(Rect2(0, 78, 960, 4), Color(COLORS.cyan, 0.22))
+	draw_rect(Rect2(0, 0, 8, 82), player.color())
+	draw_rect(Rect2(884, 0, 8, 82), cpu.color())
 	if score_pulse_time > 0.0:
-		var pulse_alpha := clampf(score_pulse_time / 0.45, 0.0, 1.0) * 0.26
+		var pulse_alpha := clampf(score_pulse_time / 0.45, 0.0, 1.0) * 0.18
 		if last_point_winner < 0:
-			draw_rect(Rect2(17, 28, 88, 50), Color(player.color(), pulse_alpha))
+			draw_rect(Rect2(15, 25, 94, 54), Color(player.color(), pulse_alpha))
 		else:
-			draw_rect(Rect2(789, 28, 90, 50), Color(cpu.color(), pulse_alpha))
+			draw_rect(Rect2(787, 25, 94, 54), Color(cpu.color(), pulse_alpha))
 	_draw_text(String(player.data.get("display_name", player.data.name)), Rect2(26, 8, 300, 25), 18, player.color(), HORIZONTAL_ALIGNMENT_LEFT)
-	_draw_text("%02d" % player_score, Rect2(24, 31, 74, 48), 39 + (3 if score_pulse_time > 0.0 and last_point_winner < 0 else 0), COLORS.paper, HORIZONTAL_ALIGNMENT_LEFT)
+	_draw_text("%02d" % player_score, Rect2(24, 31, 78, 48), 39 + (6 if score_pulse_time > 0.0 and last_point_winner < 0 else 0), COLORS.ink, HORIZONTAL_ALIGNMENT_LEFT)
 	_draw_set_markers(player_sets, Vector2(111, 17), player.color(), false)
 	_draw_text(String(player.data.role), Rect2(112, 46, 218, 22), 14, COLORS.muted, HORIZONTAL_ALIGNMENT_LEFT)
+	if serve_side < 0:
+		draw_circle(Vector2(314, 18), 4, player.color())
 
 	_draw_text(String(cpu.data.get("display_name", cpu.data.name)), Rect2(600, 8, 272, 25), 18, cpu.color(), HORIZONTAL_ALIGNMENT_RIGHT)
-	_draw_text("%02d" % cpu_score, Rect2(796, 31, 76, 48), 39 + (3 if score_pulse_time > 0.0 and last_point_winner > 0 else 0), COLORS.paper, HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_text("%02d" % cpu_score, Rect2(796, 31, 76, 48), 39 + (6 if score_pulse_time > 0.0 and last_point_winner > 0 else 0), COLORS.ink, HORIZONTAL_ALIGNMENT_RIGHT)
 	_draw_set_markers(cpu_sets, Vector2(760, 17), cpu.color(), true)
 	_draw_text(String(cpu.data.role), Rect2(630, 46, 152, 22), 14, COLORS.muted, HORIZONTAL_ALIGNMENT_RIGHT)
+	if serve_side > 0:
+		draw_circle(Vector2(608, 18), 4, cpu.color())
 
-	draw_rect(Rect2(372, 8, 216, 66), Color("13243a"))
-	draw_rect(Rect2(372, 8, 216, 3), COLORS.yellow)
-	_draw_text("第 %d 局" % (player_sets + cpu_sets + 1), Rect2(392, 13, 176, 29), 22, COLORS.yellow)
-	if state == MatchState.PLAY and action_message_time > 0.0:
-		var action_rect := Rect2(391, 45, 178, 22)
-		draw_rect(action_rect, Color(action_message_color, 0.13))
-		draw_rect(action_rect, Color(action_message_color, 0.72), false, 1)
-		_draw_text(action_message, action_rect, 16, action_message_color)
-	else:
-		_draw_touch_pipeline(Rect2(391, 46, 178, 20))
+	draw_rect(Rect2(360, 7, 240, 68), COLORS.wash)
+	draw_rect(Rect2(360, 7, 240, 68), Color(COLORS.cyan, 0.45), false, 1)
+	_draw_text("第 %d 局  /  %s" % [player_sets + cpu_sets + 1, "我方发球" if serve_side < 0 else "对方发球"], Rect2(380, 11, 200, 26), 17, COLORS.yellow)
+	_draw_touch_pipeline(Rect2(390, 44, 180, 22))
+	var status_text := "积分 %04d" % performance_score if runtime_mode == RuntimeMode.OFFLINE else "ONLINE"
+	_draw_text(status_text, Rect2(282, 50, 74, 22), 13, COLORS.muted, HORIZONTAL_ALIGNMENT_RIGHT)
+	if current_combo >= 2:
+		_draw_text("%d COMBO" % current_combo, Rect2(604, 50, 88, 22), 14, COLORS.yellow, HORIZONTAL_ALIGNMENT_LEFT)
 
 
 func _draw_set_markers(count: int, origin: Vector2, color: Color, align_right: bool) -> void:
 	_draw_text("局", Rect2(origin.x, origin.y, 22, 20), 14, COLORS.muted, HORIZONTAL_ALIGNMENT_RIGHT if align_right else HORIZONTAL_ALIGNMENT_LEFT)
 	for index in 2:
 		var x := origin.x + (34.0 + index * 17.0) * (-1.0 if align_right else 1.0)
-		draw_rect(Rect2(x, origin.y + 7, 10, 6), color if index < count else Color(COLORS.paper, 0.16))
+		draw_rect(Rect2(x, origin.y + 7, 10, 6), color if index < count else Color(COLORS.ink, 0.12))
 
 
 func _draw_touch_pipeline(rect: Rect2) -> void:
@@ -1704,29 +1768,38 @@ func _draw_touch_pipeline(rect: Rect2) -> void:
 	for index in 3:
 		var cell := Rect2(rect.position + Vector2(index * 60.0, 0), Vector2(55, rect.size.y))
 		var active := phase == index
-		draw_rect(cell, Color(COLORS.yellow, 0.18) if active else Color(COLORS.ink, 0.65))
-		draw_rect(cell, COLORS.yellow if active else Color(COLORS.paper, 0.14), false, 1)
-		_draw_text(labels[index], cell, 14, COLORS.yellow if active else COLORS.muted)
+		draw_rect(cell, COLORS.yellow if active else Color(COLORS.panel, 0.72))
+		draw_rect(cell, COLORS.yellow if active else Color(COLORS.line, 0.9), false, 1)
+		_draw_text(labels[index], cell, 14, Color.WHITE if active else COLORS.muted)
 
 
 func _draw_match_feedback() -> void:
 	if timing_flash_time > 0.0:
-		var alpha := clampf(timing_flash_time / 0.24, 0.0, 1.0)
-		draw_rect(Rect2(0, 82, 960, 4), Color(action_message_color, alpha))
+		var alpha := clampf(timing_flash_time / 0.32, 0.0, 1.0)
+		draw_rect(Rect2(0, 82, 960, 458), Color(action_message_color, alpha * 0.055))
+		draw_rect(Rect2(0, 82, 960, 4), Color(action_message_color, alpha * 0.9))
+	if state == MatchState.PLAY and action_message_time > 0.0:
+		var action_rect := Rect2(300, 112, 360, 56).grow((action_pop_scale - 1.0) * 32.0)
+		draw_rect(Rect2(action_rect.position + Vector2(0, 5), action_rect.size), Color(COLORS.ink, 0.08))
+		draw_rect(action_rect, Color(COLORS.panel, 0.94))
+		draw_rect(action_rect, Color(action_message_color, 0.85), false, 2)
+		_draw_text(action_message, action_rect.grow(-7), 22 + int((action_pop_scale - 1.0) * 18.0), action_message_color)
 	if point_message_time > 0.0:
-		var point_rect := Rect2(350, 137, 260, 48) if state == MatchState.SERVE else Rect2(292, 174, 376, 78)
+		var point_rect := Rect2(350, 132, 260, 48) if state == MatchState.SERVE else Rect2(292, 168, 376, 82)
 		var point_color := COLORS.yellow if state == MatchState.SERVE else (player.color() if last_point_winner < 0 else cpu.color())
-		draw_rect(point_rect, Color(COLORS.ink, 0.94))
+		draw_rect(Rect2(point_rect.position + Vector2(0, 7), point_rect.size), Color(COLORS.ink, 0.1))
+		draw_rect(point_rect, Color(COLORS.panel, 0.96))
+		draw_rect(point_rect, Color(point_color, 0.55), false, 1)
 		draw_rect(Rect2(point_rect.position, Vector2(point_rect.size.x, 4 if state == MatchState.SERVE else 5)), point_color)
 		var text_rect := point_rect.grow(-8)
-		_draw_text(point_message, text_rect, 22 if state == MatchState.SERVE else 29, COLORS.paper)
+		_draw_text(point_message, text_rect, 22 if state == MatchState.SERVE else 29, COLORS.ink)
 
 
 func _draw_net() -> void:
-	draw_line(Vector2(NET_X, NET_TOP), Vector2(NET_X, FLOOR_Y), Color("e8eef0"), 6)
+	draw_line(Vector2(NET_X, NET_TOP), Vector2(NET_X, FLOOR_Y), COLORS.ink, 5)
 	for y in range(int(NET_TOP + 12), int(FLOOR_Y), 15):
-		draw_line(Vector2(NET_X - 17, y), Vector2(NET_X + 17, y), Color(0.9, 0.94, 0.95, 0.7), 2)
-	draw_line(Vector2(NET_X - 20, NET_TOP), Vector2(NET_X + 20, NET_TOP), COLORS.paper, 5)
+		draw_line(Vector2(NET_X - 17, y), Vector2(NET_X + 17, y), Color(COLORS.ink, 0.34), 2)
+	draw_line(Vector2(NET_X - 20, NET_TOP), Vector2(NET_X + 20, NET_TOP), COLORS.yellow, 5)
 
 
 func _draw_actor(actor: Actor) -> void:

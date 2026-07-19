@@ -32,7 +32,7 @@ function duola_migration_render_admin_page(): void
     ?>
     <div class="wrap duola-migration-page">
         <h1><?php esc_html_e('备份迁移', 'duola-albums'); ?></h1>
-        <p><?php esc_html_e('迁移包包含文章、标签、相册、全部图片原图、留言与点赞数、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
+        <p><?php esc_html_e('迁移包包含文章、标签、相册、全部图片原图、留言与点赞数、瓦力波排行榜、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
 
         <?php if ($error) : ?>
             <div class="notice notice-error"><p><?php echo esc_html($error); ?></p></div>
@@ -41,11 +41,12 @@ function duola_migration_render_admin_page(): void
             <div class="notice notice-success is-dismissible"><p>
                 <?php
                 echo esc_html(sprintf(
-                    __('导入完成：%1$d 篇文章、%2$d 本相册、%3$d 张图片、%4$d 条留言与回复。', 'duola-albums'),
+                    __('导入完成：%1$d 篇文章、%2$d 本相册、%3$d 张图片、%4$d 条留言与回复、%5$d 条游戏成绩。', 'duola-albums'),
                     absint($_GET['posts'] ?? 0),
                     absint($_GET['albums'] ?? 0),
                     absint($_GET['media'] ?? 0),
-                    absint($_GET['guestbook'] ?? 0)
+                    absint($_GET['guestbook'] ?? 0),
+                    absint($_GET['leaderboard'] ?? 0)
                 ));
                 ?>
             </p></div>
@@ -264,6 +265,7 @@ function duola_migration_export_content(): void
         'posts' => array_map(static fn(WP_Post $post): array => duola_migration_export_post($post, $id_to_uuid), $posts),
         'albums' => array_map(static fn(WP_Post $album): array => duola_migration_export_album($album, $id_to_uuid), $albums),
         'guestbook' => function_exists('duola_guestbook_export') ? duola_guestbook_export() : [],
+        'leaderboard' => function_exists('duola_volleyball_export') ? duola_volleyball_export() : [],
     ];
 
     $json = wp_json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
@@ -589,6 +591,7 @@ function duola_migration_import_content(): void
     $post_count = duola_migration_import_posts((array) ($manifest['posts'] ?? []), $media_ids, $url_map);
     $album_count = duola_migration_import_albums((array) ($manifest['albums'] ?? []), $media_ids);
     $guestbook_count = function_exists('duola_guestbook_import') ? duola_guestbook_import((array) ($manifest['guestbook'] ?? [])) : 0;
+    $leaderboard_count = function_exists('duola_volleyball_import') ? duola_volleyball_import((array) ($manifest['leaderboard'] ?? [])) : 0;
 
     $site = (array) ($manifest['site'] ?? []);
     if (!empty($site['name'])) {
@@ -607,6 +610,7 @@ function duola_migration_import_content(): void
         'albums' => $album_count,
         'media' => count($media_ids),
         'guestbook' => $guestbook_count,
+        'leaderboard' => $leaderboard_count,
     ], admin_url('admin.php?page=duola-migration')));
     exit;
 }

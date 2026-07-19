@@ -99,6 +99,7 @@ function assert_guestbook(bool $condition, string $message): void
 }
 
 duola_guestbook_install();
+duola_volleyball_install();
 $nonce = wp_create_nonce('duola_wall_submit');
 $_SERVER['REMOTE_ADDR'] = '172.18.0.3';
 $_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1';
@@ -139,9 +140,40 @@ $unliked = duola_guestbook_rest_toggle_like($like_request);
 assert_guestbook(true === $liked['liked'] && 1 === $liked['likes'], 'First +1 did not increment.');
 assert_guestbook(false === $unliked['liked'] && 0 === $unliked['likes'], 'Second +1 did not reverse.');
 
+$_SERVER['HTTP_X_FORWARDED_FOR'] = '2.2.2.2';
+$session_response = duola_volleyball_rest_start_session();
+assert_guestbook($session_response instanceof WP_REST_Response, 'Volleyball score session was not created.');
+$session_data = $session_response->get_data();
+$run_key = 'duola_volleyball_run_' . hash_hmac('sha256', $session_data['token'], wp_salt('nonce'));
+$run_data = get_transient($run_key);
+$run_data['started_at'] = time() - 30;
+set_transient($run_key, $run_data, 2 * HOUR_IN_SECONDS);
+$score_request = new WP_REST_Request('POST', '/duola/v1/volleyball/scores');
+$score_request->set_header('X-Duola-Volleyball-Nonce', $session_data['nonce']);
+$score_request->set_body_params([
+    'token' => $session_data['token'],
+    'nickname' => 'smoke',
+    'website' => '',
+    'player_sets' => 2,
+    'cpu_sets' => 0,
+    'player_score' => 11,
+    'cpu_score' => 7,
+    'spikes' => 3,
+    'saves' => 2,
+    'blocks' => 1,
+    'perfect_touches' => 4,
+    'max_combo' => 3,
+]);
+$score_response = duola_volleyball_rest_submit_score($score_request);
+assert_guestbook($score_response instanceof WP_REST_Response, 'Valid volleyball score was not accepted.');
+assert_guestbook(2290 === $score_response->get_data()['score'], 'Volleyball score was not calculated on the server.');
+$score_export = duola_volleyball_export();
+assert_guestbook(1 === count($score_export) && preg_match('/^[a-f0-9]{64}$/', $score_export[0]['visitor_key']), 'Volleyball visitor key was not included in the migration export.');
+
 global $wpdb;
 $wpdb->query('TRUNCATE TABLE ' . duola_guestbook_likes_table());
 $wpdb->query('TRUNCATE TABLE ' . duola_guestbook_messages_table());
+$wpdb->query('TRUNCATE TABLE ' . duola_volleyball_scores_table());
 
 $zip = new ZipArchive();
 assert_guestbook(true === $zip->open('/tmp/import.zip'), 'Could not open migration package for guestbook fixture.');
@@ -166,6 +198,42 @@ $manifest['guestbook'] = [
         'pinned' => false,
         'likes' => 0,
         'created_at' => '2026-07-13 10:01:00',
+    ],
+];
+$manifest['leaderboard'] = [
+    [
+        'uuid' => '20000000-0000-4000-8000-000000000001',
+        'nickname' => 'ace',
+        'score' => 2290,
+        'victory' => true,
+        'player_sets' => 2,
+        'cpu_sets' => 0,
+        'player_score' => 11,
+        'cpu_score' => 7,
+        'spikes' => 3,
+        'saves' => 2,
+        'blocks' => 1,
+        'perfect_touches' => 4,
+        'max_combo' => 3,
+        'visitor_key' => str_repeat('a', 64),
+        'created_at' => '2026-07-20 00:00:00',
+    ],
+    [
+        'uuid' => '20000000-0000-4000-8000-000000000002',
+        'nickname' => 'ace-old',
+        'score' => 1800,
+        'victory' => false,
+        'player_sets' => 0,
+        'cpu_sets' => 2,
+        'player_score' => 7,
+        'cpu_score' => 11,
+        'spikes' => 2,
+        'saves' => 1,
+        'blocks' => 0,
+        'perfect_touches' => 2,
+        'max_combo' => 2,
+        'visitor_key' => str_repeat('a', 64),
+        'created_at' => '2026-07-19 00:00:00',
     ],
 ];
 $zip->deleteName('manifest.json');
@@ -222,6 +290,9 @@ $posts = get_posts(['post_type' => 'post', 'post_status' => $statuses, 'numberpo
 $albums = get_posts(['post_type' => 'album', 'post_status' => $statuses, 'numberposts' => -1]);
 $guestbook_table = duola_guestbook_messages_table();
 $guestbook_rows = $wpdb->get_results("SELECT * FROM {$guestbook_table} ORDER BY id ASC");
+$leaderboard_table = duola_volleyball_scores_table();
+$leaderboard_rows = $wpdb->get_results("SELECT * FROM {$leaderboard_table} ORDER BY id ASC");
+$public_leaderboard = duola_volleyball_public_leaderboard(8);
 $media_by_uuid = [];
 $missing_files = [];
 
@@ -279,6 +350,8 @@ $result = [
     'expected_albums' => count((array) ($manifest['albums'] ?? [])),
     'guestbook' => count($guestbook_rows),
     'expected_guestbook' => count((array) ($manifest['guestbook'] ?? [])),
+    'leaderboard' => count($leaderboard_rows),
+    'expected_leaderboard' => count((array) ($manifest['leaderboard'] ?? [])),
     'missing_files' => $missing_files,
     'photo_order_mismatches' => $order_mismatches,
     'photo_settings_mismatches' => $settings_mismatches,
@@ -296,6 +369,12 @@ $result['guestbook_relationship_valid'] = $guestbook_parent
     && $guestbook_reply
     && (int) $guestbook_reply->parent_id === (int) $guestbook_parent->id
     && 7 === (int) $guestbook_parent->like_count;
+$result['leaderboard_valid'] = 2 === count($leaderboard_rows)
+    && 'ace' === $leaderboard_rows[0]->nickname
+    && 2290 === (int) $leaderboard_rows[0]->score
+    && 1 === count($public_leaderboard)
+    && 'ace' === $public_leaderboard[0]['nickname']
+    && 2290 === $public_leaderboard[0]['score'];
 echo wp_json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL;
 
 $valid = $result['media'] === $result['expected_media']
@@ -303,6 +382,8 @@ $valid = $result['media'] === $result['expected_media']
     && $result['albums'] === $result['expected_albums']
     && $result['guestbook'] === $result['expected_guestbook']
     && $result['guestbook_relationship_valid']
+    && $result['leaderboard'] === $result['expected_leaderboard']
+    && $result['leaderboard_valid']
     && !$missing_files
     && !$order_mismatches
     && !$settings_mismatches

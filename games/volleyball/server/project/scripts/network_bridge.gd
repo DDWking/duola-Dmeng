@@ -590,7 +590,7 @@ func _sanitize_nickname(value: String) -> String:
 
 
 func _display_name(player_name: String, character_name: String) -> String:
-	return "%s · %s" % [_sanitize_nickname(player_name), character_name]
+	return "%s / %s" % [_sanitize_nickname(player_name), character_name]
 
 
 func _normalize_room_code(value: String) -> String:
