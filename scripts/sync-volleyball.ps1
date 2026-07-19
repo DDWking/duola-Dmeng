@@ -71,13 +71,23 @@ $httpFallback = @'
 		&& feature.startsWith('Secure Context')
 	));
 '@
+$engineInit = 'const engine = new Engine(GODOT_CONFIG);'
+$httpAudioFallback = @'
+if (window.location.protocol === 'http:' && !window.isSecureContext) {
+	GODOT_CONFIG['args'].push('--audio-driver', 'Dummy');
+}
+const engine = new Engine(GODOT_CONFIG);
+'@
 $runtimeHtmlContent = [System.IO.File]::ReadAllText($runtimeHtml)
 if (-not $runtimeHtmlContent.Contains($featureCheck)) {
     throw 'Could not add the single-threaded HTTP fallback to the Godot Web shell.'
 }
+if (-not $runtimeHtmlContent.Contains($engineInit)) {
+    throw 'Could not add the HTTP audio fallback to the Godot Web shell.'
+}
 [System.IO.File]::WriteAllText(
     $runtimeHtml,
-    $runtimeHtmlContent.Replace($featureCheck, $httpFallback),
+    $runtimeHtmlContent.Replace($featureCheck, $httpFallback).Replace($engineInit, $httpAudioFallback),
     [System.Text.UTF8Encoding]::new($false)
 )
 
