@@ -1,23 +1,11 @@
 param(
-    [string]$GamePath = '',
     [string]$GodotPath = 'D:\Godot\Godot_v4.7.1-stable_win64_console.exe'
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
-if (-not $GamePath) {
-    $workspaceRoot = Split-Path -Parent $repositoryRoot
-    $projectCandidates = @(
-        Get-ChildItem -LiteralPath $workspaceRoot -Directory |
-            Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'project.godot') }
-    )
-    if ($projectCandidates.Count -ne 1) {
-        throw 'Could not identify one sibling Godot project. Pass -GamePath explicitly.'
-    }
-    $GamePath = $projectCandidates[0].FullName
-}
-$gameRoot = [System.IO.Path]::GetFullPath($GamePath)
+$gameRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot 'games\volleyball\source'))
 $runtimeTarget = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot 'games\volleyball\web\runtime'))
 $serverTarget = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot 'games\volleyball\server\project'))
 $repositoryPrefix = $repositoryRoot.TrimEnd('\') + '\'
@@ -41,6 +29,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $webOutput = Join-Path $gameRoot 'build\web\index.html'
+New-Item -ItemType Directory -Path (Split-Path -Parent $webOutput) -Force | Out-Null
 & $GodotPath --headless --path $gameRoot --export-release Web $webOutput
 if ($LASTEXITCODE -ne 0) {
     throw 'Godot Web export failed.'

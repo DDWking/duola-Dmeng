@@ -7,7 +7,7 @@ signal online_match_finished(result: Dictionary)
 signal online_match_aborted(reason: String)
 signal opponent_connection_changed(connected: bool, seconds_left: int)
 
-const VolleyMatchScript := preload("res://scripts/volley_match.gd")
+const VolleyMatch := preload("res://scripts/volley_match.gd")
 const CharacterCatalogScript := preload("res://scripts/character_catalog.gd")
 const SESSION_PATH := "user://online_session.json"
 const DEFAULT_SERVER_URL := "ws://127.0.0.1:9001"
@@ -405,7 +405,7 @@ func _start_room_match(code: String) -> void:
 	var right_data := CharacterCatalogScript.get_character(int(right_info.character_index))
 	left_data.display_name = _display_name(left_info.nickname, left_data.name)
 	right_data.display_name = _display_name(right_info.nickname, right_data.name)
-	var match_scene: VolleyMatch = VolleyMatchScript.new()
+	var match_scene: VolleyMatch = VolleyMatch.new()
 	match_scene.configure_network_server()
 	match_scene.setup(left_data, right_data, "联机", {})
 	match_scene.visible = false

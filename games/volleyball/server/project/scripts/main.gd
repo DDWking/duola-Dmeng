@@ -71,7 +71,8 @@ func _connect_network_signals() -> void:
 
 func _apply_theme() -> void:
 	var game_theme := Theme.new()
-	game_theme.default_font = load(FONT_PATH)
+	if DisplayServer.get_name() != "headless":
+		game_theme.default_font = load(FONT_PATH)
 	game_theme.default_font_size = 20
 	game_theme.set_color("font_color", "Label", COLORS.ink)
 	game_theme.set_color("font_color", "Button", COLORS.ink)
