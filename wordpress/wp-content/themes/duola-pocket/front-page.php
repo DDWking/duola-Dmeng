@@ -168,17 +168,4 @@ $has_more_home_photos = count($home_photos) > 4;
         <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="">
     </div>
 </section>
-<section class="home-game-feature" aria-labelledby="home-game-title">
-    <a href="<?php echo esc_url(home_url('/volleyball/')); ?>">
-        <div class="home-game-preview">
-            <img src="<?php echo esc_url($asset_url . 'volleyball-preview.png'); ?>" alt="瓦力波游戏选人界面" loading="lazy" decoding="async">
-            <span class="home-game-play" aria-hidden="true"><i></i></span>
-        </div>
-        <div class="home-game-copy">
-            <h2 id="home-game-title">瓦力波</h2>
-            <p>单人对战电脑，或者用六位房间码和朋友在线 1v1。</p>
-            <span>进入球场 <i aria-hidden="true">→</i></span>
-        </div>
-    </a>
-</section>
 <?php get_footer(); ?>
