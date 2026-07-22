@@ -19,6 +19,7 @@ function duola_pocket_setup(): void
     add_image_size('duola-album-card', 960, 720, true);
     add_image_size('duola-home-note', 720, 960, true);
     add_image_size('duola-lightbox', 2048, 2048, false);
+    add_image_size('duola-anime-poster', 900, 1350, true);
 }
 add_action('after_setup_theme', 'duola_pocket_setup');
 
@@ -91,7 +92,7 @@ function duola_pocket_add_site_settings_page(): void
         'duola-site-settings',
         'duola_pocket_render_site_settings_page',
         'dashicons-admin-settings',
-        7
+        8
     );
 }
 add_action('admin_menu', 'duola_pocket_add_site_settings_page');

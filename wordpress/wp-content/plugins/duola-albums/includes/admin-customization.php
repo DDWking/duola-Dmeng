@@ -44,7 +44,7 @@ add_action('init', 'duola_admin_detach_categories', 20);
 
 function duola_admin_simplify_post_types(): void
 {
-    foreach (['post', 'album'] as $post_type) {
+    foreach (['post', 'album', 'anime'] as $post_type) {
         remove_post_type_support($post_type, 'author');
         remove_post_type_support($post_type, 'comments');
         remove_post_type_support($post_type, 'trackbacks');
@@ -63,7 +63,7 @@ add_filter('use_block_editor_for_post_type', 'duola_admin_use_block_editor', 100
 
 function duola_admin_remove_meta_boxes(): void
 {
-    foreach (['post', 'album'] as $post_type) {
+    foreach (['post', 'album', 'anime'] as $post_type) {
         remove_meta_box('authordiv', $post_type, 'normal');
         remove_meta_box('commentstatusdiv', $post_type, 'normal');
         remove_meta_box('commentsdiv', $post_type, 'normal');
@@ -145,6 +145,7 @@ function duola_admin_post_columns(array $columns): array
         'duola_thumbnail' => __('封面', 'duola-albums'),
         'title' => __('文章', 'duola-albums'),
         'tags' => __('标签', 'duola-albums'),
+        'duola_anime' => __('关联动画', 'duola-albums'),
         'date' => __('状态与日期', 'duola-albums'),
     ];
 }
@@ -152,13 +153,18 @@ add_filter('manage_post_posts_columns', 'duola_admin_post_columns');
 
 function duola_admin_render_post_column(string $column, int $post_id): void
 {
-    if ('duola_thumbnail' !== $column) {
-        return;
+    if ('duola_thumbnail' === $column) {
+        echo has_post_thumbnail($post_id)
+            ? get_the_post_thumbnail($post_id, 'thumbnail')
+            : '<span class="duola-no-cover">' . esc_html__('纯文字', 'duola-albums') . '</span>';
     }
 
-    echo has_post_thumbnail($post_id)
-        ? get_the_post_thumbnail($post_id, 'thumbnail')
-        : '<span class="duola-no-cover">' . esc_html__('纯文字', 'duola-albums') . '</span>';
+    if ('duola_anime' === $column && function_exists('duola_anime_get_related_posts')) {
+        $anime_posts = duola_anime_get_related_posts($post_id);
+        echo $anime_posts
+            ? esc_html(implode('、', wp_list_pluck($anime_posts, 'post_title')))
+            : '<span class="duola-no-cover">—</span>';
+    }
 }
 add_action('manage_post_posts_custom_column', 'duola_admin_render_post_column', 10, 2);
 
@@ -338,6 +344,7 @@ function duola_admin_render_dashboard(): void
             <section class="duola-dashboard-stats" aria-label="<?php esc_attr_e('内容统计', 'duola-albums'); ?>">
                 <a href="<?php echo esc_url(admin_url('edit.php')); ?>"><i class="dashicons dashicons-text-page" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('post')); ?></strong><span><?php esc_html_e('篇文章', 'duola-albums'); ?></span></a>
                 <a href="<?php echo esc_url(admin_url('edit.php?post_type=album')); ?>"><i class="dashicons dashicons-format-gallery" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('album')); ?></strong><span><?php esc_html_e('本相册', 'duola-albums'); ?></span></a>
+                <a href="<?php echo esc_url(admin_url('edit.php?post_type=anime')); ?>"><i class="dashicons dashicons-star-filled" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_content_count('anime')); ?></strong><span><?php esc_html_e('部动画', 'duola-albums'); ?></span></a>
                 <a href="<?php echo esc_url(admin_url('upload.php')); ?>"><i class="dashicons dashicons-images-alt2" aria-hidden="true"></i><strong><?php echo esc_html(duola_admin_image_count()); ?></strong><span><?php esc_html_e('张照片', 'duola-albums'); ?></span></a>
             </section>
         </div>
@@ -348,6 +355,7 @@ function duola_admin_render_dashboard(): void
                 <a class="duola-action-primary" href="<?php echo esc_url(admin_url('post-new.php')); ?>"><span class="dashicons dashicons-edit" aria-hidden="true"></span><b><?php esc_html_e('写文章', 'duola-albums'); ?></b><small><?php esc_html_e('打开简洁编辑器', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('edit.php?page=duola-markdown-import')); ?>"><span class="dashicons dashicons-media-code" aria-hidden="true"></span><b><?php esc_html_e('导入 Markdown', 'duola-albums'); ?></b><small><?php esc_html_e('上传文件生成草稿', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('post-new.php?post_type=album')); ?>"><span class="dashicons dashicons-format-gallery" aria-hidden="true"></span><b><?php esc_html_e('建相册', 'duola-albums'); ?></b><small><?php esc_html_e('一次上传多张照片', 'duola-albums'); ?></small></a>
+                <a href="<?php echo esc_url(admin_url('post-new.php?post_type=anime')); ?>"><span class="dashicons dashicons-star-filled" aria-hidden="true"></span><b><?php esc_html_e('记动画', 'duola-albums'); ?></b><small><?php esc_html_e('评分并放进异世界', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('upload.php')); ?>"><span class="dashicons dashicons-images-alt2" aria-hidden="true"></span><b><?php esc_html_e('照片库', 'duola-albums'); ?></b><small><?php esc_html_e('查找和编辑原图', 'duola-albums'); ?></small></a>
                 <a href="<?php echo esc_url(admin_url('admin.php?page=duola-migration')); ?>"><span class="dashicons dashicons-migrate" aria-hidden="true"></span><b><?php esc_html_e('备份迁移', 'duola-albums'); ?></b><small><?php esc_html_e('导出或导入 ZIP', 'duola-albums'); ?></small></a>
             </div>
@@ -356,6 +364,7 @@ function duola_admin_render_dashboard(): void
         <div class="duola-dashboard-columns">
             <section><div class="duola-dashboard-section-heading"><h3><?php esc_html_e('最近文章', 'duola-albums'); ?></h3><a href="<?php echo esc_url(admin_url('edit.php')); ?>"><?php esc_html_e('全部', 'duola-albums'); ?></a></div><?php duola_admin_render_recent_items('post', __('还没有文章。', 'duola-albums')); ?></section>
             <section><div class="duola-dashboard-section-heading"><h3><?php esc_html_e('最近相册', 'duola-albums'); ?></h3><a href="<?php echo esc_url(admin_url('edit.php?post_type=album')); ?>"><?php esc_html_e('全部', 'duola-albums'); ?></a></div><?php duola_admin_render_recent_items('album', __('还没有相册。', 'duola-albums')); ?></section>
+            <section><div class="duola-dashboard-section-heading"><h3><?php esc_html_e('最近动画', 'duola-albums'); ?></h3><a href="<?php echo esc_url(admin_url('edit.php?post_type=anime')); ?>"><?php esc_html_e('全部', 'duola-albums'); ?></a></div><?php duola_admin_render_recent_items('anime', __('还没有动画。', 'duola-albums')); ?></section>
         </div>
     </div>
     <?php

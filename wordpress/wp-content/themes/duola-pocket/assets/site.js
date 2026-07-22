@@ -3,7 +3,7 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const revealItems = Array.from(document.querySelectorAll(
-    '.home-note-card, .photo-note, .page-intro, .album-card, .post-row, .photo-button, .article, .page-content',
+    '.home-note-card, .photo-note, .page-intro, .album-card, .post-row, .photo-button, .article, .page-content, .anime-card, .anime-entry-hero, .anime-review-list',
   ));
 
   revealItems.forEach((item, index) => {

@@ -8,11 +8,13 @@ fi
 
 package_path=$(realpath "$1")
 project_dir=$(cd "$(dirname "$0")/.." && pwd)
+compose_dir=${DUOLA_COMPOSE_DIR:-$project_dir}
+source_dir=${DUOLA_SOURCE_DIR:-$project_dir}
 test_name="duola-migration-test"
 test_dir="/tmp/$test_name"
 test_database="duola_migration_test"
 
-cd "$project_dir"
+cd "$compose_dir"
 
 available_kb=$(df --output=avail -k /tmp | tail -1 | tr -d ' ')
 if [[ "$available_kb" -lt 2500000 ]]; then
@@ -49,8 +51,8 @@ docker run -d --name "$test_name" \
   -e WORDPRESS_DB_USER="$db_user" \
   -e WORDPRESS_DB_PASSWORD="$db_password" \
   -e WORDPRESS_CONFIG_EXTRA="define('WP_ENVIRONMENT_TYPE', 'development');" \
-  -v "$project_dir/wordpress/wp-content/plugins/duola-albums:/var/www/html/wp-content/plugins/duola-albums:ro" \
-  -v "$project_dir/wordpress/wp-content/themes/duola-pocket:/var/www/html/wp-content/themes/duola-pocket:ro" \
+  -v "$source_dir/wordpress/wp-content/plugins/duola-albums:/var/www/html/wp-content/plugins/duola-albums:ro" \
+  -v "$source_dir/wordpress/wp-content/themes/duola-pocket:/var/www/html/wp-content/themes/duola-pocket:ro" \
   -v "$test_dir/uploads:/var/www/html/wp-content/uploads" \
   duola-pocket-wordpress:local >/dev/null
 
@@ -178,6 +180,68 @@ $wpdb->query('TRUNCATE TABLE ' . duola_volleyball_scores_table());
 $zip = new ZipArchive();
 assert_guestbook(true === $zip->open('/tmp/import.zip'), 'Could not open migration package for guestbook fixture.');
 $manifest = json_decode($zip->getFromName('manifest.json'), true);
+$poster_media_uuid = (string) ($manifest['media'][0]['uuid'] ?? '');
+assert_guestbook('' !== $poster_media_uuid, 'Migration package does not contain an image for the anime poster fixture.');
+$manifest['anime'] = array_merge((array) ($manifest['anime'] ?? []), [
+    [
+        'uuid' => '30000000-0000-4000-8000-000000000001',
+        'title' => 'Migration Anime A',
+        'slug' => 'migration-anime-a',
+        'status' => 'publish',
+        'date' => '2026-07-21 10:00:00',
+        'date_gmt' => '2026-07-21 02:00:00',
+        'alt_title' => 'Fixture Alpha',
+        'year' => 2026,
+        'episodes' => 12,
+        'score' => '9.5',
+        'note' => '<strong>Favorite scene</strong>',
+        'poster_media_uuid' => $poster_media_uuid,
+    ],
+    [
+        'uuid' => '30000000-0000-4000-8000-000000000002',
+        'title' => 'Migration Anime B',
+        'slug' => 'migration-anime-b',
+        'status' => 'publish',
+        'date' => '2026-07-21 11:00:00',
+        'date_gmt' => '2026-07-21 03:00:00',
+        'alt_title' => '',
+        'year' => 2025,
+        'episodes' => 24,
+        'score' => '7.0',
+        'note' => '',
+        'poster_media_uuid' => '',
+    ],
+    [
+        'uuid' => '30000000-0000-4000-8000-000000000003',
+        'title' => 'Migration Anime Unrated',
+        'slug' => 'migration-anime-unrated',
+        'status' => 'publish',
+        'date' => '2026-07-21 12:00:00',
+        'date_gmt' => '2026-07-21 04:00:00',
+        'alt_title' => '',
+        'year' => 2024,
+        'episodes' => 1,
+        'score' => '',
+        'note' => '',
+        'poster_media_uuid' => '',
+    ],
+]);
+$manifest['posts'][] = [
+    'uuid' => '40000000-0000-4000-8000-000000000001',
+    'title' => 'Anime Relation Fixture',
+    'slug' => 'anime-relation-fixture',
+    'status' => 'publish',
+    'date' => '2026-07-21 13:00:00',
+    'date_gmt' => '2026-07-21 05:00:00',
+    'excerpt' => '',
+    'content' => '<p>Anime relation migration test.</p>',
+    'tags' => [],
+    'featured_media_uuid' => '',
+    'related_anime_uuids' => [
+        '30000000-0000-4000-8000-000000000001',
+        '30000000-0000-4000-8000-000000000002',
+    ],
+];
 $manifest['guestbook'] = [
     [
         'uuid' => '10000000-0000-4000-8000-000000000001',
@@ -288,18 +352,21 @@ $statuses = ['publish', 'draft', 'pending', 'private', 'future'];
 $media = get_posts(['post_type' => 'attachment', 'post_status' => 'inherit', 'post_mime_type' => 'image', 'numberposts' => -1]);
 $posts = get_posts(['post_type' => 'post', 'post_status' => $statuses, 'numberposts' => -1]);
 $albums = get_posts(['post_type' => 'album', 'post_status' => $statuses, 'numberposts' => -1]);
+$anime = get_posts(['post_type' => 'anime', 'post_status' => $statuses, 'numberposts' => -1]);
 $guestbook_table = duola_guestbook_messages_table();
 $guestbook_rows = $wpdb->get_results("SELECT * FROM {$guestbook_table} ORDER BY id ASC");
 $leaderboard_table = duola_volleyball_scores_table();
 $leaderboard_rows = $wpdb->get_results("SELECT * FROM {$leaderboard_table} ORDER BY id ASC");
 $public_leaderboard = duola_volleyball_public_leaderboard(8);
 $media_by_uuid = [];
+$media_uuid_by_id = [];
 $missing_files = [];
 
 foreach ($media as $attachment) {
     $uuid = (string) get_post_meta($attachment->ID, '_duola_migration_uuid', true);
     if ($uuid) {
         $media_by_uuid[$uuid] = (int) $attachment->ID;
+        $media_uuid_by_id[(int) $attachment->ID] = $uuid;
     }
     $file = get_attached_file($attachment->ID);
     if (!$file || !is_file($file)) {
@@ -345,9 +412,11 @@ $result = [
     'media' => count($media),
     'posts' => count($posts),
     'albums' => count($albums),
+    'anime' => count($anime),
     'expected_media' => count((array) ($manifest['media'] ?? [])),
     'expected_posts' => count((array) ($manifest['posts'] ?? [])),
     'expected_albums' => count((array) ($manifest['albums'] ?? [])),
+    'expected_anime' => count((array) ($manifest['anime'] ?? [])),
     'guestbook' => count($guestbook_rows),
     'expected_guestbook' => count((array) ($manifest['guestbook'] ?? [])),
     'leaderboard' => count($leaderboard_rows),
@@ -375,11 +444,63 @@ $result['leaderboard_valid'] = 2 === count($leaderboard_rows)
     && 1 === count($public_leaderboard)
     && 'ace' === $public_leaderboard[0]['nickname']
     && 2290 === $public_leaderboard[0]['score'];
+
+$anime_a_id = duola_migration_find_existing('anime', '30000000-0000-4000-8000-000000000001');
+$anime_b_id = duola_migration_find_existing('anime', '30000000-0000-4000-8000-000000000002');
+$anime_unrated_id = duola_migration_find_existing('anime', '30000000-0000-4000-8000-000000000003');
+$relation_post_id = duola_migration_find_existing('post', '40000000-0000-4000-8000-000000000001');
+$expected_related_ids = [$anime_a_id, $anime_b_id];
+$related_ids = $relation_post_id ? duola_anime_get_related_ids($relation_post_id) : [];
+$related_posts = $relation_post_id ? duola_anime_get_related_posts($relation_post_id) : [];
+$review_ids = $anime_a_id ? array_map('intval', wp_list_pluck(duola_anime_get_reviews($anime_a_id), 'ID')) : [];
+$ranked_ids = array_map('intval', wp_list_pluck(duola_anime_get_ranked_posts(), 'ID'));
+$anime_a_position = array_search($anime_a_id, $ranked_ids, true);
+$anime_unrated_position = array_search($anime_unrated_id, $ranked_ids, true);
+$poster_media_uuid = (string) ($manifest['media'][0]['uuid'] ?? '');
+$expected_poster_id = (int) ($media_by_uuid[$poster_media_uuid] ?? 0);
+$result['anime_fixture_valid'] = $anime_a_id
+    && $anime_b_id
+    && $anime_unrated_id
+    && $relation_post_id
+    && 'Fixture Alpha' === get_post_meta($anime_a_id, '_duola_anime_alt_title', true)
+    && 2026 === (int) get_post_meta($anime_a_id, '_duola_anime_year', true)
+    && 12 === (int) get_post_meta($anime_a_id, '_duola_anime_episodes', true)
+    && '9.5' === get_post_meta($anime_a_id, '_duola_anime_score', true)
+    && '<strong>Favorite scene</strong>' === get_post_meta($anime_a_id, '_duola_anime_note', true)
+    && $expected_poster_id === duola_anime_get_poster_id($anime_a_id)
+    && $expected_related_ids === $related_ids
+    && $expected_related_ids === array_map('intval', wp_list_pluck($related_posts, 'ID'))
+    && in_array($relation_post_id, $review_ids, true)
+    && false !== $anime_a_position
+    && false !== $anime_unrated_position
+    && $anime_a_position < $anime_unrated_position
+    && '9.5' === duola_anime_sanitize_score('9.7')
+    && '' === duola_anime_sanitize_score('invalid');
+
+$result['anime_round_trip_valid'] = false;
+if ($anime_a_id && $relation_post_id) {
+    $anime_uuid_by_id = [
+        $anime_a_id => '30000000-0000-4000-8000-000000000001',
+        $anime_b_id => '30000000-0000-4000-8000-000000000002',
+        $anime_unrated_id => '30000000-0000-4000-8000-000000000003',
+    ];
+    $anime_export = duola_migration_export_anime(get_post($anime_a_id), $media_uuid_by_id);
+    $post_export = duola_migration_export_post(get_post($relation_post_id), $media_uuid_by_id, $anime_uuid_by_id);
+    $result['anime_round_trip_valid'] = '9.5' === $anime_export['score']
+        && $poster_media_uuid === $anime_export['poster_media_uuid']
+        && [
+            '30000000-0000-4000-8000-000000000001',
+            '30000000-0000-4000-8000-000000000002',
+        ] === $post_export['related_anime_uuids'];
+}
 echo wp_json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL;
 
 $valid = $result['media'] === $result['expected_media']
     && $result['posts'] === $result['expected_posts']
     && $result['albums'] === $result['expected_albums']
+    && $result['anime'] === $result['expected_anime']
+    && $result['anime_fixture_valid']
+    && $result['anime_round_trip_valid']
     && $result['guestbook'] === $result['expected_guestbook']
     && $result['guestbook_relationship_valid']
     && $result['leaderboard'] === $result['expected_leaderboard']

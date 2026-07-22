@@ -13,7 +13,7 @@ function duola_migration_add_admin_page(): void
         'duola-migration',
         'duola_migration_render_admin_page',
         'dashicons-migrate',
-        8
+        9
     );
 }
 add_action('admin_menu', 'duola_migration_add_admin_page', 30);
@@ -32,7 +32,7 @@ function duola_migration_render_admin_page(): void
     ?>
     <div class="wrap duola-migration-page">
         <h1><?php esc_html_e('备份迁移', 'duola-albums'); ?></h1>
-        <p><?php esc_html_e('迁移包包含文章、标签、相册、全部图片原图、留言与点赞数、瓦力波排行榜、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
+        <p><?php esc_html_e('迁移包包含文章、标签、相册、异世界动画与关联关系、全部图片原图、留言与点赞数、瓦力波排行榜、网站头像和基础站点信息。主题代码和 Docker 配置仍由 Git 管理。', 'duola-albums'); ?></p>
 
         <?php if ($error) : ?>
             <div class="notice notice-error"><p><?php echo esc_html($error); ?></p></div>
@@ -41,9 +41,10 @@ function duola_migration_render_admin_page(): void
             <div class="notice notice-success is-dismissible"><p>
                 <?php
                 echo esc_html(sprintf(
-                    __('导入完成：%1$d 篇文章、%2$d 本相册、%3$d 张图片、%4$d 条留言与回复、%5$d 条游戏成绩。', 'duola-albums'),
+                    __('导入完成：%1$d 篇文章、%2$d 本相册、%3$d 部动画、%4$d 张图片、%5$d 条留言与回复、%6$d 条游戏成绩。', 'duola-albums'),
                     absint($_GET['posts'] ?? 0),
                     absint($_GET['albums'] ?? 0),
+                    absint($_GET['anime'] ?? 0),
                     absint($_GET['media'] ?? 0),
                     absint($_GET['guestbook'] ?? 0),
                     absint($_GET['leaderboard'] ?? 0)
@@ -175,10 +176,17 @@ function duola_migration_collect_media(): array
     return [$entries, $id_to_uuid];
 }
 
-function duola_migration_export_post(WP_Post $post, array $id_to_uuid): array
+function duola_migration_export_post(WP_Post $post, array $id_to_uuid, array $anime_id_to_uuid = []): array
 {
     $tags = wp_get_post_terms($post->ID, 'post_tag', ['fields' => 'slugs']);
     $thumbnail_id = (int) get_post_thumbnail_id($post->ID);
+    $related_anime_uuids = [];
+    $related_anime_ids = function_exists('duola_anime_get_related_ids') ? duola_anime_get_related_ids((int) $post->ID) : [];
+    foreach ($related_anime_ids as $anime_id) {
+        if (isset($anime_id_to_uuid[$anime_id])) {
+            $related_anime_uuids[] = $anime_id_to_uuid[$anime_id];
+        }
+    }
     return [
         'uuid' => duola_migration_get_uuid((int) $post->ID),
         'title' => $post->post_title,
@@ -190,6 +198,7 @@ function duola_migration_export_post(WP_Post $post, array $id_to_uuid): array
         'content' => $post->post_content,
         'tags' => is_wp_error($tags) ? [] : $tags,
         'featured_media_uuid' => $id_to_uuid[$thumbnail_id] ?? '',
+        'related_anime_uuids' => $related_anime_uuids,
     ];
 }
 
@@ -224,6 +233,25 @@ function duola_migration_export_album(WP_Post $album, array $id_to_uuid): array
     ];
 }
 
+function duola_migration_export_anime(WP_Post $anime, array $id_to_uuid): array
+{
+    $poster_id = function_exists('duola_anime_get_poster_id') ? duola_anime_get_poster_id((int) $anime->ID) : (int) get_post_thumbnail_id($anime->ID);
+    return [
+        'uuid' => duola_migration_get_uuid((int) $anime->ID),
+        'title' => $anime->post_title,
+        'slug' => $anime->post_name,
+        'status' => $anime->post_status,
+        'date' => $anime->post_date,
+        'date_gmt' => $anime->post_date_gmt,
+        'alt_title' => (string) get_post_meta($anime->ID, '_duola_anime_alt_title', true),
+        'year' => (int) get_post_meta($anime->ID, '_duola_anime_year', true),
+        'episodes' => (int) get_post_meta($anime->ID, '_duola_anime_episodes', true),
+        'score' => (string) get_post_meta($anime->ID, '_duola_anime_score', true),
+        'note' => (string) get_post_meta($anime->ID, '_duola_anime_note', true),
+        'poster_media_uuid' => $id_to_uuid[$poster_id] ?? '',
+    ];
+}
+
 function duola_migration_export_content(): void
 {
     if (!current_user_can('manage_options')) {
@@ -243,6 +271,11 @@ function duola_migration_export_content(): void
     $statuses = ['publish', 'draft', 'pending', 'private', 'future'];
     $posts = get_posts(['post_type' => 'post', 'post_status' => $statuses, 'numberposts' => -1, 'orderby' => 'ID', 'order' => 'ASC']);
     $albums = get_posts(['post_type' => 'album', 'post_status' => $statuses, 'numberposts' => -1, 'orderby' => 'ID', 'order' => 'ASC']);
+    $anime = get_posts(['post_type' => 'anime', 'post_status' => $statuses, 'numberposts' => -1, 'orderby' => 'ID', 'order' => 'ASC']);
+    $anime_id_to_uuid = [];
+    foreach ($anime as $anime_post) {
+        $anime_id_to_uuid[(int) $anime_post->ID] = duola_migration_get_uuid((int) $anime_post->ID);
+    }
     $tag_terms = get_terms(['taxonomy' => 'post_tag', 'hide_empty' => false]);
     $avatar_id = (int) get_option('duola_site_avatar_id');
 
@@ -262,8 +295,9 @@ function duola_migration_export_content(): void
         ],
         'tags' => is_wp_error($tag_terms) ? [] : array_map(static fn(WP_Term $term): array => ['name' => $term->name, 'slug' => $term->slug, 'description' => $term->description], $tag_terms),
         'media' => $manifest_media,
-        'posts' => array_map(static fn(WP_Post $post): array => duola_migration_export_post($post, $id_to_uuid), $posts),
+        'posts' => array_map(static fn(WP_Post $post): array => duola_migration_export_post($post, $id_to_uuid, $anime_id_to_uuid), $posts),
         'albums' => array_map(static fn(WP_Post $album): array => duola_migration_export_album($album, $id_to_uuid), $albums),
+        'anime' => array_map(static fn(WP_Post $anime_post): array => duola_migration_export_anime($anime_post, $id_to_uuid), $anime),
         'guestbook' => function_exists('duola_guestbook_export') ? duola_guestbook_export() : [],
         'leaderboard' => function_exists('duola_volleyball_export') ? duola_volleyball_export() : [],
     ];
@@ -442,7 +476,7 @@ function duola_migration_replace_urls(string $content, array $url_map): string
     return $url_map ? str_replace(array_keys($url_map), array_values($url_map), $content) : $content;
 }
 
-function duola_migration_import_posts(array $entries, array $media_ids, array $url_map): int
+function duola_migration_import_posts(array $entries, array $media_ids, array $url_map, array $anime_ids = []): int
 {
     $count = 0;
     foreach ($entries as $entry) {
@@ -481,6 +515,16 @@ function duola_migration_import_posts(array $entries, array $media_ids, array $u
             set_post_thumbnail($post_id, $media_ids[$featured_uuid]);
         } else {
             delete_post_thumbnail($post_id);
+        }
+        if (array_key_exists('related_anime_uuids', $entry)) {
+            $related_anime_ids = [];
+            foreach ((array) $entry['related_anime_uuids'] as $anime_uuid) {
+                $anime_uuid = sanitize_text_field($anime_uuid);
+                if (isset($anime_ids[$anime_uuid])) {
+                    $related_anime_ids[] = (int) $anime_ids[$anime_uuid];
+                }
+            }
+            update_post_meta($post_id, '_duola_related_anime', array_values(array_unique($related_anime_ids)));
         }
         $count++;
     }
@@ -546,6 +590,53 @@ function duola_migration_import_albums(array $entries, array $media_ids): int
     return $count;
 }
 
+function duola_migration_import_anime(array $entries, array $media_ids): array
+{
+    $count = 0;
+    $anime_ids = [];
+    foreach ($entries as $entry) {
+        $uuid = sanitize_text_field($entry['uuid'] ?? '');
+        $anime_id = duola_migration_find_existing('anime', $uuid);
+        $post_data = [
+            'post_type' => 'anime',
+            'post_title' => sanitize_text_field($entry['title'] ?? ''),
+            'post_name' => sanitize_title($entry['slug'] ?? ''),
+            'post_status' => in_array($entry['status'] ?? '', ['publish', 'draft', 'pending', 'private', 'future'], true) ? $entry['status'] : 'draft',
+            'post_date' => sanitize_text_field($entry['date'] ?? current_time('mysql')),
+            'post_date_gmt' => sanitize_text_field($entry['date_gmt'] ?? current_time('mysql', true)),
+            'comment_status' => 'closed',
+            'ping_status' => 'closed',
+        ];
+        if ($anime_id) {
+            $post_data['ID'] = $anime_id;
+        }
+        $anime_id = wp_insert_post(wp_slash($post_data), true);
+        if (is_wp_error($anime_id)) {
+            continue;
+        }
+
+        update_post_meta($anime_id, '_duola_migration_uuid', $uuid);
+        update_post_meta($anime_id, '_duola_anime_alt_title', sanitize_text_field($entry['alt_title'] ?? ''));
+        update_post_meta($anime_id, '_duola_anime_year', absint($entry['year'] ?? 0));
+        update_post_meta($anime_id, '_duola_anime_episodes', absint($entry['episodes'] ?? 0));
+        update_post_meta($anime_id, '_duola_anime_score', function_exists('duola_anime_sanitize_score') ? duola_anime_sanitize_score($entry['score'] ?? '') : sanitize_text_field($entry['score'] ?? ''));
+        update_post_meta($anime_id, '_duola_anime_note', wp_kses_post($entry['note'] ?? ''));
+        $poster_uuid = sanitize_text_field($entry['poster_media_uuid'] ?? '');
+        $poster_id = (int) ($media_ids[$poster_uuid] ?? 0);
+        update_post_meta($anime_id, '_duola_anime_poster_id', $poster_id);
+        if ($poster_id) {
+            set_post_thumbnail($anime_id, $poster_id);
+        } else {
+            delete_post_thumbnail($anime_id);
+        }
+
+        $anime_ids[$uuid] = (int) $anime_id;
+        $count++;
+    }
+
+    return [$count, $anime_ids];
+}
+
 function duola_migration_import_content(): void
 {
     if (!current_user_can('manage_options')) {
@@ -588,7 +679,8 @@ function duola_migration_import_content(): void
 
     duola_migration_import_terms((array) ($manifest['tags'] ?? []), 'post_tag');
     [$media_ids, $url_map] = duola_migration_import_media((array) ($manifest['media'] ?? []), $directory);
-    $post_count = duola_migration_import_posts((array) ($manifest['posts'] ?? []), $media_ids, $url_map);
+    [$anime_count, $anime_ids] = duola_migration_import_anime((array) ($manifest['anime'] ?? []), $media_ids);
+    $post_count = duola_migration_import_posts((array) ($manifest['posts'] ?? []), $media_ids, $url_map, $anime_ids);
     $album_count = duola_migration_import_albums((array) ($manifest['albums'] ?? []), $media_ids);
     $guestbook_count = function_exists('duola_guestbook_import') ? duola_guestbook_import((array) ($manifest['guestbook'] ?? [])) : 0;
     $leaderboard_count = function_exists('duola_volleyball_import') ? duola_volleyball_import((array) ($manifest['leaderboard'] ?? [])) : 0;
@@ -608,6 +700,7 @@ function duola_migration_import_content(): void
         'duola_imported' => 1,
         'posts' => $post_count,
         'albums' => $album_count,
+        'anime' => $anime_count,
         'media' => count($media_ids),
         'guestbook' => $guestbook_count,
         'leaderboard' => $leaderboard_count,

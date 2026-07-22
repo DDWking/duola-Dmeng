@@ -108,7 +108,8 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 
 .column-duola_thumbnail { width: 88px; }
 .column-duola_thumbnail img { width: 72px; height: 50px; border-radius: 7px; object-fit: cover; }
-.column-tags { width: 18%; }
+.column-tags,
+.column-duola_anime { width: 18%; }
 .column-date { width: 160px; }
 
 #dashboard-widgets-wrap { margin: 0; }
@@ -190,7 +191,7 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 
 .duola-dashboard-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0;
   overflow: hidden;
   border: 1px solid var(--duola-admin-border);
@@ -212,7 +213,7 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
   text-decoration: none;
 }
 .duola-dashboard-stats a { border-bottom: 0; }
-.duola-dashboard-stats a:nth-child(3n) { border-right: 0; }
+.duola-dashboard-stats a:nth-child(4n) { border-right: 0; }
 .duola-dashboard-stats a:hover { background: var(--duola-admin-accent-soft); }
 .duola-dashboard-stats i { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 24px; height: 24px; color: #a9b3dc; font-size: 24px; font-style: normal; }
 .duola-dashboard-stats strong { color: var(--duola-admin-navy); font-size: 27px; line-height: 1; }
@@ -249,7 +250,7 @@ textarea:focus { border-color: var(--duola-admin-accent); box-shadow: 0 0 0 1px 
 .duola-dashboard-actions b { color: var(--duola-admin-navy); font-size: 14px; }
 .duola-dashboard-actions small { color: var(--duola-admin-muted); }
 
-.duola-dashboard-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+.duola-dashboard-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
 .duola-dashboard-section-heading { display: flex; align-items: center; justify-content: space-between; }
 .duola-dashboard-section-heading h3 { margin-bottom: 10px; }
 .duola-dashboard-section-heading a { color: var(--duola-admin-accent-dark); text-decoration: none; }
@@ -386,6 +387,7 @@ body.login {
 @media (max-width: 1100px) {
   .duola-dashboard-overview { grid-template-columns: 1fr; }
   .duola-dashboard-stats a { min-height: 78px; }
+  .duola-dashboard-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 960px) {

@@ -9,6 +9,7 @@
 <?php wp_body_open(); ?>
 <?php
 $photos_url = get_post_type_archive_link('album') ?: home_url('/photos/');
+$anime_url = get_post_type_archive_link('anime') ?: home_url('/isekai/');
 $articles_url = duola_pocket_articles_url();
 $asset_url = get_template_directory_uri() . '/assets/images/';
 $site_avatar_id = (int) get_option('duola_site_avatar_id');
@@ -19,6 +20,7 @@ $site_avatar_id = (int) get_option('duola_site_avatar_id');
             <a class="<?php echo is_front_page() ? 'is-current' : ''; ?>" href="<?php echo esc_url(home_url('/')); ?>"<?php echo is_front_page() ? ' aria-current="page"' : ''; ?>>首页</a>
             <a class="<?php echo (is_home() || is_singular('post') || is_tag() || is_category()) ? 'is-current' : ''; ?>" href="<?php echo esc_url($articles_url); ?>"<?php echo (is_home() || is_singular('post') || is_tag() || is_category()) ? ' aria-current="page"' : ''; ?>>文章</a>
             <a class="<?php echo (is_post_type_archive('album') || is_singular('album')) ? 'is-current' : ''; ?>" href="<?php echo esc_url($photos_url); ?>"<?php echo (is_post_type_archive('album') || is_singular('album')) ? ' aria-current="page"' : ''; ?>>相册</a>
+            <a class="<?php echo (is_post_type_archive('anime') || is_singular('anime')) ? 'is-current' : ''; ?>" href="<?php echo esc_url($anime_url); ?>"<?php echo (is_post_type_archive('anime') || is_singular('anime')) ? ' aria-current="page"' : ''; ?>>异世界</a>
             <a href="<?php echo esc_url(home_url('/volleyball/')); ?>">瓦力波</a>
         </nav>
         <div class="site-identity">

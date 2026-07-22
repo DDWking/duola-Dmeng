@@ -1,0 +1,85 @@
+.post-type-anime #post-body-content { margin-bottom: 14px; }
+.post-type-anime #titlediv #title {
+  min-height: 52px;
+  border-color: var(--duola-admin-border);
+  border-radius: 9px;
+  color: var(--duola-admin-navy);
+  font-size: 24px;
+}
+.duola-anime-editor {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 28px;
+  padding: 8px 2px 4px;
+}
+.duola-anime-poster-field { display: flex; align-items: stretch; flex-direction: column; gap: 9px; }
+.duola-anime-poster-preview {
+  display: grid;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  place-items: center;
+  border: 1px dashed #b8c1dd;
+  border-radius: 8px;
+  color: #9aa6cf;
+  background: #eef1fa;
+}
+.duola-anime-poster-preview.has-image { border-style: solid; background: #1d2746; }
+.duola-anime-poster-preview img { width: 100%; height: 100%; object-fit: cover; }
+.duola-anime-poster-preview .dashicons { width: 44px; height: 44px; font-size: 44px; }
+.duola-anime-fields { display: grid; align-content: start; gap: 18px; }
+.duola-anime-fields p { margin: 0; }
+.duola-anime-fields label { display: block; margin-bottom: 7px; color: var(--duola-admin-navy); font-weight: 700; }
+.duola-anime-fields input,
+.duola-anime-fields textarea { width: 100%; max-width: none; }
+.duola-anime-fields textarea { min-height: 190px; resize: vertical; }
+.duola-anime-fields-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.duola-anime-score-field > span { display: flex; align-items: center; gap: 10px; }
+.duola-anime-score-field input { max-width: 150px; min-height: 46px; color: var(--duola-admin-accent-dark); font-size: 21px; font-weight: 800; }
+.duola-anime-score-field b { color: var(--duola-admin-muted); }
+.column-duola_anime_poster { width: 82px; }
+.column-duola_anime_poster img { width: 58px; height: 82px; border-radius: 5px; object-fit: cover; }
+.column-duola_anime_score,
+.column-duola_anime_year,
+.column-duola_anime_reviews { width: 90px; }
+.duola-anime-relation-picker { display: grid; gap: 10px; }
+.duola-anime-relation-picker > input { width: 100%; }
+.duola-anime-relation-list {
+  display: grid;
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--duola-admin-border);
+  border-radius: 8px;
+  background: #fff;
+}
+.duola-anime-relation-list label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  padding: 9px;
+  margin: 0;
+  border-bottom: 1px solid #eceef4;
+  cursor: pointer;
+}
+.duola-anime-relation-list label:last-child { border-bottom: 0; }
+.duola-anime-relation-list label:hover { background: var(--duola-admin-accent-soft); }
+.duola-anime-relation-list input { margin: 0; }
+.duola-anime-relation-list span { overflow: hidden; color: var(--duola-admin-text); text-overflow: ellipsis; white-space: nowrap; }
+.duola-anime-relation-list small { color: var(--duola-admin-accent-dark); font-weight: 700; }
+.duola-anime-relation-empty { margin: 0; color: var(--duola-admin-muted); }
+
+@media (max-width: 782px) {
+  .post-type-anime #wpcontent { padding-left: 0; }
+  .post-type-anime .wrap { margin-right: 10px; margin-left: 10px; }
+  .duola-anime-editor { grid-template-columns: 120px minmax(0, 1fr); gap: 16px; }
+  .duola-anime-poster-field .button { padding-right: 6px; padding-left: 6px; }
+  .duola-anime-fields-row { grid-template-columns: 1fr; }
+  .duola-anime-fields textarea { min-height: 160px; }
+}
+
+@media (max-width: 520px) {
+  .duola-anime-editor { grid-template-columns: 1fr; }
+  .duola-anime-poster-field { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .duola-anime-poster-preview { grid-column: 1 / -1; width: min(62vw, 230px); justify-self: center; }
+}

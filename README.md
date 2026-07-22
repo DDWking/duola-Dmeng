@@ -1,6 +1,6 @@
 ﻿# 哆啦D梦的口袋
 
-自托管的个人摄影、文章与小游戏网站。运行架构为 `Caddy + WordPress + MariaDB + Godot`，由 Docker Compose 管理。
+自托管的个人摄影、文章、动画档案与小游戏网站。运行架构为 `Caddy + WordPress + MariaDB + Godot`，由 Docker Compose 管理。
 
 详细的产品与架构决策见 [PROJECT.md](PROJECT.md)。
 
