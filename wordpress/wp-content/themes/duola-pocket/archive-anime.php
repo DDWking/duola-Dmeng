@@ -38,7 +38,8 @@ $remaining_anime = array_slice($ranked_anime, 3);
         <section class="anime-top-ranking" aria-label="动画排行前三名">
             <?php foreach ($top_anime as $entry) : ?>
                 <?php
-                setup_postdata($entry['post']);
+                $post = $entry['post'];
+                setup_postdata($post);
                 get_template_part('template-parts/anime', 'card', [
                     'rank' => $entry['rank'],
                     'position' => $entry['position'],
@@ -55,7 +56,8 @@ $remaining_anime = array_slice($ranked_anime, 3);
                 <div class="anime-ranking-grid">
                     <?php foreach ($remaining_anime as $entry) : ?>
                         <?php
-                        setup_postdata($entry['post']);
+                        $post = $entry['post'];
+                        setup_postdata($post);
                         get_template_part('template-parts/anime', 'card', [
                             'rank' => $entry['rank'],
                             'position' => $entry['position'],

@@ -445,3 +445,13 @@ function duola_anime_maybe_flush_routes(): void
     update_option('duola_anime_route_version', $route_version, false);
 }
 add_action('init', 'duola_anime_maybe_flush_routes', 99);
+
+function duola_anime_keep_empty_archive_available($preempt, WP_Query $query)
+{
+    if (!$query->is_main_query() || !$query->is_post_type_archive('anime')) {
+        return $preempt;
+    }
+
+    return true;
+}
+add_filter('pre_handle_404', 'duola_anime_keep_empty_archive_available', 10, 2);
