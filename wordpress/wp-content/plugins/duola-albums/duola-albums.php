@@ -16,7 +16,6 @@ define('DUOLA_ALBUMS_URL', plugin_dir_url(__FILE__));
 define('DUOLA_ALBUMS_PATH', plugin_dir_path(__FILE__));
 
 require_once DUOLA_ALBUMS_PATH . 'includes/guestbook.php';
-require_once DUOLA_ALBUMS_PATH . 'includes/volleyball-leaderboard.php';
 require_once DUOLA_ALBUMS_PATH . 'includes/anime-library.php';
 require_once DUOLA_ALBUMS_PATH . 'includes/migration.php';
 require_once DUOLA_ALBUMS_PATH . 'includes/markdown-import.php';
