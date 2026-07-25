@@ -46,6 +46,9 @@ function duola_pocket_enqueue_assets(): void
     $style_path = get_stylesheet_directory() . '/style.css';
     wp_enqueue_style('duola-pocket-style', get_stylesheet_uri(), [], (string) filemtime($style_path));
 
+    $cursor_script_path = get_template_directory() . '/assets/cursor.js';
+    wp_enqueue_script('duola-pocket-cursor', get_template_directory_uri() . '/assets/cursor.js', [], (string) filemtime($cursor_script_path), true);
+
     if (duola_pocket_is_wall_page()) {
         $wall_script_path = get_template_directory() . '/assets/wall.js';
         wp_enqueue_script('duola-pocket-wall', get_template_directory_uri() . '/assets/wall.js', [], (string) filemtime($wall_script_path), true);

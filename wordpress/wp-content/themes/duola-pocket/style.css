@@ -1417,3 +1417,61 @@ body.wall-terminal-page::after {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .motion-ready .reveal-item { opacity: 1; filter: none; }
 }
+
+/* Bocchi cursor */
+@media (hover: hover) and (pointer: fine) {
+  html:not(.has-bocchi-cursor) body {
+    cursor: url(./assets/cursors/bocchi-default.cur), auto;
+  }
+
+  html:not(.has-bocchi-cursor) :is(a[href], button, summary, select, label[for], [role=button], [role=link], [data-lightbox]) {
+    cursor: url(./assets/cursors/bocchi-pointer.cur), pointer;
+  }
+
+  html:not(.has-bocchi-cursor) :is(textarea, [contenteditable=true], input:not([type]), input[type=text], input[type=search], input[type=email], input[type=url], input[type=tel], input[type=password], input[type=number]) {
+    cursor: url(./assets/cursors/bocchi-text.cur), text;
+  }
+
+  html.has-bocchi-cursor:not(.bocchi-cursor-probe):not(.bocchi-cursor-suspended),
+  html.has-bocchi-cursor:not(.bocchi-cursor-probe):not(.bocchi-cursor-suspended) body,
+  html.has-bocchi-cursor:not(.bocchi-cursor-probe):not(.bocchi-cursor-suspended) body * {
+    cursor: none !important;
+  }
+
+  .bocchi-cursor {
+    --bocchi-cursor-scale: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2147483647;
+    width: 88px;
+    height: 88px;
+    border: 0;
+    background: url(./assets/cursors/bocchi-default.png) 0 0 / contain no-repeat;
+    image-rendering: pixelated;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(-200px, -200px, 0) scale(var(--bocchi-cursor-scale));
+    transform-origin: 0 0;
+    transition: opacity 90ms ease, filter 120ms ease;
+    will-change: transform;
+  }
+
+  .bocchi-cursor.is-visible { opacity: 1; }
+  .bocchi-cursor.is-pressed {
+    --bocchi-cursor-scale: 0.9;
+    filter: saturate(1.12) brightness(1.04);
+  }
+  .bocchi-cursor[data-mode=pointer] { background-image: url(./assets/cursors/bocchi-pointer.png); }
+  .bocchi-cursor[data-mode=text] { background-image: url(./assets/cursors/bocchi-text.png); }
+  .bocchi-cursor[data-mode=wait] { background-image: url(./assets/cursors/bocchi-wait.png); }
+  .bocchi-cursor[data-mode=progress] { background-image: url(./assets/cursors/bocchi-progress.png); }
+  .bocchi-cursor[data-mode=crosshair] { background-image: url(./assets/cursors/bocchi-crosshair.png); }
+  .bocchi-cursor[data-mode=unavailable] { background-image: url(./assets/cursors/bocchi-unavailable.png); }
+  .bocchi-cursor[data-mode=move] { background-image: url(./assets/cursors/bocchi-move.png); }
+  .bocchi-cursor[data-mode=resize-vertical] { background-image: url(./assets/cursors/bocchi-resize-vertical.png); }
+  .bocchi-cursor[data-mode=resize-horizontal] { background-image: url(./assets/cursors/bocchi-resize-horizontal.png); }
+  .bocchi-cursor[data-mode=resize-diagonal-1] { background-image: url(./assets/cursors/bocchi-resize-diagonal-1.png); }
+  .bocchi-cursor[data-mode=resize-diagonal-2] { background-image: url(./assets/cursors/bocchi-resize-diagonal-2.png); }
+  .bocchi-cursor[data-mode=help] { background-image: url(./assets/cursors/bocchi-help.png); }
+}
