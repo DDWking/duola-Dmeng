@@ -1447,7 +1447,7 @@ body.wall-terminal-page::after {
     width: 88px;
     height: 88px;
     border: 0;
-    background: url(./assets/cursors/bocchi-default.png) 0 0 / contain no-repeat;
+    background: url(./assets/cursors/bocchi-default.png?v=2) 0 0 / contain no-repeat;
     image-rendering: pixelated;
     opacity: 0;
     pointer-events: none;
@@ -1462,16 +1462,16 @@ body.wall-terminal-page::after {
     --bocchi-cursor-scale: 0.9;
     filter: saturate(1.12) brightness(1.04);
   }
-  .bocchi-cursor[data-mode=pointer] { background-image: url(./assets/cursors/bocchi-pointer.png); }
-  .bocchi-cursor[data-mode=text] { background-image: url(./assets/cursors/bocchi-text.png); }
-  .bocchi-cursor[data-mode=wait] { background-image: url(./assets/cursors/bocchi-wait.png); }
-  .bocchi-cursor[data-mode=progress] { background-image: url(./assets/cursors/bocchi-progress.png); }
-  .bocchi-cursor[data-mode=crosshair] { background-image: url(./assets/cursors/bocchi-crosshair.png); }
-  .bocchi-cursor[data-mode=unavailable] { background-image: url(./assets/cursors/bocchi-unavailable.png); }
-  .bocchi-cursor[data-mode=move] { background-image: url(./assets/cursors/bocchi-move.png); }
-  .bocchi-cursor[data-mode=resize-vertical] { background-image: url(./assets/cursors/bocchi-resize-vertical.png); }
-  .bocchi-cursor[data-mode=resize-horizontal] { background-image: url(./assets/cursors/bocchi-resize-horizontal.png); }
-  .bocchi-cursor[data-mode=resize-diagonal-1] { background-image: url(./assets/cursors/bocchi-resize-diagonal-1.png); }
-  .bocchi-cursor[data-mode=resize-diagonal-2] { background-image: url(./assets/cursors/bocchi-resize-diagonal-2.png); }
-  .bocchi-cursor[data-mode=help] { background-image: url(./assets/cursors/bocchi-help.png); }
+  .bocchi-cursor[data-mode=pointer] { background-image: url(./assets/cursors/bocchi-pointer.png?v=2); }
+  .bocchi-cursor[data-mode=text] { background-image: url(./assets/cursors/bocchi-text.png?v=2); }
+  .bocchi-cursor[data-mode=wait] { background-image: url(./assets/cursors/bocchi-wait.png?v=2); }
+  .bocchi-cursor[data-mode=progress] { background-image: url(./assets/cursors/bocchi-progress.png?v=2); }
+  .bocchi-cursor[data-mode=crosshair] { background-image: url(./assets/cursors/bocchi-crosshair.png?v=2); }
+  .bocchi-cursor[data-mode=unavailable] { background-image: url(./assets/cursors/bocchi-unavailable.png?v=2); }
+  .bocchi-cursor[data-mode=move] { background-image: url(./assets/cursors/bocchi-move.png?v=2); }
+  .bocchi-cursor[data-mode=resize-vertical] { background-image: url(./assets/cursors/bocchi-resize-vertical.png?v=2); }
+  .bocchi-cursor[data-mode=resize-horizontal] { background-image: url(./assets/cursors/bocchi-resize-horizontal.png?v=2); }
+  .bocchi-cursor[data-mode=resize-diagonal-1] { background-image: url(./assets/cursors/bocchi-resize-diagonal-1.png?v=2); }
+  .bocchi-cursor[data-mode=resize-diagonal-2] { background-image: url(./assets/cursors/bocchi-resize-diagonal-2.png?v=2); }
+  .bocchi-cursor[data-mode=help] { background-image: url(./assets/cursors/bocchi-help.png?v=2); }
 }
