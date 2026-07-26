@@ -160,7 +160,6 @@ $has_more_home_photos = count($home_photos) > 4;
             <?php else : ?>
                 <div class="memory-placeholder">第一张照片正在路上。</div>
             <?php endif; ?>
-            <span class="postmark" aria-hidden="true"><i></i></span>
         </div>
     </section>
 </section>
