@@ -162,5 +162,9 @@ $has_more_home_photos = count($home_photos) > 4;
             <?php endif; ?>
         </div>
     </section>
+
+    <div class="home-character-scene" aria-hidden="true">
+        <img class="home-character" src="<?php echo esc_url($asset_url . 'anime-girl.webp'); ?>" alt="">
+    </div>
 </section>
 <?php get_footer(); ?>
