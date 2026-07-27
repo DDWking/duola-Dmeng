@@ -70,6 +70,8 @@
   let lyricPosition = { left: 0, top: 0, width: 0 };
   let collapseHoverGuardUntil = 0;
   let isPageUnloading = false;
+  let isRestoringPlayback = false;
+  let resumeOnInteraction = null;
   let lastStateWrite = 0;
 
   function clearAutoHideTimer() {
@@ -1068,6 +1070,37 @@
     }
   }
 
+  function clearResumeOnInteraction() {
+    if (!resumeOnInteraction) {
+      return;
+    }
+    document.removeEventListener('pointerdown', resumeOnInteraction, true);
+    document.removeEventListener('keydown', resumeOnInteraction, true);
+    resumeOnInteraction = null;
+    root.classList.remove('is-resume-pending');
+  }
+
+  function requestPlaybackRestore() {
+    isRestoringPlayback = true;
+    audio.play().then(() => {
+      isRestoringPlayback = false;
+      clearResumeOnInteraction();
+    }).catch(() => {
+      isRestoringPlayback = false;
+      writeState({ playing: true, index, currentTime: audio.currentTime || 0 });
+      root.classList.add('is-resume-pending');
+      if (resumeOnInteraction) {
+        return;
+      }
+      resumeOnInteraction = () => {
+        requestPlaybackRestore();
+      };
+      document.addEventListener('pointerdown', resumeOnInteraction, true);
+      document.addEventListener('keydown', resumeOnInteraction, true);
+      setPlayingUi(false);
+    });
+  }
+
   function restoreState() {
     const saved = readState();
     if (Number.isInteger(saved.index) && saved.index >= 0 && saved.index < tracks.length) {
@@ -1086,7 +1119,7 @@
         audio.currentTime = Math.min(saved.currentTime, Math.max(0, audio.duration - 0.25));
       }
       if (shouldResume) {
-        audio.play().catch(() => setPlayingUi(false));
+        requestPlaybackRestore();
       }
     };
     if (audio.readyState >= 1) {
@@ -1169,6 +1202,8 @@
   });
 
   audio.addEventListener('play', () => {
+    isRestoringPlayback = false;
+    clearResumeOnInteraction();
     hasPlaybackStarted = true;
     writeState({ playing: true, index, currentTime: audio.currentTime || 0 });
     setPlayingUi(true);
@@ -1178,7 +1213,7 @@
     startLyricLoop();
   });
   audio.addEventListener('pause', () => {
-    if (!isPageUnloading) {
+    if (!isPageUnloading && !isRestoringPlayback) {
       writeState({ playing: false, index, currentTime: audio.currentTime || 0 });
     }
     setPlayingUi(false);
