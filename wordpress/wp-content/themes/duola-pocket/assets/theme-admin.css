@@ -26,3 +26,71 @@
 @media (max-width: 600px) {
   .duola-avatar-setting { align-items: flex-start; flex-direction: column; }
 }
+
+.duola-music-setting { grid-column: 1 / -1; }
+.duola-music-setting-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+.duola-music-setting-heading h2 { margin-bottom: 6px; }
+.duola-music-setting-heading p { margin: 0; color: #646970; }
+.duola-music-track-list { display: grid; gap: 12px; }
+.duola-music-track {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  background: #f9f9fa;
+}
+.duola-music-cover {
+  position: relative;
+  display: grid;
+  width: 76px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 6px;
+  color: #6070bd;
+  background: #e8ebf8;
+}
+.duola-music-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.duola-music-cover img[hidden] { display: none; }
+.duola-music-cover .dashicons { width: 30px; height: 30px; font-size: 30px; }
+.duola-music-track-fields { min-width: 0; }
+.duola-music-file-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.duola-music-file-row strong { max-width: min(100%, 360px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duola-music-file-row [data-remove-cover][hidden],
+.duola-music-file-row [data-remove-lyrics][hidden] { display: none; }
+.duola-music-lyrics-row { margin-top: 8px; }
+.duola-music-lyrics-label {
+  display: inline-block;
+  min-width: 4.5em;
+  color: #646970;
+  font-size: 12px;
+  font-weight: 700;
+}
+.duola-music-meta-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.duola-music-meta-fields label span { display: block; margin-bottom: 4px; color: #50575e; font-size: 12px; font-weight: 700; }
+.duola-music-meta-fields input { width: 100%; }
+.duola-music-track-actions { display: flex; align-items: center; gap: 8px; }
+.duola-music-track-actions button { display: grid; width: 32px; height: 32px; padding: 0; place-items: center; border: 0; background: transparent; cursor: pointer; }
+.duola-music-track-actions button:disabled { opacity: 0.3; cursor: default; }
+.duola-music-track-actions .button-link-delete { color: #b32d2e; }
+.duola-music-empty { padding: 36px 20px; border: 1px dashed #c3c4c7; border-radius: 8px; color: #646970; text-align: center; }
+.duola-music-empty .dashicons { width: 38px; height: 38px; color: #6579d8; font-size: 38px; }
+.duola-music-empty strong { display: block; margin-top: 8px; color: #1d2327; font-size: 15px; }
+.duola-music-empty p { margin: 5px 0 0; }
+
+@media (max-width: 782px) {
+  .duola-music-setting-heading { align-items: stretch; flex-direction: column; }
+  .duola-music-track { grid-template-columns: 60px minmax(0, 1fr); }
+  .duola-music-cover { width: 60px; }
+  .duola-music-track-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  .duola-music-meta-fields { grid-template-columns: 1fr; }
+}

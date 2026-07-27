@@ -132,6 +132,11 @@ $has_more_home_photos = count($home_photos) > 4;
             <span class="section-kicker">Pocket memories</span>
             <h2 id="latest-photos-title">敌敌畏的宝库</h2>
         </div>
+        <?php if (function_exists('duola_pocket_render_music_player')) : ?>
+            <div class="home-music-slot">
+                <?php duola_pocket_render_music_player(); ?>
+            </div>
+        <?php endif; ?>
         <div class="memory-collage" data-memory-collage data-lightbox-gallery data-gallery-title="照片">
             <span class="collage-dots" aria-hidden="true"></span>
             <?php if ($home_photos) : ?>

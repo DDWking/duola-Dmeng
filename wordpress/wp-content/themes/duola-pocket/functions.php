@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once get_template_directory() . '/includes/music-player.php';
+
 function duola_pocket_setup(): void
 {
     load_theme_textdomain('duola-pocket', get_template_directory() . '/languages');
@@ -142,6 +144,7 @@ function duola_pocket_render_site_settings_page(): void
                         </div>
                     </div>
                 </section>
+                <?php duola_pocket_render_music_settings(); ?>
                 <div class="duola-settings-submit">
                     <?php submit_button(__('保存网站设置', 'duola-pocket'), 'primary', 'submit', false); ?>
                 </div>
@@ -166,6 +169,14 @@ function duola_pocket_enqueue_admin_assets(string $hook): void
         'title' => __('选择网站头像', 'duola-pocket'),
         'button' => __('使用这张图片', 'duola-pocket'),
         'fallback' => get_template_directory_uri() . '/assets/images/anime-girl.webp',
+        'audioTitle' => __('选择音乐文件', 'duola-pocket'),
+        'audioButton' => __('使用这首音乐', 'duola-pocket'),
+        'coverTitle' => __('选择歌曲封面', 'duola-pocket'),
+        'coverButton' => __('使用这张封面', 'duola-pocket'),
+        'lyricsTitle' => __('选择歌词文件', 'duola-pocket'),
+        'lyricsButton' => __('使用此歌词', 'duola-pocket'),
+        'lyricsEmpty' => __('未选择（可选）', 'duola-pocket'),
+        'lyricsInvalid' => __('请选择 .lrc 或 .txt 歌词文件', 'duola-pocket'),
     ]);
 }
 add_action('admin_enqueue_scripts', 'duola_pocket_enqueue_admin_assets');
