@@ -264,6 +264,7 @@ function duola_pocket_enqueue_music_player(): void
     wp_localize_script('duola-pocket-music-player', 'duolaMusicPlayer', [
         'tracks' => duola_pocket_music_player_tracks(),
         'storageKey' => 'duolaMusicPlayer:v3',
+        'showLyrics' => is_front_page(),
     ]);
 }
 add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_music_player', 20);
@@ -291,11 +292,15 @@ function duola_pocket_render_music_player(): void
     if (!duola_pocket_should_show_music_player()) {
         return;
     }
+
+    $show_lyrics = is_front_page();
     ?>
-    <aside class="home-music" data-music-player aria-label="音乐典藏馆">
-        <div class="home-music-lyric" data-lyric-stage hidden aria-hidden="true">
-            <div class="home-music-lyric-line" data-lyric-line></div>
-        </div>
+    <aside class="home-music" data-music-player data-show-lyrics="<?php echo $show_lyrics ? 'true' : 'false'; ?>" aria-label="音乐典藏馆">
+        <?php if ($show_lyrics) : ?>
+            <div class="home-music-lyric" data-lyric-stage hidden aria-hidden="true">
+                <div class="home-music-lyric-line" data-lyric-line></div>
+            </div>
+        <?php endif; ?>
 
         <div class="home-music-panel" id="duola-music-panel" data-panel hidden data-console="archive">
             <div class="home-music-turntable" aria-hidden="true">

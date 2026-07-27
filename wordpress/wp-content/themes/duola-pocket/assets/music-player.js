@@ -6,6 +6,7 @@
   if (!root || !tracks.length || !luminous) {
     return;
   }
+  const showLyrics = Boolean(config.showLyrics) && root.dataset.showLyrics === 'true';
 
   const rootStyles = window.getComputedStyle(document.documentElement);
   const themeColor = (name, fallback) => rootStyles.getPropertyValue(name).trim() || fallback;
@@ -68,6 +69,8 @@
   let lyricViewportActive = false;
   let lyricPosition = { left: 0, top: 0, width: 0 };
   let collapseHoverGuardUntil = 0;
+  let isPageUnloading = false;
+  let lastStateWrite = 0;
 
   function clearAutoHideTimer() {
     window.clearTimeout(autoHideTimer);
@@ -407,11 +410,11 @@
   }
 
   function canShowLyricsInViewport() {
-    return showText && hasPlaybackStarted;
+    return showLyrics && showText && hasPlaybackStarted;
   }
 
   function mountLyricPageLayer() {
-    if (!lyricStage) {
+    if (!showLyrics || !lyricStage) {
       return;
     }
     lyricPageLayer = document.querySelector('[data-lyric-page-layer]');
@@ -1053,8 +1056,10 @@
     }
 
     updateMediaSession(track);
-    writeState({ index, volume: audio.volume, muted: audio.muted });
-    loadLyricsForTrack(track);
+    writeState({ index, currentTime: 0, volume: audio.volume, muted: audio.muted });
+    if (showLyrics) {
+      loadLyricsForTrack(track);
+    }
 
     if (shouldAutoplay) {
       audio.play().catch(() => setPlayingUi(false));
@@ -1075,14 +1080,30 @@
     }
     audio.muted = Boolean(saved.muted);
     loadTrack(index, { autoplay: false });
-    if (typeof saved.currentTime === 'number' && saved.currentTime > 0) {
-      const applyTime = () => {
-        if (Number.isFinite(audio.duration) && audio.duration > 0) {
-          audio.currentTime = Math.min(saved.currentTime, audio.duration - 0.25);
-        }
-      };
-      audio.addEventListener('loadedmetadata', applyTime, { once: true });
+    const shouldResume = saved.playing === true;
+    const restorePlayback = () => {
+      if (typeof saved.currentTime === 'number' && saved.currentTime > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+        audio.currentTime = Math.min(saved.currentTime, Math.max(0, audio.duration - 0.25));
+      }
+      if (shouldResume) {
+        audio.play().catch(() => setPlayingUi(false));
+      }
+    };
+    if (audio.readyState >= 1) {
+      restorePlayback();
+    } else {
+      audio.addEventListener('loadedmetadata', restorePlayback, { once: true });
     }
+  }
+
+  function persistPlaybackState() {
+    writeState({
+      index,
+      currentTime: audio.currentTime || 0,
+      volume: audio.volume,
+      muted: audio.muted,
+      playing: !audio.paused && !audio.ended,
+    });
   }
 
   function togglePlay() {
@@ -1149,6 +1170,7 @@
 
   audio.addEventListener('play', () => {
     hasPlaybackStarted = true;
+    writeState({ playing: true, index, currentTime: audio.currentTime || 0 });
     setPlayingUi(true);
     updateLyricViewportVisibility();
     revealPlayer();
@@ -1156,6 +1178,9 @@
     startLyricLoop();
   });
   audio.addEventListener('pause', () => {
+    if (!isPageUnloading) {
+      writeState({ playing: false, index, currentTime: audio.currentTime || 0 });
+    }
     setPlayingUi(false);
     window.cancelAnimationFrame(lyricRaf);
     lyricRaf = 0;
@@ -1175,8 +1200,10 @@
       syncLyrics(audio.currentTime);
       startLyricLoop();
     }
-    if (audio.currentTime % 2 < 0.25) {
-      writeState({ currentTime: audio.currentTime, index, volume: audio.volume, muted: audio.muted });
+    const now = Date.now();
+    if (now - lastStateWrite >= 1000) {
+      lastStateWrite = now;
+      writeState({ currentTime: audio.currentTime, index, volume: audio.volume, muted: audio.muted, playing: !audio.paused });
     }
   });
   audio.addEventListener('seeked', () => {
@@ -1211,6 +1238,18 @@
     if (event.key === 'Escape') {
       setPanelOpen(false);
     }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    isPageUnloading = true;
+    persistPlaybackState();
+  });
+  window.addEventListener('pagehide', () => {
+    isPageUnloading = true;
+    persistPlaybackState();
+  });
+  window.addEventListener('pageshow', () => {
+    isPageUnloading = false;
   });
 
   panel?.addEventListener('pointerenter', () => revealPlayer({ schedule: false, fromHover: true }));
