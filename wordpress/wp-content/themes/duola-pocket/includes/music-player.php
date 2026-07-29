@@ -320,7 +320,7 @@ function duola_pocket_render_music_player(): void
             </header>
 
             <div class="home-music-spectrum" aria-hidden="true">
-                <?php for ($bar = 0; $bar < 48; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
+                <?php for ($bar = 0; $bar < 12; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
             </div>
 
             <div class="home-music-transport" aria-label="<?php esc_attr_e('播放控制', 'duola-pocket'); ?>">
@@ -338,6 +338,10 @@ function duola_pocket_render_music_player(): void
                 <span data-duration>0:00</span>
             </div>
         </div>
+
+        <button class="home-music-wave" type="button" data-music-wave aria-label="Open music player">
+            <?php for ($bar = 0; $bar < 48; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
+        </button>
 
         <audio data-audio preload="metadata"></audio>
     </aside>

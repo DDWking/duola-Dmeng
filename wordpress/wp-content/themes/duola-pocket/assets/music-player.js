@@ -41,15 +41,17 @@
   const currentTimeEl = root.querySelector('[data-current-time]');
   const durationEl = root.querySelector('[data-duration]');
   const panel = root.querySelector('[data-panel]');
+  const wave = root.querySelector('[data-music-wave]');
   const panelClose = root.querySelector('[data-close-panel]');
   const lyricStage = root.querySelector('[data-lyric-stage]');
   const lyricLineEl = root.querySelector('[data-lyric-line]');
   const archiveIndexEl = root.querySelector('[data-archive-index]');
-  const spectrumBars = Array.from(root.querySelectorAll('.home-music-spectrum i'));
+  const spectrumBars = Array.from(root.querySelectorAll('[data-music-wave] i'));
   let lyricPageLayer = null;
 
   const storageKey = config.storageKey || 'duolaMusicPlayer:v3';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hoverPointerQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
   const lyricCache = new Map();
 
   let index = 0;
@@ -74,7 +76,6 @@
   let hasPlaybackStarted = false;
   let lyricViewportActive = false;
   let lyricPosition = { left: 0, top: 0, width: 0 };
-  let collapseHoverGuardUntil = 0;
   let isPageUnloading = false;
   let isRestoringPlayback = false;
   let resumeOnInteraction = null;
@@ -85,40 +86,33 @@
     autoHideTimer = 0;
   }
 
-  function revealPlayer(options = {}) {
-    if (options.fromHover && window.performance.now() < collapseHoverGuardUntil) {
-      return;
-    }
+  function revealPlayer() {
     clearAutoHideTimer();
     root.classList.remove('is-collapsed', 'is-dormant');
     panel.hidden = false;
-    if (options.schedule !== false && !audio.paused) {
-      scheduleAutoHide();
-    }
   }
 
   function collapsePlayer() {
     clearAutoHideTimer();
-    collapseHoverGuardUntil = window.performance.now() + 720;
     root.classList.add('is-collapsed');
     panel.hidden = false;
   }
 
-  function scheduleAutoHide(delay) {
+  function schedulePanelCollapse(delay = 180) {
     clearAutoHideTimer();
-    if (audio.paused && hasPlaybackStarted) {
-      revealPlayer({ schedule: false });
-      return;
-    }
-    const activeElement = document.activeElement;
-    const hasKeyboardFocus = root.contains(activeElement)
-      && typeof activeElement?.matches === 'function'
-      && activeElement.matches(':focus-visible');
-    if (panel.matches(':hover') || hasKeyboardFocus) {
-      return;
-    }
-    const wait = Number.isFinite(delay) ? delay : 4200;
-    autoHideTimer = window.setTimeout(collapsePlayer, wait);
+    const wait = Number.isFinite(delay) ? delay : 180;
+    autoHideTimer = window.setTimeout(() => {
+      const activeElement = document.activeElement;
+      const hasKeyboardFocus = root.contains(activeElement)
+        && typeof activeElement?.matches === 'function'
+        && activeElement.matches(':focus-visible');
+      const isHovering = hoverPointerQuery.matches
+        && (panel?.matches(':hover') || wave?.matches(':hover'));
+      if (hasKeyboardFocus || isHovering) {
+        return;
+      }
+      collapsePlayer();
+    }, wait);
   }
   async function initAudioAnalysis() {
     if (analyser) {
@@ -275,7 +269,7 @@
     if (open) {
       revealPlayer();
     } else {
-      scheduleAutoHide(0);
+      collapsePlayer();
     }
   }
   function parseTimeTag(tag) {
@@ -1256,7 +1250,6 @@
     writeState({ playing: true, index, currentTime: audio.currentTime || 0 });
     setPlayingUi(true);
     updateLyricViewportVisibility();
-    revealPlayer();
     initAudioAnalysis().catch(() => {});
     startAudioVisualizer();
     startLyricLoop();
@@ -1270,7 +1263,6 @@
     window.cancelAnimationFrame(visualizerRaf);
     lyricRaf = 0;
     visualizerRaf = 0;
-    revealPlayer({ schedule: false });
     updateLyricViewportVisibility();
   });
   audio.addEventListener('timeupdate', () => {
@@ -1360,16 +1352,42 @@
     updateLyricViewportVisibility();
   });
 
-  panel?.addEventListener('pointerenter', () => revealPlayer({ schedule: false, fromHover: true }));
-  panel?.addEventListener('pointerleave', () => scheduleAutoHide());
-  panel?.addEventListener('focusin', () => revealPlayer({ schedule: false }));
-  panel?.addEventListener('focusout', () => window.setTimeout(() => scheduleAutoHide(), 0));
-  panel?.addEventListener('pointerdown', () => revealPlayer());
-  panel?.addEventListener('click', () => {
+  const revealFromHover = () => {
+    if (hoverPointerQuery.matches) {
+      revealPlayer();
+    }
+  };
+  const collapseAfterHover = () => {
+    if (hoverPointerQuery.matches) {
+      schedulePanelCollapse(180);
+    }
+  };
+
+  wave?.addEventListener('pointerenter', revealFromHover);
+  wave?.addEventListener('pointerleave', collapseAfterHover);
+  panel?.addEventListener('pointerenter', revealFromHover);
+  panel?.addEventListener('pointerleave', collapseAfterHover);
+  wave?.addEventListener('focusin', () => revealPlayer());
+  wave?.addEventListener('focusout', () => window.setTimeout(() => schedulePanelCollapse(80), 0));
+  panel?.addEventListener('focusin', () => revealPlayer());
+  panel?.addEventListener('focusout', () => window.setTimeout(() => schedulePanelCollapse(80), 0));
+  wave?.addEventListener('click', (event) => {
+    if (hoverPointerQuery.matches) {
+      return;
+    }
+    event.preventDefault();
     if (root.classList.contains('is-collapsed')) {
       revealPlayer();
     }
   });
+  document.addEventListener('pointerdown', (event) => {
+    if (hoverPointerQuery.matches || root.classList.contains('is-collapsed')) {
+      return;
+    }
+    if (!root.contains(event.target)) {
+      collapsePlayer();
+    }
+  }, { passive: true });
   if (reducedMotion) {
     root.classList.add('is-reduced-motion');
   }
@@ -1378,5 +1396,5 @@
   panel.hidden = false;
   restoreState();
   updateLyricViewportVisibility();
-  scheduleAutoHide(2600);
+  collapsePlayer();
 })();
