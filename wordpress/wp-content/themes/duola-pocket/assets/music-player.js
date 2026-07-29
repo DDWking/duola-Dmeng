@@ -45,6 +45,7 @@
   const lyricStage = root.querySelector('[data-lyric-stage]');
   const lyricLineEl = root.querySelector('[data-lyric-line]');
   const archiveIndexEl = root.querySelector('[data-archive-index]');
+  const spectrumBars = Array.from(root.querySelectorAll('.home-music-spectrum i'));
   let lyricPageLayer = null;
 
   const storageKey = config.storageKey || 'duolaMusicPlayer:v3';
@@ -56,6 +57,7 @@
   let lyricLines = [];
   let activeLineIndex = -1;
   let lyricRaf = 0;
+  let visualizerRaf = 0;
   let lineTransitionTimer = 0;
   let currentLyricSeed = config.seed || 'duola-pocket';
   let activeWordNodes = [];
@@ -151,6 +153,21 @@
       return;
     }
     analyser.getByteFrequencyData(frequencyData);
+    const spectrumEnd = Math.min(104, frequencyData.length - 1);
+    spectrumBars.forEach((bar, barIndex) => {
+      const ratio = spectrumBars.length > 1 ? barIndex / (spectrumBars.length - 1) : 0;
+      const center = Math.round(2 + Math.pow(ratio, 1.48) * Math.max(1, spectrumEnd - 2));
+      const radius = barIndex < 4 ? 2 : 3;
+      let total = 0;
+      let samples = 0;
+      for (let bin = Math.max(1, center - radius); bin <= Math.min(spectrumEnd, center + radius); bin += 1) {
+        total += frequencyData[bin];
+        samples += 1;
+      }
+      const average = samples ? total / samples : 0;
+      const level = Math.max(0.1, Math.min(1, Math.pow(average / 178, 0.72)));
+      bar.style.setProperty('--bar-level', level.toFixed(3));
+    });
     let low = 0;
     let mid = 0;
     let high = 0;
@@ -899,12 +916,26 @@
     updateWordStates(time, options);
   }
 
+  function tickAudioVisualizer() {
+    visualizerRaf = 0;
+    if (audio.paused || reducedMotion) {
+      return;
+    }
+    sampleAudioRhythm();
+    visualizerRaf = window.requestAnimationFrame(tickAudioVisualizer);
+  }
+
+  function startAudioVisualizer() {
+    if (!visualizerRaf && !reducedMotion) {
+      visualizerRaf = window.requestAnimationFrame(tickAudioVisualizer);
+    }
+  }
+
   function tickLyrics() {
     lyricRaf = 0;
     if (!lyricLines.length || audio.paused) {
       return;
     }
-    sampleAudioRhythm();
     syncLyrics(audio.currentTime || 0);
     lyricRaf = window.requestAnimationFrame(tickLyrics);
   }
@@ -1227,6 +1258,7 @@
     updateLyricViewportVisibility();
     revealPlayer();
     initAudioAnalysis().catch(() => {});
+    startAudioVisualizer();
     startLyricLoop();
   });
   audio.addEventListener('pause', () => {
@@ -1235,7 +1267,9 @@
     }
     setPlayingUi(false);
     window.cancelAnimationFrame(lyricRaf);
+    window.cancelAnimationFrame(visualizerRaf);
     lyricRaf = 0;
+    visualizerRaf = 0;
     revealPlayer({ schedule: false });
     updateLyricViewportVisibility();
   });
