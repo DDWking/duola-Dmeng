@@ -6,7 +6,11 @@
   if (!root || !tracks.length || !luminous) {
     return;
   }
-  const showLyrics = Boolean(config.showLyrics) && root.dataset.showLyrics === 'true';
+  if (root.dataset.playerInitialized === 'true') {
+    return;
+  }
+  root.dataset.playerInitialized = 'true';
+  let showLyrics = Boolean(config.showLyrics) && root.dataset.showLyrics === 'true';
 
   const rootStyles = window.getComputedStyle(document.documentElement);
   const themeColor = (name, fallback) => rootStyles.getPropertyValue(name).trim() || fallback;
@@ -1285,6 +1289,18 @@
   });
   window.addEventListener('pageshow', () => {
     isPageUnloading = false;
+  });
+
+  document.addEventListener('turbo:render', () => {
+    const onFront = window.location.pathname === '/' || window.location.pathname === '';
+    showLyrics = onFront;
+    root.dataset.showLyrics = onFront ? 'true' : 'false';
+    if (lyricStage) {
+      const canShow = showLyrics && showText && hasPlaybackStarted;
+      lyricStage.hidden = !canShow;
+      lyricStage.setAttribute('aria-hidden', String(!canShow));
+    }
+    updateLyricViewportVisibility();
   });
 
   panel?.addEventListener('pointerenter', () => revealPlayer({ schedule: false, fromHover: true }));

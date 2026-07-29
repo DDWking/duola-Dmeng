@@ -70,6 +70,21 @@ function duola_pocket_enqueue_assets(): void
 }
 add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_assets');
 
+function duola_pocket_enqueue_turbo(): void
+{
+    if (is_admin() || is_feed() || duola_pocket_is_wall_page()) {
+        return;
+    }
+    wp_enqueue_script(
+        'duola-pocket-turbo',
+        'https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js',
+        [],
+        '8.0.12',
+        true
+    );
+}
+add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_turbo');
+
 function duola_pocket_register_site_settings(): void
 {
     register_setting('duola_site_settings', 'duola_site_avatar_id', [

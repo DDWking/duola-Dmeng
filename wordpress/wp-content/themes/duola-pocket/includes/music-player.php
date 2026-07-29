@@ -260,7 +260,7 @@ function duola_pocket_enqueue_music_player(): void
     $script_path = get_template_directory() . '/assets/music-player.js';
     wp_enqueue_style('duola-pocket-music-player', get_template_directory_uri() . '/assets/music-player.css', ['duola-pocket-style'], (string) filemtime($style_path));
     wp_enqueue_script('duola-pocket-luminous-lyrics-core', get_template_directory_uri() . '/assets/luminous-lyrics-core.js', [], (string) filemtime($core_script_path), true);
-    wp_enqueue_script('duola-pocket-music-player', get_template_directory_uri() . '/assets/music-player.js', ['duola-pocket-luminous-lyrics-core'], (string) filemtime($script_path), true);
+    wp_enqueue_script('duola-pocket-music-player', get_template_directory_uri() . '/assets/music-player.js', ['duola-pocket-turbo', 'duola-pocket-luminous-lyrics-core'], (string) filemtime($script_path), true);
     wp_localize_script('duola-pocket-music-player', 'duolaMusicPlayer', [
         'tracks' => duola_pocket_music_player_tracks(),
         'storageKey' => 'duolaMusicPlayer:v3',
@@ -293,14 +293,11 @@ function duola_pocket_render_music_player(): void
         return;
     }
 
-    $show_lyrics = is_front_page();
     ?>
-    <aside class="home-music" data-music-player data-show-lyrics="<?php echo $show_lyrics ? 'true' : 'false'; ?>" aria-label="音乐典藏馆">
-        <?php if ($show_lyrics) : ?>
-            <div class="home-music-lyric" data-lyric-stage hidden aria-hidden="true">
-                <div class="home-music-lyric-line" data-lyric-line></div>
-            </div>
-        <?php endif; ?>
+    <aside class="home-music" data-music-player data-turbo-permanent data-show-lyrics="<?php echo is_front_page() ? 'true' : 'false'; ?>" aria-label="?????">
+        <div class="home-music-lyric" data-lyric-stage hidden aria-hidden="true">
+            <div class="home-music-lyric-line" data-lyric-line></div>
+        </div>
 
         <div class="home-music-panel" id="duola-music-panel" data-panel hidden data-console="archive">
             <div class="home-music-turntable" aria-hidden="true">
@@ -349,7 +346,7 @@ function duola_pocket_render_music_player(): void
 
 function duola_pocket_render_global_music_player(): void
 {
-    if (is_front_page() || !duola_pocket_should_show_music_player()) {
+    if (!duola_pocket_should_show_music_player()) {
         return;
     }
     ?>
