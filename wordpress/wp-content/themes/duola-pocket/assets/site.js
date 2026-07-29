@@ -1,4 +1,24 @@
 (() => {
+  if (typeof window.duolaSiteCleanup === 'function') {
+    window.duolaSiteCleanup();
+  }
+
+  const lifecycleController = new AbortController();
+  const lifecycleSignal = lifecycleController.signal;
+  const cleanupCallbacks = [];
+  let lifecycleCleaned = false;
+  const cleanup = () => {
+    if (lifecycleCleaned) return;
+    lifecycleCleaned = true;
+    lifecycleController.abort();
+    cleanupCallbacks.splice(0).forEach((callback) => callback());
+    if (window.duolaSiteCleanup === cleanup) {
+      window.duolaSiteCleanup = null;
+    }
+  };
+  window.duolaSiteCleanup = cleanup;
+  document.addEventListener('turbo:before-render', cleanup, { once: true });
+
   document.documentElement.classList.add('motion-ready');
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -19,6 +39,7 @@
         revealObserver.unobserve(entry.target);
       });
     }, { threshold: 0.08, rootMargin: '0px 0px -3% 0px' });
+    cleanupCallbacks.push(() => revealObserver.disconnect());
     revealItems.forEach((item) => revealObserver.observe(item));
   } else {
     revealItems.forEach((item) => item.classList.add('is-visible'));
@@ -142,13 +163,15 @@
           scheduleAutoPlay();
         });
       });
-      document.addEventListener('visibilitychange', scheduleAutoPlay);
-      document.addEventListener('duola:lightbox-open', () => window.clearTimeout(autoPlayTimer));
-      document.addEventListener('duola:lightbox-close', scheduleAutoPlay);
-      window.addEventListener('pagehide', () => {
+      document.addEventListener('visibilitychange', scheduleAutoPlay, { signal: lifecycleSignal });
+      document.addEventListener('duola:lightbox-open', () => window.clearTimeout(autoPlayTimer), { signal: lifecycleSignal });
+      document.addEventListener('duola:lightbox-close', scheduleAutoPlay, { signal: lifecycleSignal });
+      const stopCarousel = () => {
         window.clearTimeout(autoPlayTimer);
         window.clearTimeout(transitionTimer);
-      });
+      };
+      window.addEventListener('pagehide', stopCarousel, { signal: lifecycleSignal });
+      cleanupCallbacks.push(stopCarousel);
 
       renderCarousel();
       scheduleAutoPlay();
@@ -202,6 +225,10 @@
     </div>
     <div class="lightbox-progress"><span></span><input type="range" min="0" value="0" step="1" aria-label="滑动预览照片"></div>`;
   document.body.appendChild(lightbox);
+  cleanupCallbacks.push(() => {
+    document.body.classList.remove('is-lightbox-open');
+    lightbox.remove();
+  });
 
   const image = lightbox.querySelector('.lightbox-media img');
   const media = lightbox.querySelector('.lightbox-media');
@@ -427,7 +454,7 @@
     if (event.key === '+' || event.key === '=') setZoom(zoom + 1);
     if (event.key === '-') setZoom(zoom - 1);
     if (event.key === '0') resetZoom();
-  });
+  }, { signal: lifecycleSignal });
 
   const requestedPhoto = new URLSearchParams(window.location.search).get('duola_photo');
   if (requestedPhoto) {

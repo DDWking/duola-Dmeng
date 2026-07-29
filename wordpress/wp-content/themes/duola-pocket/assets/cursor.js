@@ -153,6 +153,15 @@
     if (document.hidden) setVisible(false);
   });
 
+  document.addEventListener('turbo:before-render', () => setVisible(false));
+  document.addEventListener('turbo:render', () => {
+    if (cursor && !cursor.isConnected) {
+      cursor = null;
+    }
+    lastTarget = null;
+    sync();
+  });
+
   if (typeof cursorQuery.addEventListener === 'function') cursorQuery.addEventListener('change', sync);
   else cursorQuery.addListener(sync);
   sync();

@@ -75,15 +75,46 @@ function duola_pocket_enqueue_turbo(): void
     if (is_admin() || is_feed() || duola_pocket_is_wall_page()) {
         return;
     }
+
+    $turbo_script_path = get_template_directory() . '/assets/turbo.js';
     wp_enqueue_script(
         'duola-pocket-turbo',
-        'https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js',
+        get_template_directory_uri() . '/assets/turbo.js',
         [],
-        '8.0.12',
-        true
+        (string) filemtime($turbo_script_path),
+        [
+            'strategy' => 'defer',
+            'in_footer' => false,
+        ]
     );
 }
 add_action('wp_enqueue_scripts', 'duola_pocket_enqueue_turbo');
+
+function duola_pocket_turbo_meta(): void
+{
+    if (is_admin() || is_feed() || duola_pocket_is_wall_page()) {
+        return;
+    }
+    echo '<meta name="turbo-cache-control" content="no-cache">' . "\n";
+}
+add_action('wp_head', 'duola_pocket_turbo_meta', 1);
+
+function duola_pocket_turbo_script_attributes(string $tag, string $handle): string
+{
+    $single_run_handles = [
+        'duola-pocket-turbo',
+        'duola-pocket-cursor',
+        'duola-pocket-luminous-lyrics-core',
+        'duola-pocket-music-player',
+    ];
+
+    if (in_array($handle, $single_run_handles, true) && !str_contains($tag, 'data-turbo-eval')) {
+        return str_replace('<script ', '<script data-turbo-eval="false" ', $tag);
+    }
+
+    return $tag;
+}
+add_filter('script_loader_tag', 'duola_pocket_turbo_script_attributes', 10, 2);
 
 function duola_pocket_register_site_settings(): void
 {

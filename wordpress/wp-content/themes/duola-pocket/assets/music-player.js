@@ -419,6 +419,19 @@
     return showLyrics && showText && hasPlaybackStarted;
   }
 
+  function parkLyricStage() {
+    if (!lyricStage) {
+      return;
+    }
+    lyricStage.hidden = true;
+    lyricStage.setAttribute('aria-hidden', 'true');
+    if (!root.contains(lyricStage)) {
+      root.insertBefore(lyricStage, panel || root.firstChild);
+    }
+    lyricPageLayer?.remove();
+    lyricPageLayer = null;
+  }
+
   function mountLyricPageLayer() {
     if (!showLyrics || !lyricStage) {
       return;
@@ -1291,10 +1304,20 @@
     isPageUnloading = false;
   });
 
+  document.addEventListener('turbo:before-render', () => {
+    persistPlaybackState();
+    parkLyricStage();
+  });
   document.addEventListener('turbo:render', () => {
+    isPageUnloading = false;
     const onFront = window.location.pathname === '/' || window.location.pathname === '';
     showLyrics = onFront;
     root.dataset.showLyrics = onFront ? 'true' : 'false';
+    if (showLyrics) {
+      mountLyricPageLayer();
+    } else {
+      parkLyricStage();
+    }
     if (lyricStage) {
       const canShow = showLyrics && showText && hasPlaybackStarted;
       lyricStage.hidden = !canShow;

@@ -294,7 +294,7 @@ function duola_pocket_render_music_player(): void
     }
 
     ?>
-    <aside class="home-music" data-music-player data-turbo-permanent data-show-lyrics="<?php echo is_front_page() ? 'true' : 'false'; ?>" aria-label="?????">
+    <aside id="duola-music-player" class="home-music" data-music-player data-turbo-permanent data-show-lyrics="<?php echo is_front_page() ? 'true' : 'false'; ?>" aria-label="音乐典藏馆">
         <div class="home-music-lyric" data-lyric-stage hidden aria-hidden="true">
             <div class="home-music-lyric-line" data-lyric-line></div>
         </div>
