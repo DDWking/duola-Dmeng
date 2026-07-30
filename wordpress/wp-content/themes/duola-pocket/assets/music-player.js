@@ -148,10 +148,13 @@
     }
     analyser.getByteFrequencyData(frequencyData);
     const spectrumEnd = Math.min(104, frequencyData.length - 1);
+    const visualTime = Number.isFinite(audio.currentTime)
+      ? audio.currentTime
+      : window.performance.now() / 1000;
     spectrumBars.forEach((bar, barIndex) => {
       const ratio = spectrumBars.length > 1 ? barIndex / (spectrumBars.length - 1) : 0;
-      const center = Math.round(2 + Math.pow(ratio, 1.48) * Math.max(1, spectrumEnd - 2));
-      const radius = barIndex < 4 ? 2 : 3;
+      const center = Math.round(2 + Math.pow(ratio, 1.42) * Math.max(1, spectrumEnd - 2));
+      const radius = barIndex < 8 ? 2 : 3;
       let total = 0;
       let samples = 0;
       for (let bin = Math.max(1, center - radius); bin <= Math.min(spectrumEnd, center + radius); bin += 1) {
@@ -159,7 +162,17 @@
         samples += 1;
       }
       const average = samples ? total / samples : 0;
-      const level = Math.max(0.1, Math.min(1, Math.pow(average / 178, 0.72)));
+      const realLevel = Math.max(0, Math.min(1, Math.pow(average / 205, 0.82)));
+      const primaryWave = Math.pow((Math.sin(barIndex * 0.73 + visualTime * 2.35) + 1) / 2, 1.3);
+      const secondaryWave = (Math.sin(barIndex * 1.91 - visualTime * 1.45) + 1) / 2;
+      const accentPulse = Math.pow(Math.max(0, Math.sin(visualTime * 3.1 + barIndex * 0.43)), 4);
+      const seededLift = ((((barIndex * 29) % 17) / 16) - 0.5) * 0.22;
+      const artisticLevel = Math.max(0, Math.min(1,
+        0.08 + primaryWave * 0.56 + secondaryWave * 0.18 + accentPulse * 0.26 + seededLift
+      ));
+      const mixedLevel = realLevel * 0.52 + artisticLevel * 0.48;
+      const contrastedLevel = 0.5 + (mixedLevel - 0.5) * 1.45;
+      const level = Math.max(0.06, Math.min(1, contrastedLevel));
       bar.style.setProperty('--bar-level', level.toFixed(3));
     });
     let low = 0;
