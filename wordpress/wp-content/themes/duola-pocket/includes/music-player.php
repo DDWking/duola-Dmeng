@@ -339,7 +339,7 @@ function duola_pocket_render_music_player(): void
             </div>
         </div>
 
-        <button class="home-music-wave" type="button" data-music-wave aria-label="Open music player">
+        <button class="home-music-wave" type="button" data-music-wave aria-label="<?php esc_attr_e('打开音乐播放器', 'duola-pocket'); ?>">
             <?php for ($bar = 0; $bar < 48; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
         </button>
 
