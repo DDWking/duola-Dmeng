@@ -41,11 +41,8 @@
   const currentTimeEl = root.querySelector('[data-current-time]');
   const durationEl = root.querySelector('[data-duration]');
   const panel = root.querySelector('[data-panel]');
-  const wave = root.querySelector('[data-music-wave]');
-  const panelClose = root.querySelector('[data-close-panel]');
   const lyricStage = root.querySelector('[data-lyric-stage]');
   const lyricLineEl = root.querySelector('[data-lyric-line]');
-  const archiveIndexEl = root.querySelector('[data-archive-index]');
   const spectrumBars = Array.from(root.querySelectorAll('[data-music-wave] i'));
   const volumeButton = root.querySelector('[data-mute]');
   const volumeIcon = root.querySelector('[data-volume-icon]');
@@ -62,7 +59,6 @@
 
   const storageKey = config.storageKey || 'duolaMusicPlayer:v3';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const hoverPointerQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
   const lyricCache = new Map();
 
   let index = 0;
@@ -76,7 +72,6 @@
   let activeWordNodes = [];
   const measurementCache = new Map();
   const lyricGhostTimers = new Set();
-  let autoHideTimer = 0;
   let audioContext = null;
   let analyser = null;
   let audioSource = null;
@@ -99,39 +94,6 @@
   const PLAY_MODES = ['list', 'one', 'shuffle'];
   const PLAY_MODE_LABELS = { list: '列表循环', one: '单曲循环', shuffle: '随机播放' };
 
-  function clearAutoHideTimer() {
-    window.clearTimeout(autoHideTimer);
-    autoHideTimer = 0;
-  }
-
-  function revealPlayer() {
-    clearAutoHideTimer();
-    root.classList.remove('is-collapsed', 'is-dormant');
-    panel.hidden = false;
-  }
-
-  function collapsePlayer() {
-    clearAutoHideTimer();
-    root.classList.add('is-collapsed');
-    panel.hidden = false;
-  }
-
-  function schedulePanelCollapse(delay = 180) {
-    clearAutoHideTimer();
-    const wait = Number.isFinite(delay) ? delay : 180;
-    autoHideTimer = window.setTimeout(() => {
-      const activeElement = document.activeElement;
-      const hasKeyboardFocus = root.contains(activeElement)
-        && typeof activeElement?.matches === 'function'
-        && activeElement.matches(':focus-visible');
-      const isHovering = hoverPointerQuery.matches
-        && (panel?.matches(':hover') || wave?.matches(':hover'));
-      if (hasKeyboardFocus || isHovering) {
-        return;
-      }
-      collapsePlayer();
-    }, wait);
-  }
   async function initAudioAnalysis() {
     if (analyser) {
       if (audioContext?.state === 'suspended') {
@@ -264,8 +226,14 @@
     if (!input) {
       return;
     }
-    const value = Math.max(0, Math.min(1, ratio)) * 100;
+    const clamped = Math.max(0, Math.min(1, ratio));
+    const value = clamped * 100;
     input.style.setProperty('--progress', `${value}%`);
+    // The waveform bars read a unitless 0..1 value to color played bars.
+    const field = input.closest('[data-music-wave]');
+    if (field && field !== input) {
+      field.style.setProperty('--progress-n', clamped.toFixed(4));
+    }
   }
 
   function setTexts(nodes, text) {
@@ -294,14 +262,6 @@
         button.setAttribute('aria-label', isPlaying ? '暂停' : '播放');
       }
     });
-  }
-
-  function setPanelOpen(open) {
-    if (open) {
-      revealPlayer();
-    } else {
-      collapsePlayer();
-    }
   }
 
   function showToast(message) {
@@ -460,9 +420,6 @@
       return;
     }
     const open = typeof force === 'boolean' ? force : playlist.hidden;
-    if (open) {
-      revealPlayer();
-    }
     playlist.hidden = !open;
     playlistOpen = open;
     playlistButton?.setAttribute('aria-expanded', String(open));
@@ -1023,6 +980,11 @@
     if (!reducedMotion && masterFrame % 2 === 0) {
       sampleAudioRhythm();
     }
+    // Keep the waveform playhead and played-bar coloring buttery smooth;
+    // the timeupdate event only fires a few times per second.
+    if (!isSeeking && seekInput && Number.isFinite(audio.duration) && audio.duration > 0) {
+      setProgressCss(seekInput, (audio.currentTime || 0) / audio.duration);
+    }
     if (lyricLines.length) {
       syncLyrics(audio.currentTime || 0);
     }
@@ -1203,9 +1165,6 @@
     currentLyricSeed = config.seed || track.src || track.title || index;
     const trackTheme = getTrackTheme(track);
     applyTrackTheme(trackTheme);
-    if (archiveIndexEl) {
-      archiveIndexEl.textContent = `ARCHIVE ${String(index + 1).padStart(3, '0')}`;
-    }
 
     audio.src = track.src;
     if (track.type) {
@@ -1370,13 +1329,6 @@
     writeState({ volume: audio.volume, muted: audio.muted });
   });
 
-  panelClose?.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    togglePlaylist(false);
-    collapsePlayer();
-  });
-
   seekInput?.addEventListener('pointerdown', () => {
     isSeeking = true;
   });
@@ -1496,8 +1448,6 @@
     if (event.key === 'Escape') {
       if (playlistOpen) {
         togglePlaylist(false);
-      } else {
-        setPanelOpen(false);
       }
       return;
     }
@@ -1578,44 +1528,10 @@
     updateLyricViewportVisibility();
   });
 
-  const revealFromHover = () => {
-    if (hoverPointerQuery.matches) {
-      revealPlayer();
-    }
-  };
-  const collapseAfterHover = () => {
-    if (hoverPointerQuery.matches) {
-      schedulePanelCollapse(180);
-    }
-  };
-
-  wave?.addEventListener('pointerenter', revealFromHover);
-  wave?.addEventListener('pointerleave', collapseAfterHover);
-  panel?.addEventListener('pointerenter', revealFromHover);
-  panel?.addEventListener('pointerleave', collapseAfterHover);
-  wave?.addEventListener('focusin', () => revealPlayer());
-  wave?.addEventListener('focusout', () => window.setTimeout(() => schedulePanelCollapse(80), 0));
-  panel?.addEventListener('focusin', () => revealPlayer());
-  panel?.addEventListener('focusout', () => window.setTimeout(() => schedulePanelCollapse(80), 0));
-  wave?.addEventListener('click', (event) => {
-    if (hoverPointerQuery.matches) {
-      return;
-    }
-    event.preventDefault();
-    if (root.classList.contains('is-collapsed')) {
-      revealPlayer();
-    }
-  });
   document.addEventListener('pointerdown', (event) => {
     if (playlistOpen && playlist && !playlist.contains(event.target)
       && !(playlistButton && playlistButton.contains(event.target))) {
       togglePlaylist(false);
-    }
-    if (hoverPointerQuery.matches || root.classList.contains('is-collapsed')) {
-      return;
-    }
-    if (!root.contains(event.target)) {
-      collapsePlayer();
     }
   }, { passive: true });
 
@@ -1639,9 +1555,7 @@
   }
 
   mountLyricPageLayer();
-  panel.hidden = false;
   buildPlaylist();
   restoreState();
   updateLyricViewportVisibility();
-  collapsePlayer();
 })();

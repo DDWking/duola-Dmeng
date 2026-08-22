@@ -174,7 +174,7 @@ function duola_pocket_render_music_settings(): void
         <div class="duola-music-setting-heading">
             <div>
                 <h2><?php esc_html_e('音乐播放器', 'duola-pocket'); ?></h2>
-                <p><?php esc_html_e('从媒体库添加音乐、封面与可选 LRC 歌词。曲库有内容时，首页记忆板右上角会出现圆形控件与歌词舞台。', 'duola-pocket'); ?></p>
+                <p><?php esc_html_e('从媒体库添加音乐、封面与可选 LRC 歌词。曲库有内容时，页面底部会出现常驻的玻璃音乐条，波形兼作进度条，首页还有歌词舞台。', 'duola-pocket'); ?></p>
             </div>
             <button class="button button-primary" type="button" data-add-music-track><?php esc_html_e('添加歌曲', 'duola-pocket'); ?></button>
         </div>
@@ -300,56 +300,58 @@ function duola_pocket_render_music_player(): void
     }
 
     ?>
-    <aside id="duola-music-player" class="home-music" data-music-player data-turbo-permanent data-show-lyrics="<?php echo is_front_page() ? 'true' : 'false'; ?>" aria-label="音乐典藏馆">
+    <aside id="duola-music-player" class="home-music" data-music-player data-turbo-permanent data-show-lyrics="<?php echo is_front_page() ? 'true' : 'false'; ?>" aria-label="音乐播放器">
         <div class="home-music-lyric" data-lyric-stage hidden aria-hidden="true">
             <div class="home-music-lyric-line" data-lyric-line></div>
         </div>
 
-        <div class="home-music-panel" id="duola-music-panel" data-panel hidden data-console="archive">
-            <div class="home-music-turntable" aria-hidden="true">
-                <span class="home-music-vinyl">
-                    <span class="home-music-vinyl-grooves"></span>
-                    <span class="home-music-vinyl-label"><img data-cover-image alt="" hidden><span data-note-fallback><?php duola_pocket_music_icon('note'); ?></span></span>
-                    <span class="home-music-vinyl-shine"></span>
-                </span>
-                <span class="home-music-tonearm"><i></i></span>
+        <div class="home-music-playlist" id="duola-music-playlist" data-playlist hidden>
+            <div class="home-music-playlist-head">
+                <strong><?php esc_html_e('播放列表', 'duola-pocket'); ?></strong>
+                <span data-playlist-count></span>
+                <button class="home-music-btn" type="button" data-close-playlist aria-label="<?php esc_attr_e('关闭播放列表', 'duola-pocket'); ?>"><?php duola_pocket_music_icon('close'); ?></button>
             </div>
-            <header class="home-music-panel-head">
-                <div>
-                    <small class="home-music-archive-number" data-archive-index>ARCHIVE 001</small>
-                    <strong class="home-music-panel-brand">音乐典藏馆</strong><strong class="home-music-panel-track" data-panel-title></strong>
-                    <span data-panel-artist></span>
+            <ol class="home-music-playlist-list" data-playlist-list></ol>
+        </div>
+
+        <div class="home-music-dock" id="duola-music-panel" data-panel>
+            <div class="home-music-cover" aria-hidden="true">
+                <img data-cover-image alt="" hidden>
+                <span class="home-music-cover-fallback" data-note-fallback><?php duola_pocket_music_icon('note'); ?></span>
+            </div>
+
+            <div class="home-music-meta">
+                <strong class="home-music-title" data-panel-title></strong>
+                <span class="home-music-artist" data-panel-artist></span>
+            </div>
+
+            <div class="home-music-scrubber">
+                <span class="home-music-time" data-current-time>0:00</span>
+                <div class="home-music-wavefield" data-music-wave>
+                    <?php for ($bar = 0; $bar < 40; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
+                    <input data-seek type="range" min="0" max="1000" value="0" step="1" aria-label="<?php esc_attr_e('播放进度', 'duola-pocket'); ?>">
                 </div>
-                <button class="home-music-icon-btn" type="button" data-close-panel aria-label="<?php esc_attr_e('收起面板', 'duola-pocket'); ?>">
-                    <?php duola_pocket_music_icon('close'); ?>
-                </button>
-            </header>
-
-            <div class="home-music-spectrum" aria-hidden="true">
-                <?php for ($bar = 0; $bar < 12; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
+                <span class="home-music-time" data-duration>0:00</span>
             </div>
 
-            <div class="home-music-transport" aria-label="<?php esc_attr_e('播放控制', 'duola-pocket'); ?>">
-                <button class="home-music-icon-btn" type="button" data-playlist-toggle aria-label="<?php esc_attr_e('播放列表', 'duola-pocket'); ?>" aria-expanded="false" aria-controls="duola-music-playlist"><?php duola_pocket_music_icon('playlist'); ?></button>
-                <button class="home-music-icon-btn" type="button" data-previous aria-label="<?php esc_attr_e('上一首', 'duola-pocket'); ?>"><?php duola_pocket_music_icon('previous'); ?></button>
-                <button class="home-music-icon-btn home-music-icon-play" type="button" data-play-panel aria-label="<?php esc_attr_e('播放', 'duola-pocket'); ?>">
+            <div class="home-music-controls" aria-label="<?php esc_attr_e('播放控制', 'duola-pocket'); ?>">
+                <button class="home-music-btn" type="button" data-previous aria-label="<?php esc_attr_e('上一首', 'duola-pocket'); ?>"><?php duola_pocket_music_icon('previous'); ?></button>
+                <button class="home-music-btn home-music-play" type="button" data-play-panel aria-label="<?php esc_attr_e('播放', 'duola-pocket'); ?>">
                     <span data-play-icon-panel><?php duola_pocket_music_icon('play'); ?></span>
                     <span data-pause-icon-panel hidden><?php duola_pocket_music_icon('pause'); ?></span>
                 </button>
-                <button class="home-music-icon-btn" type="button" data-next aria-label="<?php esc_attr_e('下一首', 'duola-pocket'); ?>"><?php duola_pocket_music_icon('next'); ?></button>
-                <button class="home-music-icon-btn" type="button" data-play-mode aria-label="<?php esc_attr_e('播放模式：列表循环', 'duola-pocket'); ?>">
+                <button class="home-music-btn" type="button" data-next aria-label="<?php esc_attr_e('下一首', 'duola-pocket'); ?>"><?php duola_pocket_music_icon('next'); ?></button>
+            </div>
+
+            <div class="home-music-extras">
+                <button class="home-music-btn" type="button" data-play-mode aria-label="<?php esc_attr_e('播放模式：列表循环', 'duola-pocket'); ?>" title="<?php esc_attr_e('播放模式', 'duola-pocket'); ?>">
                     <span data-mode-icon="list"><?php duola_pocket_music_icon('repeat'); ?></span>
                     <span data-mode-icon="one" hidden><?php duola_pocket_music_icon('repeat-one'); ?></span>
                     <span data-mode-icon="shuffle" hidden><?php duola_pocket_music_icon('shuffle'); ?></span>
                 </button>
-            </div>
-
-            <div class="home-music-timeline">
-                <span data-current-time>0:00</span>
-                <input data-seek type="range" min="0" max="1000" value="0" step="1" aria-label="<?php esc_attr_e('播放进度', 'duola-pocket'); ?>">
-                <span data-duration>0:00</span>
+                <button class="home-music-btn" type="button" data-playlist-toggle aria-label="<?php esc_attr_e('播放列表', 'duola-pocket'); ?>" aria-expanded="false" aria-controls="duola-music-playlist"><?php duola_pocket_music_icon('playlist'); ?></button>
                 <span class="home-music-volume">
-                    <button class="home-music-mute" type="button" data-mute aria-label="<?php esc_attr_e('静音', 'duola-pocket'); ?>">
+                    <button class="home-music-btn home-music-mute" type="button" data-mute aria-label="<?php esc_attr_e('静音', 'duola-pocket'); ?>">
                         <span data-volume-icon><?php duola_pocket_music_icon('volume'); ?></span>
                         <span data-mute-icon hidden><?php duola_pocket_music_icon('volume-mute'); ?></span>
                     </button>
@@ -358,20 +360,7 @@ function duola_pocket_render_music_player(): void
             </div>
         </div>
 
-        <div class="home-music-playlist" id="duola-music-playlist" data-playlist hidden>
-            <div class="home-music-playlist-head">
-                <strong><?php esc_html_e('播放列表', 'duola-pocket'); ?></strong>
-                <span data-playlist-count></span>
-                <button class="home-music-icon-btn" type="button" data-close-playlist aria-label="<?php esc_attr_e('关闭播放列表', 'duola-pocket'); ?>"><?php duola_pocket_music_icon('close'); ?></button>
-            </div>
-            <ol class="home-music-playlist-list" data-playlist-list></ol>
-        </div>
-
         <div class="home-music-toast" data-player-toast role="status" aria-live="polite"></div>
-
-        <button class="home-music-wave" type="button" data-music-wave aria-label="<?php esc_attr_e('打开音乐播放器', 'duola-pocket'); ?>">
-            <?php for ($bar = 0; $bar < 48; $bar++) : ?><i style="--meter-index: <?php echo esc_attr((string) $bar); ?>"></i><?php endfor; ?>
-        </button>
 
         <audio data-audio preload="metadata"></audio>
     </aside>
@@ -384,7 +373,7 @@ function duola_pocket_render_global_music_player(): void
         return;
     }
     ?>
-    <div class="memory-board global-music-layer" aria-hidden="false">
+    <div class="global-music-layer" aria-hidden="false">
         <div class="home-music-slot">
             <?php duola_pocket_render_music_player(); ?>
         </div>
