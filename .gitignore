@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 vendor/
 !wordpress/wp-content/plugins/duola-albums/vendor/
@@ -25,3 +25,7 @@ backups/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Local agent workspaces
+.claude/
+.jspace/

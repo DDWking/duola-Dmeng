@@ -2563,3 +2563,345 @@
     transition: none !important;
   }
 }
+
+/* ============================================================
+   Player deck v3.2: playlist popover, volume, play modes, toast.
+   Appended after every legacy skin so these declarations win.
+   ============================================================ */
+
+/* Stroke-based icons for the new sticker buttons. */
+.global-music-layer .home-music-slot .home-music-panel[data-console="archive"] .home-music-icon-btn[data-play-mode] svg,
+.global-music-layer .home-music-slot .home-music-panel[data-console="archive"] .home-music-icon-btn[data-playlist-toggle] svg,
+.home-music-playlist .home-music-icon-btn svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Mode icons stack in one grid cell; the hidden one truly disappears. */
+.home-music-icon-btn [data-mode-icon] {
+  display: grid;
+  grid-area: 1 / 1;
+  place-items: center;
+}
+.home-music-icon-btn [data-mode-icon][hidden] {
+  display: none;
+}
+
+/* Volume sticker group rides the timeline row. */
+.home-music-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.home-music-mute {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(120, 100, 150, 0.32);
+  border-radius: 50%;
+  color: #7a668e;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 1px 2px 0 rgba(112, 91, 139, 0.12);
+  cursor: pointer;
+  transition: transform 160ms ease, background 200ms ease, color 200ms ease;
+}
+.home-music-mute:hover {
+  color: #5b4a78;
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+}
+.home-music-mute:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(112, 91, 139, 0.12);
+}
+.home-music-mute:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--music-theme) 72%, #8b74b8);
+  outline-offset: 2px;
+}
+.home-music-mute svg {
+  width: 0.62rem;
+  height: 0.62rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.home-music.is-muted .home-music-mute {
+  color: color-mix(in srgb, var(--music-theme-hot) 72%, #7a668e);
+  border-color: color-mix(in srgb, var(--music-theme-hot) 46%, rgba(120, 100, 150, 0.32));
+}
+
+.home-music-volume input[type="range"] {
+  --progress: 70%;
+  width: clamp(3rem, 7vw, 4.6rem);
+  height: 0.3rem;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--music-theme) 0 var(--progress), rgba(140, 122, 168, 0.26) var(--progress) 100%);
+  box-shadow: 0 1px 2px rgba(106, 86, 150, 0.18) inset;
+  cursor: pointer;
+}
+.home-music-volume input[type="range"]::-webkit-slider-thumb {
+  width: 0.6rem;
+  height: 0.6rem;
+  appearance: none;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--music-theme) 72%, #7a5fd0);
+  box-shadow: 0 1px 3px rgba(70, 53, 84, 0.3);
+}
+.home-music-volume input[type="range"]::-moz-range-thumb {
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--music-theme) 72%, #7a5fd0);
+  box-shadow: 0 1px 3px rgba(70, 53, 84, 0.3);
+}
+
+/* The timeline gains a fourth slot for the volume sticker. */
+.global-music-layer .home-music-slot .home-music-panel[data-console="archive"] .home-music-timeline {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+/* Playlist popover: a sticker card floating above the deck. */
+.home-music-playlist {
+  position: fixed;
+  bottom: calc(max(0.28rem, env(safe-area-inset-bottom)) + var(--music-wave-height, 3.4rem) + 5.2rem);
+  left: 50%;
+  z-index: 2147483003;
+  display: flex;
+  flex-direction: column;
+  width: min(30rem, calc(100vw - 1.25rem));
+  max-height: min(48vh, 22rem);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 1.05rem 0.85rem 1rem 0.9rem;
+  background:
+    linear-gradient(165deg, rgba(255, 253, 247, 0.97), rgba(243, 237, 255, 0.94)),
+    repeating-linear-gradient(0deg, transparent 0 1.1rem, rgba(126, 145, 207, 0.06) 1.12rem 1.16rem);
+  box-shadow:
+    3px 4px 0 rgba(80, 68, 133, 0.14),
+    0 18px 40px rgba(56, 45, 78, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px) saturate(118%);
+  transform: translateX(-50%);
+  pointer-events: auto;
+  animation: home-music-playlist-in 320ms cubic-bezier(0.18, 0.86, 0.22, 1.08) both;
+}
+.home-music-playlist[hidden] {
+  display: none;
+}
+.home-music.is-collapsed .home-music-playlist {
+  display: none;
+}
+
+.home-music-playlist-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem 0.45rem 0.8rem;
+  border-bottom: 1px dashed rgba(120, 100, 150, 0.28);
+}
+.home-music-playlist-head strong {
+  color: #4c3f62;
+  font-family: "Segoe Print", "Microsoft YaHei", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  transform: rotate(-0.6deg);
+}
+.home-music-playlist-head [data-playlist-count] {
+  color: rgba(90, 78, 108, 0.66);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+.home-music-playlist-head .home-music-icon-btn {
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-left: auto;
+  border-radius: 50%;
+  transform: none;
+}
+
+.home-music-playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.4rem 0.45rem 0.5rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.home-music-playlist-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.42rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0.72rem 0.55rem 0.68rem 0.58rem;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 1px 2px 0 rgba(112, 91, 139, 0.1);
+  color: #4c3f62;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+.home-music-playlist-item:hover {
+  background: rgba(255, 255, 255, 0.94);
+  transform: translateY(-1px) rotate(-0.2deg);
+  box-shadow: 2px 3px 0 rgba(112, 91, 139, 0.14);
+}
+.home-music-playlist-item:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(112, 91, 139, 0.12);
+}
+.home-music-playlist-item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--music-theme) 72%, #8b74b8);
+  outline-offset: 2px;
+}
+
+.home-music-playlist-num {
+  color: rgba(90, 78, 108, 0.6);
+  font: 600 0.58rem/1 Consolas, "Microsoft YaHei", monospace;
+  letter-spacing: 0.08em;
+}
+.home-music-playlist-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.home-music-playlist-text strong {
+  overflow: hidden;
+  color: #463a58;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-music-playlist-text small {
+  overflow: hidden;
+  color: rgba(90, 78, 108, 0.64);
+  font-size: 0.6rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-music-playlist-meter {
+  display: none;
+  align-items: end;
+  gap: 2px;
+  width: 0.9rem;
+  height: 0.95rem;
+}
+.home-music-playlist-meter i {
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to top, var(--music-theme), var(--music-theme-hot));
+  transform: scaleY(0.3);
+  transform-origin: 50% 100%;
+}
+
+.home-music-playlist-item.is-current {
+  border-color: color-mix(in srgb, var(--music-theme) 55%, rgba(255, 255, 255, 0.9));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--music-theme) 14%, #fff), color-mix(in srgb, var(--music-theme-soft) 26%, #fff));
+  box-shadow:
+    2px 3px 0 color-mix(in srgb, var(--music-theme) 26%, rgba(112, 91, 139, 0.14)),
+    0 0 12px color-mix(in srgb, var(--music-theme) 22%, transparent);
+}
+.home-music-playlist-item.is-current .home-music-playlist-num,
+.home-music-playlist-item.is-current .home-music-playlist-text strong {
+  color: color-mix(in srgb, var(--music-theme) 68%, #463a58);
+}
+.home-music-playlist-item.is-current .home-music-playlist-meter {
+  display: flex;
+}
+.home-music.is-playing .home-music-playlist-item.is-current .home-music-playlist-meter i {
+  animation: home-music-playlist-meter 0.7s ease-in-out infinite alternate;
+}
+.home-music.is-playing .home-music-playlist-item.is-current .home-music-playlist-meter i:nth-child(2) {
+  animation-delay: -0.3s;
+  animation-duration: 0.5s;
+}
+.home-music.is-playing .home-music-playlist-item.is-current .home-music-playlist-meter i:nth-child(3) {
+  animation-delay: -0.15s;
+  animation-duration: 0.86s;
+}
+
+@keyframes home-music-playlist-meter {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(0.95); }
+}
+@keyframes home-music-playlist-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(0.8rem) scale(0.97); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* Status toast: a tiny sticker note at the top of the viewport. */
+.home-music-toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.9rem);
+  left: 50%;
+  z-index: 2147483004;
+  max-width: min(20rem, calc(100vw - 2rem));
+  padding: 0.4rem 0.85rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 0.85rem 0.62rem 0.78rem 0.6rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(243, 237, 255, 0.9));
+  box-shadow: 2px 3px 0 rgba(80, 68, 133, 0.16), 0 10px 24px rgba(56, 45, 78, 0.2);
+  color: #4c3f62;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-0.5rem) rotate(-0.4deg);
+  transition: opacity 240ms ease, transform 300ms cubic-bezier(0.18, 0.86, 0.22, 1.1);
+}
+.home-music-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) rotate(-0.4deg);
+}
+
+@media (max-width: 620px) {
+  .home-music-playlist {
+    bottom: calc(max(0.1rem, env(safe-area-inset-bottom)) + var(--music-wave-height, 3rem) + 4rem);
+    width: calc(100vw - 1.1rem);
+    max-height: min(46vh, 19rem);
+  }
+  .home-music-volume {
+    gap: 0.24rem;
+  }
+  .home-music-volume input[type="range"] {
+    width: 2.6rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-music-volume input[type="range"] {
+    width: 2.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-music-playlist,
+  .home-music-playlist-meter i,
+  .home-music-toast {
+    animation: none !important;
+    transition: none !important;
+  }
+}
