@@ -55,6 +55,8 @@
   const playlistCountEl = root.querySelector('[data-playlist-count]');
   const playlistClose = root.querySelector('[data-close-playlist]');
   const toastEl = root.querySelector('[data-player-toast]');
+  const collapseButton = root.querySelector('[data-toggle-dock]');
+  const gripButton = root.querySelector('[data-expand-dock]');
   let lyricPageLayer = null;
 
   const storageKey = config.storageKey || 'duolaMusicPlayer:v3';
@@ -424,6 +426,22 @@
     playlistOpen = open;
     playlistButton?.setAttribute('aria-expanded', String(open));
     root.classList.toggle('is-playlist-open', open);
+  }
+
+  function setDockHidden(hidden, options = {}) {
+    const shouldHide = Boolean(hidden);
+    root.classList.toggle('is-dock-hidden', shouldHide);
+    collapseButton?.setAttribute('aria-expanded', String(!shouldHide));
+    if (shouldHide) {
+      togglePlaylist(false);
+    }
+    if (options.persist !== false) {
+      writeState({ collapsed: shouldHide });
+    }
+  }
+
+  function toggleDock(force) {
+    setDockHidden(typeof force === 'boolean' ? force : !root.classList.contains('is-dock-hidden'));
   }
 
   function seekBy(delta) {
@@ -1316,6 +1334,18 @@
     togglePlaylist(false);
   });
 
+  collapseButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleDock(true);
+  });
+
+  gripButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleDock(false);
+  });
+
   volumeButton?.addEventListener('click', (event) => {
     event.preventDefault();
     toggleMute();
@@ -1557,5 +1587,7 @@
   mountLyricPageLayer();
   buildPlaylist();
   restoreState();
+  // Restore the collapsed preference before the entry animation paints.
+  setDockHidden(readState().collapsed === true, { persist: false });
   updateLyricViewportVisibility();
 })();

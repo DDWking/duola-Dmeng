@@ -285,6 +285,8 @@ function duola_pocket_music_icon(string $name): void
         'shuffle' => '<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/>',
         'volume' => '<path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
         'volume-mute' => '<path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/>',
+        'chevron-down' => '<path d="m6 9 6 6 6-6"/>',
+        'chevron-up' => '<path d="m18 15-6-6-6 6"/>',
     ];
 
     if (!isset($paths[$name])) {
@@ -357,8 +359,14 @@ function duola_pocket_render_music_player(): void
                     </button>
                     <input data-volume type="range" min="0" max="100" value="70" step="1" aria-label="<?php esc_attr_e('音量', 'duola-pocket'); ?>">
                 </span>
+                <button class="home-music-btn home-music-collapse" type="button" data-toggle-dock aria-label="<?php esc_attr_e('收起播放器', 'duola-pocket'); ?>" title="<?php esc_attr_e('收起播放器', 'duola-pocket'); ?>" aria-expanded="true" aria-controls="duola-music-panel"><?php duola_pocket_music_icon('chevron-down'); ?></button>
             </div>
         </div>
+
+        <button class="home-music-grip" type="button" data-expand-dock aria-label="<?php esc_attr_e('展开播放器', 'duola-pocket'); ?>" title="<?php esc_attr_e('展开播放器', 'duola-pocket'); ?>">
+            <span class="home-music-grip-icon" aria-hidden="true"><?php duola_pocket_music_icon('note'); ?></span>
+            <span class="home-music-grip-meter" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
 
         <div class="home-music-toast" data-player-toast role="status" aria-live="polite"></div>
 
