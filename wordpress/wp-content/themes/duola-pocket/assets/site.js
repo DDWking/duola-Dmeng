@@ -204,6 +204,14 @@
   lightbox.setAttribute('aria-modal', 'true');
   lightbox.setAttribute('aria-label', '照片查看器');
   lightbox.setAttribute('aria-hidden', 'true');
+  // 灯箱声明了 aria-modal="true"，打开时背景内容必须真正不可达，
+  // 否则 Tab 会跑到被遮住的导航/文章链接上。
+  const setBackgroundInert = (inert) => {
+    const shell = document.querySelector('.site-shell');
+    if (!shell || shell.contains(lightbox)) return;
+    if (inert) shell.setAttribute('inert', '');
+    else shell.removeAttribute('inert');
+  };
   lightbox.innerHTML = `
     <div class="lightbox-backdrop" data-lightbox-close></div>
     <header class="lightbox-header">
@@ -340,13 +348,18 @@
     document.dispatchEvent(new CustomEvent('duola:lightbox-open'));
     loadImage(item, direction);
     preloadAdjacent();
-    if (opening) window.requestAnimationFrame(() => closeButton.focus());
+    if (opening) {
+      setBackgroundInert(true);
+      window.requestAnimationFrame(() => closeButton.focus());
+    }
   };
 
   const close = () => {
     lightbox.classList.remove('is-open');
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-lightbox-open');
+    // 必须在 previousFocus.focus() 之前解除 inert，否则焦点无法回到触发按钮
+    setBackgroundInert(false);
     document.dispatchEvent(new CustomEvent('duola:lightbox-close'));
     imageRequest += 1;
     resetZoom();

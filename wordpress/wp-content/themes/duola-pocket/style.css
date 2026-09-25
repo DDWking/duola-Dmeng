@@ -825,6 +825,10 @@ button { color: inherit; }
 
 /* Lightbox */
 body.is-lightbox-open { overflow: hidden; }
+/* 灯箱打开时收起常驻播放器。它的 z-index(2147483000) 远高于灯箱(1000)，
+   会压住灯箱底部的进度条与图注；同时 visibility:hidden 让播放器控件退出
+   Tab 顺序，避免灯箱打开时焦点被播放器抢走。音频本身继续播放。 */
+body.is-lightbox-open .global-music-layer { visibility: hidden; pointer-events: none; }
 .lightbox {
   position: fixed;
   z-index: 1000;
@@ -1226,7 +1230,9 @@ body.wall-terminal-page::after {
   box-shadow: 0 10px 28px -24px rgba(77, 231, 255, 0.9);
 }
 .wall-page-header span:first-child::before { color: #4de7ff; content: "[ONLINE] "; }
-.wall-page-header span:nth-child(2) { text-align: center; }
+.wall-page-header .wall-home-link { color: inherit; text-align: center; text-decoration: none; }
+.wall-page-header .wall-home-link:hover { color: #4de7ff; text-shadow: 0 0 16px rgba(77, 231, 255, 0.6); }
+.wall-page-header .wall-home-link:focus-visible { outline: 2px solid #4de7ff; outline-offset: 3px; }
 .wall-page-header span:last-child { text-align: right; }
 .wall-compose,
 .wall-log { margin-top: 2.5rem; }
@@ -1363,7 +1369,8 @@ body.wall-terminal-page::after {
   .wall-page { width: calc(100% - 1.5rem); padding-top: 1rem; }
   .wall-page-header { grid-template-columns: 1fr auto; margin-bottom: 1.4rem; }
   .wall-page-header span:first-child::before { content: ""; }
-  .wall-page-header span:nth-child(2) { display: none; }
+  .wall-page-header span:last-child { display: none; }
+  .wall-page-header .wall-home-link { text-align: right; }
   .wall-compose label { grid-template-columns: 1fr; gap: 0.15rem; }
   .wall-compose label > span { padding-top: 0; }
   .wall-compose-actions { gap: 0.7rem; padding-left: 0; }

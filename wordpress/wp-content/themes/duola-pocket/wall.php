@@ -34,7 +34,7 @@ $render_message = static function (array $message, bool $is_reply = false) use (
 <main class="wall-page">
     <header class="wall-page-header">
         <span>WALL DDW(1)</span>
-        <span><?php bloginfo('name'); ?></span>
+        <a class="wall-home-link" href="<?php echo esc_url(home_url('/')); ?>">&larr; <?php bloginfo('name'); ?></a>
         <span>WALL DDW(1)</span>
     </header>
 

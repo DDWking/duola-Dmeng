@@ -139,12 +139,37 @@
     setText(searchStatus, `${searchIndex + 1}/${matches.length}`);
   };
 
+  let quitArmed = false;
+  let quitTimer = 0;
+
+  const disarmQuit = () => {
+    quitArmed = false;
+    window.clearTimeout(quitTimer);
+  };
+
+  // 「q quit」之前是单键、无确认地直接跳回首页：焦点在页面上时误触即离开，
+  // 已输入的留言草稿会丢失。改为二次确认，4 秒内再触发一次才真正离开。
+  const requestQuit = () => {
+    if (quitArmed) {
+      window.location.href = config.homeUrl;
+      return;
+    }
+    quitArmed = true;
+    setText(status, '再按一次 q 离开留言板（未提交的内容会丢失）');
+    window.clearTimeout(quitTimer);
+    quitTimer = window.setTimeout(() => {
+      quitArmed = false;
+      setText(status, '');
+    }, 4000);
+  };
+
   const runCommand = (command) => {
     const distance = Math.max(72, window.innerHeight * 0.22);
     if ('down' === command) window.scrollBy({ top: distance, behavior: reducedMotion ? 'auto' : 'smooth' });
     if ('up' === command) window.scrollBy({ top: -distance, behavior: reducedMotion ? 'auto' : 'smooth' });
     if ('search' === command) openSearch();
-    if ('quit' === command) window.location.href = config.homeUrl;
+    if ('quit' === command) requestQuit();
+    if ('quit' !== command) disarmQuit();
   };
 
   const isTyping = (target) => target instanceof HTMLElement
@@ -208,6 +233,8 @@
   });
 
   document.addEventListener('keydown', (event) => {
+    // 放行浏览器/系统组合键（Ctrl+G、Alt+J 等），不再被单键快捷键吃掉
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.target === searchInput) {
       if ('Escape' === event.key) {
         event.preventDefault();

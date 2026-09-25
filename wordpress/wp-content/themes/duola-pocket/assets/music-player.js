@@ -1481,9 +1481,15 @@
       }
       return;
     }
+    // 播放器快捷键只在焦点位于播放器内部时生效。
+    // 之前是无条件拦截 Space / 方向键，导致整站键盘滚动失效（WCAG 2.1.4）。
+    if (!root || !root.contains(document.activeElement)) {
+      return;
+    }
+    // 输入框与滑块保留原生按键行为（方向键调音量/进度）。
     const target = event.target;
     if (target && typeof target.matches === 'function'
-      && target.matches('input, textarea, select, button, [role="button"], summary, a[href], [contenteditable="true"]')) {
+      && target.matches('input, textarea, select, [contenteditable="true"]')) {
       return;
     }
     switch (event.key) {
