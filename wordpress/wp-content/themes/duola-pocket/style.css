@@ -863,8 +863,8 @@ body.is-lightbox-open .global-music-layer { visibility: hidden; pointer-events: 
 .lightbox-counter i { opacity: 0.36; font-style: normal; }
 .lightbox-tools { grid-column: 3; display: flex; align-items: center; justify-self: end; gap: 0.65rem; }
 .lightbox-zoom {
-  min-width: 42px;
-  height: 36px;
+  min-width: 44px;
+  height: 44px;
   padding: 0 0.7rem;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
@@ -880,7 +880,7 @@ body.is-lightbox-open .global-music-layer { visibility: hidden; pointer-events: 
 .lightbox.is-zoomed .lightbox-zoom { cursor: zoom-out; }
 .lightbox-close {
   position: relative;
-  width: 42px;
+  width: 44px;
   aspect-ratio: 1;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 50%;
@@ -1105,7 +1105,7 @@ body.is-lightbox-open .global-music-layer { visibility: hidden; pointer-events: 
   .site-header { min-height: 72px; }
   .site-nav { gap: 0.85rem; }
   .site-nav a { font-size: 0.8rem; }
-  .site-avatar { width: 38px; border-width: 2px; }
+  .site-avatar { width: 44px; border-width: 2px; }
   .scrapbook-home { padding-right: 0.85rem; padding-left: 0.85rem; }
   .stay-alive-scene { width: 100%; margin: -1.2rem 0 -0.4rem -1.2rem; }
   .home-notes-heading { padding: 0 0.25rem; }
@@ -1174,8 +1174,8 @@ body.is-lightbox-open .global-music-layer { visibility: hidden; pointer-events: 
   .lightbox-header { grid-template-columns: 1fr auto; }
   .lightbox-counter { grid-column: 1; grid-row: 2; justify-self: start; }
   .lightbox-tools { grid-column: 2; grid-row: 1 / span 2; }
-  .lightbox-stage { grid-template-columns: 38px minmax(0, 1fr) 38px; }
-  .lightbox-nav { width: 34px; }
+  .lightbox-stage { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .lightbox-nav { width: 44px; }
   .lightbox-media { height: 72vh; }
   .lightbox-viewport { width: 100%; max-width: 82vw; height: 64vh; }
   .lightbox-media img { max-height: 64vh; border-width: 5px; }
@@ -1298,6 +1298,8 @@ body.wall-terminal-page::after {
 .wall-compose-actions button:disabled,
 .wall-message header button:disabled { color: #375260; cursor: wait; text-shadow: none; }
 .wall-compose-actions > span { color: #6f91a8; font-size: 0.8rem; }
+/* 触摸目标：TRANSMIT 此前只有约 24px 高 */
+.wall-compose-actions button { display: inline-flex; align-items: center; min-height: 44px; }
 .wall-compose-actions output { color: #ff5fd2; }
 .wall-message {
   padding: 1rem 0.8rem;
@@ -1351,7 +1353,7 @@ body.wall-terminal-page::after {
 .wall-search label { display: flex; flex: 1; align-items: center; gap: 0.45rem; color: #ff5fd2; }
 .wall-search input {
   width: 100%;
-  min-height: 32px;
+  min-height: 44px;
   padding: 0 0.35rem;
   border: 0;
   border-bottom: 1px solid rgba(77, 231, 255, 0.45);
@@ -1360,6 +1362,12 @@ body.wall-terminal-page::after {
   background: transparent;
   font: inherit;
   outline: 0;
+}
+/* 该输入框原本 outline:0 且没有任何替代焦点样式（WCAG 2.4.7 不达标） */
+.wall-search input:focus-visible {
+  border-bottom-color: #ff5fd2;
+  outline: 2px solid rgba(255, 95, 210, 0.55);
+  outline-offset: 2px;
 }
 .wall-search span { flex: 0 0 auto; color: #6f91a8; font-size: 0.82rem; }
 .wall-terminal-page ::selection { color: #02040a; background: #4de7ff; }
@@ -1422,8 +1430,10 @@ body.wall-terminal-page::after {
     top: 0;
     left: 0;
     z-index: 2147483647;
-    width: 88px;
-    height: 88px;
+    /* 88px 的光标锚点在左上角，会一直盖住指针右下方约 88px 的内容
+       （相册里直接糊在照片上）。降到 88 的一半，像素画降采样最干净。 */
+    width: 44px;
+    height: 44px;
     border: 0;
     background: url(./assets/cursors/bocchi-default.png?v=2) 0 0 / contain no-repeat;
     image-rendering: pixelated;

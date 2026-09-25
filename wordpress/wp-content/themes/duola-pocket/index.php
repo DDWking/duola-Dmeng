@@ -1,4 +1,8 @@
 <?php get_header(); ?>
+<section class="page-intro">
+    <span class="eyebrow">Daily notes</span>
+    <h1>文章</h1>
+</section>
 <section class="section archive-content-list">
     <?php if (have_posts()) : ?>
         <div class="post-list">

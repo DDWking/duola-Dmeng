@@ -9,6 +9,10 @@ $albums = new WP_Query([
     'order' => 'DESC',
 ]);
 ?>
+<section class="page-intro">
+    <span class="eyebrow">Pocket memories</span>
+    <h1>相册</h1>
+</section>
 <section class="section archive-content-list">
     <?php if ($albums->have_posts()) : ?>
         <div class="album-grid album-grid-archive">

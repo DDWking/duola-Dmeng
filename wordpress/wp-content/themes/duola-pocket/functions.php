@@ -99,6 +99,80 @@ function duola_pocket_turbo_meta(): void
 }
 add_action('wp_head', 'duola_pocket_turbo_meta', 1);
 
+/**
+ * 输出 meta description。
+ * 后台「网站设置」把「一句话说明」标注为“会用于网站简介和搜索摘要”，
+ * 但主题此前从未输出过该标签，所有页面都缺 description。
+ */
+function duola_pocket_meta_description(): void
+{
+    if (is_admin() || is_feed()) {
+        return;
+    }
+
+    $description = '';
+
+    if (duola_pocket_is_wall_page()) {
+        $description = '留言板：留下你想说的话。';
+    } elseif (is_front_page()) {
+        // 首页由模板渲染，正文为空；站点「一句话说明」也可能是空的。
+        $description = (string) get_option('blogdescription');
+        if ('' === trim($description)) {
+            $description = sprintf('%s：相册、文章、动画档案与留言板。', get_bloginfo('name'));
+        }
+    } elseif (is_singular()) {
+        // 静态首页同时满足 is_singular()，所以 is_front_page() 必须先判断。
+        $post_id = get_queried_object_id();
+        $description = trim((string) get_the_excerpt($post_id));
+        if ('' === $description) {
+            $description = trim((string) get_post_field('post_content', $post_id));
+        }
+        if ('' === $description && is_singular('album')) {
+            // 相册是 CPT，正文为空，用标题+年份兜底
+            $description = sprintf('%s：收录 %s 年的照片。', get_the_title($post_id), get_the_date('Y', $post_id));
+        }
+        if ('' === $description && is_singular('anime')) {
+            $year = (int) get_post_meta($post_id, '_duola_anime_year', true);
+            $score = function_exists('duola_anime_get_score') ? trim((string) duola_anime_get_score($post_id)) : '';
+            $bits = [get_the_title($post_id)];
+            if ($year) {
+                $bits[] = (string) $year;
+            }
+            if ('' !== $score) {
+                $bits[] = '评分 ' . $score . '/10';
+            }
+            $description = implode(' · ', $bits) . ' — 动画档案与短评。';
+        }
+        if ('' === $description) {
+            $description = (string) get_the_title($post_id);
+        }
+    } elseif (is_post_type_archive('album')) {
+        $description = '按主题整理的相册，记录走过的地方。';
+    } elseif (is_post_type_archive('anime')) {
+        $description = '看过的动画档案与评分。';
+    } elseif (is_home()) {
+        $description = '写下的文章与笔记。';
+    }
+
+    if ('' === trim($description)) {
+        $description = (string) get_option('blogdescription');
+    }
+
+    // 自动摘要会带上 "[…]" 这类尾标，且可能残留 HTML 实体，先剥标签再解码后去掉。
+    $description = wp_strip_all_tags($description);
+    $description = html_entity_decode($description, ENT_QUOTES, 'UTF-8');
+    $description = trim((string) preg_replace('/\s+/u', ' ', $description));
+    $description = trim(str_replace(['[…]', '[...]', '…'], '', $description));
+    if ('' === $description) {
+        return;
+    }
+
+    $description = function_exists('mb_substr') ? mb_substr($description, 0, 160) : substr($description, 0, 160);
+
+    echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+}
+add_action('wp_head', 'duola_pocket_meta_description', 2);
+
 function duola_pocket_turbo_script_attributes(string $tag, string $handle): string
 {
     $single_run_handles = [
@@ -115,6 +189,34 @@ function duola_pocket_turbo_script_attributes(string $tag, string $handle): stri
     return $tag;
 }
 add_filter('script_loader_tag', 'duola_pocket_turbo_script_attributes', 10, 2);
+
+/**
+ * 给前端样式/脚本打上 data-turbo-track="reload"。
+ * 主题用 filemtime 做 ?ver= 版本号，但 Turbo 只比较带 data-turbo-track 的元素；
+ * 此前两边集合都为空 → 永远判定“未变化” → 部署新资源后站内跳转仍执行旧 CSS/JS，
+ * 只有硬刷新才更新。
+ */
+function duola_pocket_turbo_track_styles(string $tag, string $handle): string
+{
+    if (is_admin() || is_feed() || duola_pocket_is_wall_page() || str_contains($tag, 'data-turbo-track')) {
+        return $tag;
+    }
+
+    return str_replace('<link ', '<link data-turbo-track="reload" ', $tag);
+}
+add_filter('style_loader_tag', 'duola_pocket_turbo_track_styles', 10, 2);
+
+function duola_pocket_turbo_track_scripts(string $tag, string $handle): string
+{
+    // Turbo 本体不能带 track，否则它自身的版本一变就整页重载 Turbo。
+    if (is_admin() || is_feed() || duola_pocket_is_wall_page()
+        || 'duola-pocket-turbo' === $handle || str_contains($tag, 'data-turbo-track')) {
+        return $tag;
+    }
+
+    return str_replace('<script ', '<script data-turbo-track="reload" ', $tag);
+}
+add_filter('script_loader_tag', 'duola_pocket_turbo_track_scripts', 10, 2);
 
 function duola_pocket_register_site_settings(): void
 {
@@ -283,7 +385,7 @@ add_filter('template_include', 'duola_pocket_wall_template');
 function duola_pocket_wall_document_title(array $title): array
 {
     if (duola_pocket_is_wall_page()) {
-        $title['title'] = 'wall ddw';
+        $title['title'] = '留言板';
     }
     return $title;
 }

@@ -1248,13 +1248,13 @@
   }
 
   .home-music-controls .home-music-btn {
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .home-music-play {
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   .home-music-play svg {
@@ -1263,8 +1263,8 @@
   }
 
   .home-music-extras .home-music-btn {
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   /* Give the grip a comfortable tap target on touch screens. */
@@ -1303,18 +1303,18 @@
   }
 
   .home-music-controls .home-music-btn {
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .home-music-play {
-    width: 2.2rem;
-    height: 2.2rem;
+    width: 2.3rem;
+    height: 2.3rem;
   }
 
   .home-music-extras .home-music-btn {
-    width: 1.55rem;
-    height: 1.55rem;
+    width: 2rem;
+    height: 2rem;
   }
 }
 

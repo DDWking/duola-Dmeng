@@ -48,21 +48,46 @@
   const collage = document.querySelector('[data-memory-collage]');
   if (collage && !reducedMotion && window.matchMedia('(pointer: fine)').matches) {
     const notes = Array.from(collage.querySelectorAll('[data-collage-note]'));
-    collage.addEventListener('pointermove', (event) => {
-      const bounds = collage.getBoundingClientRect();
-      const offsetX = (event.clientX - bounds.left) / bounds.width - 0.5;
-      const offsetY = (event.clientY - bounds.top) / bounds.height - 0.5;
+    // 缓存 rect 并在 rAF 里统一写样式。原来在 pointermove 里先读
+    // getBoundingClientRect() 再写 12 个元素的 CSS 变量，是典型的 layout thrashing。
+    let collageBounds = null;
+    let pointerX = 0;
+    let pointerY = 0;
+    let parallaxFrame = 0;
+
+    const measureCollage = () => { collageBounds = collage.getBoundingClientRect(); };
+
+    const applyParallax = () => {
+      parallaxFrame = 0;
+      if (!collageBounds) return;
+      const offsetX = (pointerX - collageBounds.left) / collageBounds.width - 0.5;
+      const offsetY = (pointerY - collageBounds.top) / collageBounds.height - 0.5;
       notes.forEach((note) => {
         const depth = Number(note.dataset.depth || 0.5);
         note.style.setProperty('--parallax-x', `${offsetX * depth * 22}px`);
         note.style.setProperty('--parallax-y', `${offsetY * depth * 16}px`);
       });
+    };
+
+    collage.addEventListener('pointermove', (event) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      if (!collageBounds) measureCollage();
+      if (!parallaxFrame) parallaxFrame = window.requestAnimationFrame(applyParallax);
     });
+    collage.addEventListener('pointerenter', measureCollage);
     collage.addEventListener('pointerleave', () => {
+      collageBounds = null;
       notes.forEach((note) => {
         note.style.setProperty('--parallax-x', '0px');
         note.style.setProperty('--parallax-y', '0px');
       });
+    });
+
+    window.addEventListener('resize', measureCollage);
+    cleanupCallbacks.push(() => {
+      if (parallaxFrame) window.cancelAnimationFrame(parallaxFrame);
+      window.removeEventListener('resize', measureCollage);
     });
   }
 

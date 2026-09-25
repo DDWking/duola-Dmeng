@@ -75,7 +75,7 @@ $has_more_home_photos = count($home_photos) > 4;
 <section class="scrapbook-home" aria-label="首页">
     <div class="paper-wash" aria-hidden="true"></div>
     <div class="stay-alive-scene">
-        <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" alt="Stay alive!">
+        <img class="stay-alive" src="<?php echo esc_url($asset_url . 'stay-alive.webp'); ?>" width="1159" height="800" alt="Stay alive!" fetchpriority="high" decoding="async">
         <span class="stay-alive-petal stay-alive-petal-one" aria-hidden="true"></span>
         <span class="stay-alive-petal stay-alive-petal-two" aria-hidden="true"></span>
         <span class="stay-alive-petal stay-alive-petal-three" aria-hidden="true"></span>
@@ -142,7 +142,7 @@ $has_more_home_photos = count($home_photos) > 4;
                         data-depth="<?php echo esc_attr(number_format(0.35 + ($index % 3) * 0.2, 2)); ?>"
                         data-lightbox-image="<?php echo esc_url($photo['url']); ?>"
                         data-lightbox-srcset="<?php echo esc_attr(wp_get_attachment_image_srcset($photo['id'], 'duola-lightbox') ?: ''); ?>"
-                        data-lightbox-sizes="(max-width: 620px) 82vw, 82vw"
+                        data-lightbox-sizes="min(82vw, 1340px)"
                         data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
                         data-lightbox-title="<?php echo esc_attr($photo['title']); ?>"
                         data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"

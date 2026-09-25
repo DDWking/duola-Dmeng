@@ -31,7 +31,7 @@ while (have_posts()) : the_post();
             <button class="photo-button" type="button" style="--photo-ratio: <?php echo esc_attr(number_format($photo_ratio, 4, '.', '')); ?>; --photo-basis: <?php echo esc_attr($photo_basis); ?>px;"
                 data-lightbox-image="<?php echo esc_url($full); ?>"
                 data-lightbox-srcset="<?php echo esc_attr(wp_get_attachment_image_srcset($photo['id'], 'duola-lightbox') ?: ''); ?>"
-                data-lightbox-sizes="(max-width: 620px) 82vw, 82vw"
+                data-lightbox-sizes="min(82vw, 1340px)"
                 data-lightbox-key="<?php echo esc_attr($photo['id']); ?>"
                 data-lightbox-caption="<?php echo esc_attr($photo['caption']); ?>"
                 data-lightbox-headline="<?php echo esc_attr($settings['headline'] ?? ''); ?>"
